@@ -1,0 +1,57 @@
+<<filename:l:app/code/local/[Prefix]/[Module]/etc:"config">>
+<<var:n:module prefix => [Prefix]>>
+<<var:l:module prefix => [prefix]>>
+<<var:c:module name => [Module]>>
+<<var:l:module name => [module]>>
+
+<?xml version="1.0"?>
+<config>
+	<modules> <!-- define version and optionally, define dependencies -->
+		<[Prefix]_[Module]>
+			<version><<var:n:extension version>></version>
+		</[Prefix]_[Module]>
+	</modules>
+	<global> <!-- defines module classes for helpers, models, and blocks -->
+		<models> <!-- "Mage::getModel('[prefix][module]/modelname');" instead of " new [Prefix]_[Module]_Model_Modelname();" -->
+			<[prefix][module]>
+				<class>[Prefix]_[Module]_Model</class> 
+				<!-- define the namespace of the class name, 
+				eg: for a class called "Object", the full class name would be "[Prefix]_[Module]_Model_Object"
+				Filepath: [Prefix]/[Module]/Model/Object.php
+				Access in code: Mage::getModel('[prefix][module]/object'); -->
+			</[prefix][module]>
+		</models>
+		<blocks>
+			<[prefix][module]>
+				<class>[Prefix]_[Module]_Block</class>
+			</[prefix][module]>
+		</blocks>
+		<helpers> <!-- "$this->helper('[prefix][module]')->someMethod();" -->
+			<[prefix][module]>
+				<class>[Prefix]_[Module]_Helper</class>
+				<!-- define the namespace of the class name, 
+				eg: for a class called "Doit", the full class name would be "[Prefix]_[Module]_Helper_Doit"
+				Filepath: [Prefix]/[Module]/Helper/Doit.php
+				Access in code: Mage::helper('[prefix][module]/doit'); -->
+			</[prefix][module]>
+		</helpers>
+	</global>
+	<frontend><!-- define layout handler(s) and translate file(s) -->
+		<layout>
+			<updates>
+				<[prefix][module]>
+					<file>[prefix]_[module].xml</file>
+				</[prefix][module]>
+			</updates>
+		</layout>
+		<translate>
+			<modules>
+				<[Prefix]_[Module]>
+					<files>
+						<default>[Prefix]_[Module].csv</default>
+					</files>
+				</[Prefix]_[Module]>
+			</modules>
+		</translate>
+	</frontend>
+</config>
