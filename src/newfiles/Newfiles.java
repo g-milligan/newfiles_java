@@ -167,8 +167,111 @@ public class Newfiles {
                         //show the chosen template
                         File[] files=show_template_ls(tIndex, mTemplateList.get(tIndex));
                         //wait for next input (select template files to build)
-                        String[] buildFiles=getNextUsingCommand("ALL files: enter ... EXCLUDE files: - #1 #2 ... INCLUDE files: #1 #2...", "files?");
-                    
+                        String[] fileArgs=getNextUsingCommand("...ALL FILES: [enter] ... EXCLUDE FILES: - #1 #2 ... INCLUDE FILES: #1 #2...", "which files?");
+                        //init variables to hold the file indexes exclude/include
+                        String includeOrExclude="";
+                        ArrayList<Integer> fileIndexList = new ArrayList<Integer>();
+                        boolean isExclude=false;
+                        //if the user opted out of building ALL files
+                        if(fileArgs!=null){
+                            if(fileArgs.length>0){
+                                //for each build-file argument
+                                for(int f=0;f<fileArgs.length;f++){
+                                    //if first argument
+                                    if(f==0){
+                                        includeOrExclude="";
+                                        //get the first argument string
+                                        String firstArg=fileArgs[f].trim();
+                                        //if first argument starts with minus symbol
+                                        if(firstArg.indexOf("-")==0){
+                                            isExclude=true;
+                                            //if the first argument contains more than just the minus symbol
+                                            if(firstArg.length()>1){
+                                                //remove minus symbol from first argument
+                                                fileArgs[f]=fileArgs[f].substring("-".length());
+                                            }else{
+                                                //first argument is JUST the minus symbol 
+                                                fileArgs[f]="";
+                                            }
+                                        }else{
+                                            if(firstArg.indexOf("\\*")==0){break;}
+                                        }
+                                    }
+                                    //if this argument string (that represents a file index) is not blank
+                                    String arg=fileArgs[f].trim();
+                                    if(arg.length()>0){
+                                        try{
+                                            //if arg starts with #
+                                            if(arg.indexOf("#")==0){
+                                                //remove # from the start of the arg
+                                                arg=arg.substring(1);
+                                            }
+                                            //try to parse the input into an integer file index
+                                            int argInt=Integer.parseInt(arg);
+                                            //if this index was NOT already added to the list
+                                            if(!fileIndexList.contains(argInt)){
+                                                //if this argument is NOT below zero (in range)
+                                                if(argInt>-1){
+                                                    //if this argument is NOT above highest file index (in range)
+                                                    if(argInt<files.length){
+                                                        fileIndexList.add(argInt);
+                                                        //if not the first index
+                                                        if(includeOrExclude.length()>0){
+                                                            includeOrExclude+=", ";
+                                                        }else{
+                                                            //first file index
+                                                            includeOrExclude+="(";
+                                                        }
+                                                        //add file index to the list
+                                                        includeOrExclude+=""+argInt;
+                                                    }
+                                                }
+                                            }
+                                        } catch (NumberFormatException e) {}
+                                    }
+                                }
+                            }
+                        }
+                        //init a list of files to include into the template build
+                        ArrayList<File> includeFiles = new ArrayList<File>();                       
+                        //loop through each File[] files and include the appropriate files into includeFiles
+                        for(int f=0;f<files.length;f++){
+                            //if including all files
+                            if(fileIndexList.size()<1){
+                                includeFiles.add(files[f]);
+                            }else{
+                                //NOT including all of the template files...
+                                //if this file is NOT one of the excluded files
+                                if(isExclude&&!fileIndexList.contains(f)){
+                                    //include this file
+                                    includeFiles.add(files[f]);
+                                }else{
+                                    //if this file IS one of the included files
+                                    if(!isExclude&&fileIndexList.contains(f)){
+                                        //include this file
+                                        includeFiles.add(files[f]);
+                                    }
+                                }
+                            }
+                        }
+                        //if no included or excluded files
+                        if(fileIndexList.size()<1){
+                            includeOrExclude=" all-files(*)\n";
+                        }else{
+                            //if numbers were excluded
+                            if(isExclude){
+                                includeOrExclude=" excluded-files"+includeOrExclude+")\n";
+                            }else{
+                                //included numbers
+                                includeOrExclude=" included-files"+includeOrExclude+")\n";
+                            }
+                        }
+                        //print the include/exclude/all message
+                        System.out.println(includeOrExclude);
+                        
+                        //*** parse the included template files in includeFiles
+                        
+                        
                         //*** mUseTemplateIndex=-1;
                     }else{
                         //index too high out of range
