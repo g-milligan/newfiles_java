@@ -135,6 +135,8 @@ public class Newfiles {
     }
     //use one of the available templates
     private static void use(String[] args){
+        //clear previous use template index (if any)
+        mUseTemplateIndex=-1;
         //load the template list, if not already loaded
         loadTemplateList();
         //if there are any templates
@@ -269,7 +271,7 @@ public class Newfiles {
                         //print the include/exclude/all message
                         System.out.println(includeOrExclude);
                         
-                        //*** parse the included template files in includeFiles
+                        //*** parse the included template files in includeFiles (use a new java class?)
                         
                         
                         //*** mUseTemplateIndex=-1;
