@@ -15,6 +15,7 @@ public class Newfiles {
     private static String mTemplatesRoot; //the root directory where all templates are stored
     private static String mTargetDir; //the target directory where the new files will be generated (current console directory)
     private static String mBatchFilePath; //the path to the batch file
+    private static String mBatchFileName; //the name of the batch file... also the key command to run this app, eg: "nf"
     private static ArrayList<String> mTemplateList; //list of folder paths for each template
     //list of commands (the commands can change, but their index position should NOT change)
     private static final String[] mCommands = 
@@ -30,16 +31,21 @@ public class Newfiles {
         "show a list of available templates, ie: \"nf ls\"",
         "use a template based on its number (starts input process), eg: \"nf use 3\"",
         "show help for available commands, eg: \"nf\" or \"nf help\" or \"nf help ls\"",
-        "stop entering commands... exit app, eg: \"nf end\""
+        "exit app, eg: \"nf end\""
     };
+    
+    private static int mUseTemplateIndex; //the integer number of the current template being used
+    
     //do something depending on the integer
     private static void doSomething(int doWhatInt, String[] args){
         boolean isEnd=false;
+        String cmdLabel=mBatchFileName;
         switch(doWhatInt){
             case 0: //0: show a list of available templates
                 ls();
                 break; 
             case 1: //1: use a template based on its number (starts input process)
+                use(args);
                 break;
             case 2: //2: show help for available commands
                 help(args);
@@ -53,25 +59,27 @@ public class Newfiles {
         }
         if(!isEnd){
             //the user can enter another command
-            waitForNextCommand();  
+            waitForNextCommand(cmdLabel);  
         }
     }
     //prompt the user for the next command
     private static void waitForNextCommand(){
+        waitForNextCommand(mBatchFileName);
+    }
+    //prompt the user for the next command
+    private static void waitForNextCommand(String cmdLabel){
         //prompt for next command
-        System.out.print("end/next command>> ");
+        System.out.print(" " + cmdLabel + " >> ");
         try{
             //accept next input from user
             BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
             String line = bufferRead.readLine();
             //parse the line input
             line=line.trim();
-            File batchFile = new File(mBatchFilePath);
-            String batchFileName = batchFile.getName();
             //if the line starts with "nf "
-            if(line.toLowerCase().indexOf(batchFileName+" ")==0){
+            if(line.toLowerCase().indexOf(mBatchFileName+" ")==0){
                 //strip off the starting "nf "
-                line=line.substring((batchFileName+" ").length());
+                line=line.substring((mBatchFileName+" ").length());
             }
             //if the line still has a space
             String doWhat=line;
@@ -99,10 +107,104 @@ public class Newfiles {
             e.printStackTrace();
         }
     }
+    //prompt the user for the next command (related to building out a template)
+    private static String[] getNextUsingCommand(String cmdLabel, String prompt){
+        String[] args = null;
+        //prompt for next command
+        System.out.print(" " + cmdLabel + "\n\n " + mBatchFileName + "/" + mCommands[1] + "/" + mUseTemplateIndex + " | " + prompt + " >> ");
+        try{
+            //accept next input from user
+            BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
+            String line = bufferRead.readLine();
+            //parse the line input
+            line=line.trim();
+            if(line.length()>0){
+                //split the line up into an arg String[]
+                args = line.split(" ");
+            }
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+        }
+        return args;
+    }
     private static void invalidCommandMsg(String invalidDoWhat){
         System.out.println("\nInvalid command, '"+invalidDoWhat+"'. \nType '" + mCommands[2] + "' for a list of valid commands.\n");
         //the user can enter another command
         waitForNextCommand();  
+    }
+    //use one of the available templates
+    private static void use(String[] args){
+        //load the template list, if not already loaded
+        loadTemplateList();
+        //if there are any templates
+        if(mTemplateList.size()>0){
+            if(args.length>0){
+                int tIndex=-1;
+                //if the first argument is the "use" command
+                String templateIndex=args[0].trim();
+                if(templateIndex.equals(mCommands[1])){
+                    //if there is a second argument
+                    if(args.length>1){
+                        //get the second argument
+                        templateIndex=args[1].trim();
+                    }
+                }
+                try{
+                    //try to parse the input into an integer index position
+                    tIndex=Integer.parseInt(templateIndex);
+                } catch (NumberFormatException e) {
+                    System.out.println("\""+templateIndex+"\" invalid integer index.");
+                }
+                //if a valid integer was chosen
+                if(tIndex>-1){
+                    //if the integer is within the range of the template indexes
+                    if(tIndex<mTemplateList.size()){
+                        //set the index of the template being used
+                        mUseTemplateIndex=tIndex;
+                        //show template header
+                        System.out.println("  USING: ");
+                        //show the chosen template
+                        File[] files=show_template_ls(tIndex, mTemplateList.get(tIndex));
+                        //wait for next input (select template files to build)
+                        String[] buildFiles=getNextUsingCommand("ALL files: enter ... EXCLUDE files: - #1 #2 ... INCLUDE files: #1 #2...", "files?");
+                    
+                        //*** mUseTemplateIndex=-1;
+                    }else{
+                        //index too high out of range
+                        System.out.println("\""+templateIndex+"\" is too high. No template matched (don't confuse template index with file index).");
+                    }
+                }
+            }
+        }else{
+            //no templates available...
+            System.out.println("There are no templates");
+            System.out.println("Your setup looks for templates in: ");
+            System.out.println(mTemplatesRoot);
+            System.out.println("A sub directory under this folder (with at least one file) is considered a template.");
+        }
+    }
+    //show a single template director and listing
+    private static File[] show_template_ls(int tIndex, String templateFolder){
+        //get the template root file object
+        File temRoot = new File(templateFolder);
+        //get just the template folder without the root path
+        templateFolder=templateFolder.substring(mTemplatesRoot.length()+1);
+        //show the template folder
+        System.out.println("  " + tIndex + "\t  " + templateFolder +"\n");
+        //for each file inside this template
+        File[] subFiles = temRoot.listFiles();
+        for(int f=0;f<subFiles.length;f++){
+            //if not a directory
+            if(!subFiles[f].isDirectory()){
+                //print the file item
+                System.out.println("\t\t  " +f+ "\t  " + subFiles[f].getName());
+            }
+        }
+        //add extra space
+        System.out.println();
+        //return the file list for this template
+        return subFiles;
     }
     //list the available templates
     private static void ls(){
@@ -110,21 +212,12 @@ public class Newfiles {
         loadTemplateList();
         //if there are any templates
         if(mTemplateList.size()>0){
-            System.out.println("\n  TEMPLATE LIST: --> " + mTemplatesRoot + "\n");
+            System.out.println("\n  TEMPLATE LIST: --> " + mTemplatesRoot + File.separator + "..\n");
             //for each template
             for(int t=0; t<mTemplateList.size();t++){
                 System.out.println("-------------------------------");
-                System.out.println("  " + t + "\t  " + mTemplateList.get(t)+"\n");
-                //for each file inside this template
-                File temRoot = new File(mTemplateList.get(t));
-                File[] subFiles = temRoot.listFiles();
-                for(int f=0;f<subFiles.length;f++){
-                    //if not a directory
-                    if(!subFiles[f].isDirectory()){
-                        System.out.println("\t\t  " +f+ "\t  " + subFiles[f].getName());
-                    }
-                }
-                System.out.println();
+                //show this listing for this template
+                show_template_ls(t, mTemplateList.get(t));
             }
         }else{
             //no templates available...
@@ -171,32 +264,35 @@ public class Newfiles {
     }
     //add a directory to the template list IF it contains at least one file
     private static void maybeAddDirToTemplateList(File dir){
-        boolean dirHasFile=false;
-        ArrayList<String> templateFiles = new ArrayList<String>();
-        //for each direct child under dir
-        File[] subFiles=dir.listFiles();
-        for(int f=0;f<subFiles.length;f++){
-            //if this direct child under dir is a directory
-            if(subFiles[f].isDirectory()){
-                //add this directory to the template list IF it contains at least one file
-                maybeAddDirToTemplateList(subFiles[f]);
-            }else{
-                //this is NOT a directory, it's a file...
-                
-                //since dir contains at least one file, it should be added to mTemplateList
-                dirHasFile=true;
-                //add this file to the list of files under this directory
-                templateFiles.add(subFiles[f].getPath());
+        //if the directory does NOT start with _ (you can disable a template sub-directory by adding _ before its name)
+        if(dir.getName().indexOf("_")!=0){
+            boolean dirHasFile=false;
+            ArrayList<String> templateFiles = new ArrayList<String>();
+            //for each direct child under dir
+            File[] subFiles=dir.listFiles();
+            for(int f=0;f<subFiles.length;f++){
+                //if this direct child under dir is a directory
+                if(subFiles[f].isDirectory()){
+                    //add this directory to the template list IF it contains at least one file
+                    maybeAddDirToTemplateList(subFiles[f]);
+                }else{
+                    //this is NOT a directory, it's a file...
+
+                    //since dir contains at least one file, it should be added to mTemplateList
+                    dirHasFile=true;
+                    //add this file to the list of files under this directory
+                    templateFiles.add(subFiles[f].getPath());
+                }
             }
-        }
-        //if dir contained at least one file
-        if(dirHasFile){
-            //get the directory path
-            String dirPath=dir.getPath();
-            //if this directory path is NOT already listed in mTemplateList
-            if(!mTemplateList.contains(dirPath)){
-                //add the directory path to mTemplateList
-                mTemplateList.add(dirPath);
+            //if dir contained at least one file
+            if(dirHasFile){
+                //get the directory path
+                String dirPath=dir.getPath();
+                //if this directory path is NOT already listed in mTemplateList
+                if(!mTemplateList.contains(dirPath)){
+                    //add the directory path to mTemplateList
+                    mTemplateList.add(dirPath);
+                }
             }
         }
     }
@@ -208,19 +304,30 @@ public class Newfiles {
         mTemplatesRoot = args[0];
         mTargetDir = args[1]; 
         mBatchFilePath = args[2];
+        File batchFile = new File(mBatchFilePath);
+        mBatchFileName = batchFile.getName();
+        mUseTemplateIndex=-1;
         start(args);
     }
     //get the index position of this argument command
     private static int getDoWhatInt(String cmdStr){
         int doWhatInt=-1; cmdStr=cmdStr.toLowerCase();
-        //for each command
-        for (int i=0;i<mCommands.length;i++){
-            //if this is the current command
-            if(mCommands[i].toLowerCase().equals(cmdStr)){
-                //set the command's index number
-                doWhatInt=i;
-                break;
+        //if command is NOT blank
+        if(!cmdStr.trim().equals("")){
+            //for each command
+            for (int i=0;i<mCommands.length;i++){
+                //if this is the current command
+                if(mCommands[i].toLowerCase().equals(cmdStr)){
+                    //set the command's index number
+                    doWhatInt=i;
+                    break;
+                }
             }
+        }else{
+            //command is blank...
+            
+            //use the help command by default
+            doWhatInt=2;
         }
         return doWhatInt;
     }
