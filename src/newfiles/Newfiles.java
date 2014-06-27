@@ -17,6 +17,7 @@ public class Newfiles {
     private static String mBatchFilePath; //the path to the batch file
     private static String mBatchFileName; //the name of the batch file... also the key command to run this app, eg: "nf"
     private static ArrayList<String> mTemplateList; //list of folder paths for each template
+    private static BuildTemplate mBuild; //the object class used to build out a template
     //list of commands (the commands can change, but their index position should NOT change)
     private static final String[] mCommands = 
     {
@@ -270,11 +271,12 @@ public class Newfiles {
                         }
                         //print the include/exclude/all message
                         System.out.println(includeOrExclude);
-                        
-                        //*** parse the included template files in includeFiles (use a new java class?)
-                        
-                        
-                        //*** mUseTemplateIndex=-1;
+                        //set the files to use during the template-build
+                        mBuild.useFiles(includeFiles);
+                        //build the generated output for the includeFiles
+                        mBuild.build();
+                        //reset the use template index
+                        mUseTemplateIndex=-1;
                     }else{
                         //index too high out of range
                         System.out.println("\""+templateIndex+"\" is too high. No template matched (don't confuse template index with file index).");
@@ -412,6 +414,7 @@ public class Newfiles {
         File batchFile = new File(mBatchFilePath);
         mBatchFileName = batchFile.getName();
         mUseTemplateIndex=-1;
+        mBuild = new BuildTemplate(mTargetDir, mBatchFileName); //object used to build the given template files
         start(args);
     }
     //get the index position of this argument command
