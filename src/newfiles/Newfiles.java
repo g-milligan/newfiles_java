@@ -36,6 +36,7 @@ public class Newfiles {
     };
     
     private static int mUseTemplateIndex; //the integer number of the current template being used
+    private final static int mNumArgsFromBatch=3; //the number of arguments that get passed to this app automatically
     
     //do something depending on the integer
     private static void doSomething(int doWhatInt, String[] args){
@@ -407,15 +408,48 @@ public class Newfiles {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //init key values
-        mTemplatesRoot = args[0];
-        mTargetDir = args[1]; 
-        mBatchFilePath = args[2];
-        File batchFile = new File(mBatchFilePath);
-        mBatchFileName = batchFile.getName();
-        mUseTemplateIndex=-1;
-        mBuild = new BuildTemplate(mTargetDir, mBatchFileName); //object used to build the given template files
-        start(args);
+        //batch file needs to send this app:
+        //1) the full path to where the template directories are stored
+        //2) the current directory path of the console shell 
+        //3) the path to the batch file that calls the java program
+        //----------------- from the user ------------------------------
+        //4) any additional arguments that are entered by the shell user
+        
+        //...if calling the JAR file correctly (passing the arguments)
+        if(args!=null&&args.length>=mNumArgsFromBatch){
+            //init key values
+            mTemplatesRoot = args[0];
+            mTargetDir = args[1]; 
+            mBatchFilePath = args[2];
+            File batchFile = new File(mBatchFilePath);
+            mBatchFileName = batchFile.getName();
+            mUseTemplateIndex=-1;
+            mBuild = new BuildTemplate(mTargetDir, mBatchFileName); //object used to build the given template files
+            //start the app
+            start(args);
+        }else{
+            //print the troubleshooting setup message
+            System.out.println("ERROR -- The correct number of values MUST be passed to the .jar application. ");
+            System.out.println("For example, if you are using a windows machine... ");
+            System.out.println("A batch file needs to call the .jar file while automatically passing the following arguments: \n");
+            System.out.println("1) the full path to the root template directory ");
+            System.out.println(" \tExample: C:\\Users\\username\\newfiles\\templates");
+            System.out.println("2) the current directory path of the console shell ");
+            System.out.println(" \tExample: %cd%");
+            System.out.println("3) the path to the batch file that calls the java program ");
+            System.out.println(" \tExample: %~n0");
+            System.out.println("N) any aditional parameters that you enter into the console ");
+            System.out.println(" \tExample: %* \n");
+            System.out.println("On windows, you would add your .bat (batch) file to your system's environment variables path. This would allow you to enter commands in any command line directory.");
+            System.out.println("For example, IF your batch file path is... ");
+            System.out.println("C:\\Users\\username\\newfiles\\runbat\\nf.bat");
+            System.out.println("... then you would have to add \"C:\\Users\\username\\newfiles\\runbat\" to your system's PATH variable.");
+            System.out.println("\nNote: your .bat (batch) file name determines the special command to evoke the application.");
+            System.out.println("For example, IF your .bat (batch) file is called \"nf.bat\", then you can use commands like \"nf ls\".\n");
+            System.out.println("Below is an example of what a .bat (batch) file should look like: \n");
+            System.out.println("@echo off");
+            System.out.println("java -jar \"C:\\Users\\username\\newfiles\\jar\\newfiles.jar\" \"C:\\Users\\username\\newfiles\\templates\" %cd% %~n0 %*\n\n");
+        }
     }
     //get the index position of this argument command
     private static int getDoWhatInt(String cmdStr){
@@ -441,44 +475,30 @@ public class Newfiles {
     }
     //application main functionality entry point
     private static void start(String[] args){
-        int numArgsFromBatch=3; //the number of arguments that the batch file is responsible for sending to the jar application
-        //if there was at least a doWhat command (3rd argument, 1st argument that doesn't come from batch file)
-        if(args.length>=numArgsFromBatch){
-            //what basic command was given?
-            String doWhat=mCommands[2]; //show help command by default
-            //if the user entered any arguments at all(not just "nf")
-            if(args.length>numArgsFromBatch){
-                //get the first argument as the doWhat command
-                doWhat=args[numArgsFromBatch];
-            }
-            int doWhatInt=getDoWhatInt(doWhat);
-            //if the command was found in the list of commands
-            if(doWhatInt>-1){
-                //additional arguments (after the doWhat command)
-                String[] additionalArgs=new String[args.length-numArgsFromBatch];
-                if(args.length>numArgsFromBatch){
-                    //for each additional arg
-                    for(int a=numArgsFromBatch;a<args.length;a++){
-                        //set the additional arg to the array
-                        additionalArgs[a-numArgsFromBatch]=args[a];
-                    }
+        //what basic command was given?
+        String doWhat=mCommands[2]; //show help command by default
+        //if the user entered any arguments at all(not just "nf")
+        if(args.length>mNumArgsFromBatch){
+            //get the first argument as the doWhat command
+            doWhat=args[mNumArgsFromBatch];
+        }
+        int doWhatInt=getDoWhatInt(doWhat);
+        //if the command was found in the list of commands
+        if(doWhatInt>-1){
+            //additional arguments (after the doWhat command)
+            String[] additionalArgs=new String[args.length-mNumArgsFromBatch];
+            if(args.length>mNumArgsFromBatch){
+                //for each additional arg
+                for(int a=mNumArgsFromBatch;a<args.length;a++){
+                    //set the additional arg to the array
+                    additionalArgs[a-mNumArgsFromBatch]=args[a];
                 }
-                //load the additional parameters into an array
-                doSomething(doWhatInt, additionalArgs);
-            }else{
-                //doWhat command didn't match any valid commands...
-                invalidCommandMsg(doWhat);
             }
+            //load the additional parameters into an array
+            doSomething(doWhatInt, additionalArgs);
         }else{
-            //the batch file did NOT provide enough arguments...
-            //batch file needs to send this app:
-            //1) the full path to where the template directories are stored
-            //2) the current directory path of the console shell 
-            //3) the path to the batch file that calls the java program
-            //----------------- from the user ------------------------------
-            //4) any additional arguments that are entered by the shell user
-            
-            //*** show help
+            //doWhat command didn't match any valid commands...
+            invalidCommandMsg(doWhat);
         }
     }
 }
