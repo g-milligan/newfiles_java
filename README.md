@@ -14,20 +14,22 @@ NewFiles reguires Java 1.7 or higher, to check your version of Java, open Termin
 ```
 java -version
 ```
-
 _Grab the latest version of Java SDK here_
-
+------------------------------------------
 http://www.oracle.com/technetwork/java/javase/downloads/index.html
-_Java Installation Info is here_
 
+_Java Installation Info is here_
+--------------------------------
 http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html
 
-1. Clone a copy of this repository
+============================================================================================
+
+Clone a copy of this repository
 ```
 git clone git@github.com:g-milligan/newfiles_java.git
 ```
 
-2. Create a shell script to run NewFiles. This example will use a myscripts folder within the users home folder
+Create a shell script to run NewFiles. This example will use a myscripts folder within the users home folder
 ```
 cd ~
 mkdir myscripts
@@ -52,7 +54,7 @@ we recommend creating a symlink as well
 ln -s newfiles.sh nf
 ```
 
-3. Now all you need to do is add NewFiles to your bash path so you can run it from anywhere.
+Now all you need to do is add NewFiles to your bash path so you can run it from anywhere.
 open up .bash_profile in your home folder (or create it...)
 ```
 nano ~/.bash_profile
@@ -65,8 +67,8 @@ now run,
 ```
 . ~/.bash_profile
 ```
-You should now be able to run 'newfiles.sh' or 'nf' from whatever folder you happen to be in, now the fun stuff
+You should now be able to run 'newfiles.sh' or 'nf' from whatever folder you happen to be in, now the fun stuff...
 
-4. change directory to your Magento document root, run NewFiles, Build Modules!
+...change directory to your Magento document root, run NewFiles, Build Modules!
 
 
