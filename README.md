@@ -72,6 +72,7 @@ You should now be able to run 'newfiles.sh' or 'nf' from whatever folder you hap
 
 UNDER THE HOOD
 --------------
+```
   <<filename:uppercase:example output filename>>  Hi, <<var:capitalize:your name>> 
 
   ... so... you say your favorite color is <<var:uppercase:your favorite color>>? 
@@ -96,3 +97,4 @@ UNDER THE HOOD
   \<<filename:lowercase:sub/path:.\>> (your file will be placed in a 'sub/path' directory, but it's template file name will remain the same) 
 
   I hope this helps. Peace out. 
+```
