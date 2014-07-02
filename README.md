@@ -15,11 +15,9 @@ NewFiles reguires Java 1.7 or higher, to check your version of Java, open Termin
 java -version
 ```
 _Grab the latest version of Java SDK here_
-------------------------------------------
 http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 _Java Installation Info is here_
---------------------------------
 http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html
 
 ============================================================================================
