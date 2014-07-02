@@ -86,16 +86,16 @@ UNDER THE HOOD
   Here are some token examples (you may recognize them):.
   =============================
 
-  \<<var:capitalize:your name\>> 
-  \<<var:uppercase:your favorite color\>> 
-  \<<var:lowercase:a random adjective\>> 
+  <<var:capitalize:your name>> 
+  <<var:uppercase:your favorite color>> 
+  <<var:lowercase:a random adjective>> 
 
   Note, 'var' is NOT the only type of token you can put into a template file...  
   You can also define a template file's name or folder path within your project's directory. With...  
 
-  \<<filename:lowercase:file name\>> (you will be asked to enter the file name before the file is created from the template) 
-  \<<filename:lowercase:sub/path:file name\>> (your file will be placed in a 'sub/path' directory under your project root directory) 
-  \<<filename:lowercase:sub/path:.\>> (your file will be placed in a 'sub/path' directory, but it's template file name will remain the same) 
+  <<filename:lowercase:file name>> (you will be asked to enter the file name before the file is created from the template) 
+  <<filename:lowercase:sub/path:file name>> (your file will be placed in a 'sub/path' directory under your project root directory) 
+  <<filename:lowercase:sub/path:.>> (your file will be placed in a 'sub/path' directory, but it's template file name will remain the same) 
 
   I hope this helps. Peace out. 
 ```
