@@ -67,6 +67,6 @@ now run,
 ```
 You should now be able to run 'newfiles.sh' or 'nf' from whatever folder you happen to be in, now the fun stuff...
 
-...change directory to your Magento document root, run NewFiles, build modules! do it!
+...change directory to your Magento document root, run NewFiles, build modules!
 
 
