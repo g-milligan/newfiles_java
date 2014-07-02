@@ -72,6 +72,7 @@ You should now be able to run 'newfiles.sh' or 'nf' from whatever folder you hap
 
 UNDER THE HOOD
 --------------
+/runbat/templates/_ExampleTemplate/demofile.txt
 ```
   <<filename:uppercase:example output filename>>  Hi, <<var:capitalize:your name>> 
 
