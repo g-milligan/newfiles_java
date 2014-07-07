@@ -1,5 +1,6 @@
 package newfiles;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -24,20 +25,33 @@ public class Newfiles {
         "ls", //0: show a list of available templates, ie: "nf ls"
         "use", //1: use a template based on its number (starts input process), eg: "nf use 3"
         "help", //2: show help for available commands, eg: "nf" or "nf help" or "nf help ls"
-        "end" //3: stop entering commands for newfiles.jar... exit app, eg: "nf end"
+        "end", //3: stop entering commands for newfiles.jar... exit app, eg: "nf end"
+        "templates" //4: open the root templates directory file-system window
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
     {
-        "show a list of available templates, ie: \"nf ls\"",
-        "use a template based on its number (starts input process), eg: \"nf use 3\"",
-        "show help for available commands, eg: \"nf\" or \"nf help\" or \"nf help ls\"",
-        "exit app, eg: \"nf end\""
+        "show a list of available templates, ie: \"{nf} "+mCommands[0]+"\"",
+        "use a template based on its number (starts input process), eg: \"{nf} "+mCommands[1]+" 3\"",
+        "show help for available commands, eg: \"{nf} "+mCommands[2]+"\"",
+        "exit app, eg: \"{nf} "+mCommands[3]+"\"",
+        "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\""
     };
     
     private static int mUseTemplateIndex; //the integer number of the current template being used
     private final static int mNumArgsFromBatch=3; //the number of arguments that get passed to this app automatically
-    
+    //open up a direcctory window
+    private static void openDirWindow(String dirPath){
+        Desktop desktop = Desktop.getDesktop();
+        try {
+            File dirToOpen = new File(dirPath);
+            System.out.print(" opening... ");
+            desktop.open(dirToOpen);
+        } catch (IOException e) {
+            System.out.println("\nUh oh... failed to open directory --> " + dirPath);
+            System.out.println(e.getMessage()+"\n");
+        }
+    }
     //do something depending on the integer
     private static void doSomething(int doWhatInt, String[] args){
         boolean isEnd=false;
@@ -52,8 +66,11 @@ public class Newfiles {
             case 2: //2: show help for available commands
                 help(args);
                 break;
-            case 3: //4: stop entering commands for newfiles.jar... exit app
+            case 3: //3: stop entering commands for newfiles.jar... exit app
                 isEnd=true;
+                break;
+            case 4: //4: open the root templates directory file-system window
+                openDirWindow(mTemplatesRoot);
                 break;
             default:
                 //invalid command (int code)
@@ -301,12 +318,17 @@ public class Newfiles {
         //show the template folder
         System.out.println("  " + tIndex + "\t  " + templateFolder +"\n");
         //for each file inside this template
-        File[] subFiles = temRoot.listFiles();
+        File[] subFiles = temRoot.listFiles(); int fileIndex=0;
         for(int f=0;f<subFiles.length;f++){
             //if not a directory
             if(!subFiles[f].isDirectory()){
-                //print the file item
-                System.out.println("\t\t  " +f+ "\t  " + subFiles[f].getName());
+                //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
+                if(subFiles[f].getName().indexOf("_")!=0){
+                    //print the file item
+                    System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName());
+                    //next file index
+                    fileIndex++;
+                }
             }
         }
         //add extra space
@@ -341,8 +363,8 @@ public class Newfiles {
         System.out.println("\n");
         for (int h=0;h<mCmdHelpText.length;h++){
             //print the command and help text
-            System.out.println("  "+mCommands[h]+" \t-->\t "+mCmdHelpText[h]);
-            System.out.println("------------------------------------");
+            System.out.println("  "+mCommands[h]+" -->\t\t "+mCmdHelpText[h].replace("{nf}", mBatchFileName));
+            System.out.println("---------------------------------------------------------------------------------------------------");
         }
         System.out.println("\n");
     }
@@ -386,10 +408,13 @@ public class Newfiles {
                 }else{
                     //this is NOT a directory, it's a file...
 
-                    //since dir contains at least one file, it should be added to mTemplateList
-                    dirHasFile=true;
-                    //add this file to the list of files under this directory
-                    templateFiles.add(subFiles[f].getPath());
+                    //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
+                    if(subFiles[f].getName().indexOf("_")!=0){
+                        //since dir contains at least one file, it should be added to mTemplateList
+                        dirHasFile=true;
+                        //add this file to the list of files under this directory
+                        templateFiles.add(subFiles[f].getPath());
+                    }
                 }
             }
             //if dir contained at least one file
@@ -429,9 +454,10 @@ public class Newfiles {
             start(args);
         }else{
             //print the troubleshooting setup message
-            System.out.println("ERROR -- The correct number of values MUST be passed to the .jar application. ");
-            System.out.println("For example, if you are using a windows machine... ");
-            System.out.println("A batch file needs to call the .jar file while automatically passing the following arguments: \n");
+            System.out.println("Your java -jar file is working! ... BUT you MUST pass the correct number of values to the .jar application. ");
+            System.out.println("WINDOWS SETUP: ");
+            System.out.println("-------------- ");
+            System.out.println("A .bat batch file needs to call the .jar file while automatically passing the following arguments: \n");
             System.out.println("1) the full path to the root template directory ");
             System.out.println(" \tExample: C:\\Users\\username\\newfiles\\templates");
             System.out.println("2) the current directory path of the console shell ");
@@ -446,9 +472,9 @@ public class Newfiles {
             System.out.println("... then you would have to add \"C:\\Users\\username\\newfiles\\runbat\" to your system's PATH variable.");
             System.out.println("\nNote: your .bat (batch) file name determines the special command to evoke the application.");
             System.out.println("For example, IF your .bat (batch) file is called \"nf.bat\", then you can use commands like \"nf ls\".\n");
-            System.out.println("Below is an example of what a .bat (batch) file should look like: \n");
-            System.out.println("@echo off");
-            System.out.println("java -jar \"C:\\Users\\username\\newfiles\\jar\\newfiles.jar\" \"C:\\Users\\username\\newfiles\\templates\" %cd% %~n0 %*\n\n");
+            System.out.println("Below is an example of what a windows .bat (batch) file should look like: \n");
+            System.out.println("\t@echo off");
+            System.out.println("\tjava -jar \"C:\\Users\\username\\newfiles\\jar\\newfiles.jar\" \"C:\\Users\\username\\newfiles\\templates\" %cd% %~n0 %*\n\n");
         }
     }
     //get the index position of this argument command
