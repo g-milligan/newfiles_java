@@ -50,6 +50,7 @@ public class Newfiles {
             File dirToOpen = new File(dirPath);
             System.out.print(" opening... ");
             desktop.open(dirToOpen);
+            System.out.println("");
         } catch (IOException e) {
             System.out.println("\nUh oh... failed to open directory --> " + dirPath);
             System.out.println(e.getMessage()+"\n");
@@ -526,15 +527,24 @@ public class Newfiles {
     }
     private static String getSetupValues(String str, String platform){
         HashMap<String, String> vals = new HashMap<String, String>();
-        String batchExample="";
+        String batchExample="";String pathSetupExample="";
         //use different setup-values depending on the platform
         switch(platform){
             case "windows":
-                batchExample+="Note: your {bat_ext} {bat_name} file name determines the special command to evoke the application. \n";
-                batchExample+="For example, IF your {bat_ext} {bat_name} file is called \"nf{bat_ext}\", then you can use commands like \"nf ls\". \n\n";
-                batchExample+="Below is an example of what a {platform} {bat_ext} {bat_name} file should look like: \n\n";
+                //batch file example
                 batchExample+="\t@echo off\n";
                 batchExample+="\tjava -jar \"{jar_path}\" \"{templates_root}\" {current_dir} {bat_path_var} {attrs}\n\n";
+                //how to set up the path
+                pathSetupExample+="You will need to edit your system's environment variables to include your {bat_ext} file's parent directory. \n";
+                pathSetupExample+="These are example steps you can take to edit your environment variables: \n\n";
+                pathSetupExample+="\t1) Right click \"Computer\" in the start menu. Click \"Properties\" \n";
+                pathSetupExample+="\t2) \"Advanced systems settings\" \n";
+                pathSetupExample+="\t3) \"Environment Variables\" \n";
+                pathSetupExample+="\t4) Add the {bat_ext} file's parent folder, such as \"{bat_root}\" to the list in your PATH system variable \n\n";
+                pathSetupExample+="\t\"{bat_root}\"\n";
+                pathSetupExample+="\tThis is the folder path, for example, if your {bat_ext} file is at \"{bat_path}\" \n";
+                pathSetupExample+="\tHowever, it's your choice where to put the {bat_ext} file in your system. \n\n";
+                pathSetupExample+="\tIf you are still unsure how to edit your PATH, you should research other examples online. ";
                 //values
                 vals.put("{templates_root}", "C:\\Users\\username\\newfiles\\templates");
                 vals.put("{current_dir}", "%cd%");
@@ -548,11 +558,22 @@ public class Newfiles {
                 vals.put("{jar_path}", "C:\\Users\\username\\newfiles\\jar\\newfiles.jar");
                 break;
             case "mac":
-                batchExample+="Note: your {bat_ext} {bat_name} file name determines the special command to evoke the application. \n";
-                batchExample+="For example, IF your {bat_ext} {bat_name} file is called \"nf{bat_ext}\", then you can use commands like \"nf ls\". \n\n";
-                batchExample+="Below is an example of what a {platform} {bat_ext} {bat_name} file should look like: \n\n";
+                //batch file example
                 batchExample+="\t#!/bin/bash\n";
                 batchExample+="\tjava -jar \"{jar_path}\" \"{templates_root}\" $(pwd) {bat_path_var} {attrs}\n\n";
+                //how to set up the path
+                pathSetupExample+="You will need to make your {bat_name} file executable AND add it to your bash path. \n";
+                pathSetupExample+="These are example commands that will accomplish this: \n\n";
+                pathSetupExample+="\t1) make your {bat_ext} file executable (where \"nf{bat_ext}\" is the file name): \n\n";
+                pathSetupExample+="\t\tchmod +x nf{bat_ext}\n\n";
+                pathSetupExample+="\t2) create a symlink, to shorten the name of your file to just \"nf\": \n\n";
+                pathSetupExample+="\t\tln -s nf{bat_ext} nf\n\n";
+                pathSetupExample+="\t3) start editing your bash profile (you will need to add the nf symlink to your path)\n\n";
+                pathSetupExample+="\t\tnano ~/.bash_profile\n\n";
+                pathSetupExample+="\t4) insert the parent directory of your \"nf\" symlink into your bash profile\n\n";
+                pathSetupExample+="\t\texport PATH=/my/directory/path/:$PATH \n\n";
+                pathSetupExample+="\t5) run the bash file to save your changes\n\n";
+                pathSetupExample+="\t\t. ~/.bash_profile ";
                 //values
                 vals.put("{templates_root}", "/path/to/newfiles_java/runbat/templates");
                 vals.put("{current_dir}", "$(pwd)");
@@ -570,6 +591,7 @@ public class Newfiles {
         }
         //for each value to replace
         str=str.replace("{batch_script_example}", batchExample);
+        str=str.replace("{path_setup_example}", pathSetupExample);
         for (String token : vals.keySet()) {
             //replace the token with the platform-specific value
             str=str.replace(token, vals.get(token));
@@ -613,20 +635,22 @@ public class Newfiles {
             platformSetup+=" \tExample: {bat_path_var} \n";
             platformSetup+="N) any aditional parameters that you enter into the console \n";
             platformSetup+=" \tExample: {attrs} \n\n";
-            platformSetup+="On {platform}, you would add your {bat_ext} {bat_name} file to your system's environment variables path. This would allow you to enter commands in any command line directory. \n";
-            platformSetup+="For example, IF your {bat_name} file path is... \n";
-            platformSetup+="{bat_path} \n";
-            platformSetup+="... then you would have to add \"{bat_root}\" to your system's PATH variable. \n\n";
+            platformSetup+="Below is an example of what a {platform} {bat_ext} {bat_name} file should look like. \n";
+            platformSetup+="You can choose where to save this file, but call it name the file \"nf{bat_ext}\" for simplicity sake: \n\n";
             platformSetup+="{batch_script_example}";
+            platformSetup+="----------------------------------------\n";
+            platformSetup+="How will your console reference \"nf{bat_ext}\" when you type \"nf [some command]\" ? \n\n";
+            platformSetup+="{path_setup_example}";
+            platformSetup+="\n\n----------------------------------------\nFinally, if you type \"nf help\", you should see a list of help-commands. \nIf you do, your setup is complete. \n\n";
             //print windows setup directions
-            System.out.println("-------------- ");
-            System.out.println("WINDOWS SETUP: ");
-            System.out.println("-------------- ");
+            System.out.println("*========================================* ");
+            System.out.println("\tWINDOWS SETUP: ");
+            System.out.println("*========================================* ");
             System.out.println(getSetupValues(platformSetup, "windows"));
             //print mac setup directions
-            System.out.println("-------------- ");
-            System.out.println("MAC OSX SETUP: ");
-            System.out.println("-------------- ");
+            System.out.println("*========================================* ");
+            System.out.println("\tMAC OSX SETUP: ");
+            System.out.println("*========================================* ");
             System.out.println(getSetupValues(platformSetup, "mac"));
         }
     }
