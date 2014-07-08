@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -523,6 +524,58 @@ public class Newfiles {
             }
         }
     }
+    private static String getSetupValues(String str, String platform){
+        HashMap<String, String> vals = new HashMap<String, String>();
+        String batchExample="";
+        //use different setup-values depending on the platform
+        switch(platform){
+            case "windows":
+                batchExample+="Note: your {bat_ext} {bat_name} file name determines the special command to evoke the application. \n";
+                batchExample+="For example, IF your {bat_ext} {bat_name} file is called \"nf{bat_ext}\", then you can use commands like \"nf ls\". \n\n";
+                batchExample+="Below is an example of what a {platform} {bat_ext} {bat_name} file should look like: \n\n";
+                batchExample+="\t@echo off\n";
+                batchExample+="\tjava -jar \"{jar_path}\" \"{templates_root}\" {current_dir} {bat_path_var} {attrs}\n\n";
+                //values
+                vals.put("{templates_root}", "C:\\Users\\username\\newfiles\\templates");
+                vals.put("{current_dir}", "%cd%");
+                vals.put("{bat_ext}", ".bat");
+                vals.put("{bat_name}", "batch");
+                vals.put("{bat_path_var}", "%~n0");
+                vals.put("{bat_path}", "C:\\Users\\username\\newfiles\\runbat\\nf.bat");
+                vals.put("{bat_root}", "C:\\Users\\username\\newfiles\\runbat");
+                vals.put("{attrs}", "%*");
+                vals.put("{platform}", "Windows");
+                vals.put("{jar_path}", "C:\\Users\\username\\newfiles\\jar\\newfiles.jar");
+                break;
+            case "mac":
+                batchExample+="Note: your {bat_ext} {bat_name} file name determines the special command to evoke the application. \n";
+                batchExample+="For example, IF your {bat_ext} {bat_name} file is called \"nf{bat_ext}\", then you can use commands like \"nf ls\". \n\n";
+                batchExample+="Below is an example of what a {platform} {bat_ext} {bat_name} file should look like: \n\n";
+                batchExample+="\t#!/bin/bash\n";
+                batchExample+="\tjava -jar \"{jar_path}\" \"{templates_root}\" $(pwd) {bat_path_var} {attrs}\n\n";
+                //values
+                vals.put("{templates_root}", "/path/to/newfiles_java/runbat/templates");
+                vals.put("{current_dir}", "$(pwd)");
+                vals.put("{bat_ext}", ".sh");
+                vals.put("{bat_name}", "shell-script");
+                vals.put("{bat_path_var}", "\"dirname $0\"");
+                vals.put("{bat_path}", "/path/to/newfiles_java/runbat/newfiles.sh");
+                vals.put("{bat_root}", "/path/to/newfiles_java/runbat/");
+                vals.put("{attrs}", "\"$@\"");
+                vals.put("{platform}", "Mac OSX");
+                vals.put("{jar_path}", "/path/to/newfiles.jar");
+                break;
+            default:
+                break;
+        }
+        //for each value to replace
+        str=str.replace("{batch_script_example}", batchExample);
+        for (String token : vals.keySet()) {
+            //replace the token with the platform-specific value
+            str=str.replace(token, vals.get(token));
+        }
+        return str;
+    }
     /**
      * @param args the command line arguments
      */
@@ -549,26 +602,32 @@ public class Newfiles {
         }else{
             //print the troubleshooting setup message
             System.out.println("Your java -jar file is working! ... BUT you MUST pass the correct number of values to the .jar application. ");
+            //build out the generic directions (any platform) with tokens to replaced for specific platforms
+            String platformSetup = "";
+            platformSetup+="A {bat_ext} {bat_name} file needs to call the .jar file while automatically passing the following arguments: \n\n";
+            platformSetup+="1) the full path to the root template directory \n";
+            platformSetup+=" \tExample: {templates_root} \n";
+            platformSetup+="2) the current directory path of the console shell \n";
+            platformSetup+=" \tExample: {current_dir} \n";
+            platformSetup+="3) the path to the {bat_ext} {bat_name} file that calls the .jar java program \n";
+            platformSetup+=" \tExample: {bat_path_var} \n";
+            platformSetup+="N) any aditional parameters that you enter into the console \n";
+            platformSetup+=" \tExample: {attrs} \n\n";
+            platformSetup+="On {platform}, you would add your {bat_ext} {bat_name} file to your system's environment variables path. This would allow you to enter commands in any command line directory. \n";
+            platformSetup+="For example, IF your {bat_name} file path is... \n";
+            platformSetup+="{bat_path} \n";
+            platformSetup+="... then you would have to add \"{bat_root}\" to your system's PATH variable. \n\n";
+            platformSetup+="{batch_script_example}";
+            //print windows setup directions
+            System.out.println("-------------- ");
             System.out.println("WINDOWS SETUP: ");
             System.out.println("-------------- ");
-            System.out.println("A .bat batch file needs to call the .jar file while automatically passing the following arguments: \n");
-            System.out.println("1) the full path to the root template directory ");
-            System.out.println(" \tExample: C:\\Users\\username\\newfiles\\templates");
-            System.out.println("2) the current directory path of the console shell ");
-            System.out.println(" \tExample: %cd%");
-            System.out.println("3) the path to the batch file that calls the java program ");
-            System.out.println(" \tExample: %~n0");
-            System.out.println("N) any aditional parameters that you enter into the console ");
-            System.out.println(" \tExample: %* \n");
-            System.out.println("On windows, you would add your .bat (batch) file to your system's environment variables path. This would allow you to enter commands in any command line directory.");
-            System.out.println("For example, IF your batch file path is... ");
-            System.out.println("C:\\Users\\username\\newfiles\\runbat\\nf.bat");
-            System.out.println("... then you would have to add \"C:\\Users\\username\\newfiles\\runbat\" to your system's PATH variable.");
-            System.out.println("\nNote: your .bat (batch) file name determines the special command to evoke the application.");
-            System.out.println("For example, IF your .bat (batch) file is called \"nf.bat\", then you can use commands like \"nf ls\".\n");
-            System.out.println("Below is an example of what a windows .bat (batch) file should look like: \n");
-            System.out.println("\t@echo off");
-            System.out.println("\tjava -jar \"C:\\Users\\username\\newfiles\\jar\\newfiles.jar\" \"C:\\Users\\username\\newfiles\\templates\" %cd% %~n0 %*\n\n");
+            System.out.println(getSetupValues(platformSetup, "windows"));
+            //print mac setup directions
+            System.out.println("-------------- ");
+            System.out.println("MAC OSX SETUP: ");
+            System.out.println("-------------- ");
+            System.out.println(getSetupValues(platformSetup, "mac"));
         }
     }
     //get the index position of this argument command
