@@ -71,6 +71,19 @@ public class BuildTemplate {
             }
         }
     }
+    //export a package based on a template
+    public void export(){
+        if(mIncludeFiles!=null){
+            if(mIncludeFiles.size()>0){
+                //1) look through all of the mIncludeFiles and load the content/token/alias hash lookups
+                boolean atLeastOneToken = loadFilesData();
+                //2) accept user input for tokens (only if the token is used to build out the file path)
+                //*** userInputForTokens(atLeastOneToken);
+                //reset the include files
+                mIncludeFiles=null;
+            }
+        }
+    }
     //read the contents of a file into a string (default UTF 8 encoding) 
     private static String readFile(String path) throws IOException {
         return readFile(path, StandardCharsets.UTF_8);

@@ -26,7 +26,8 @@ public class Newfiles {
         "use", //1: use a template based on its number (starts input process), eg: "nf use 3"
         "help", //2: show help for available commands, eg: "nf" or "nf help" or "nf help ls"
         "end", //3: stop entering commands for newfiles.jar... exit app, eg: "nf end"
-        "templates" //4: open the root templates directory file-system window
+        "templates", //4: open the root templates directory file-system window
+        "export" //5: export a project's template files, eg: "nf export 3"
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
@@ -35,7 +36,8 @@ public class Newfiles {
         "use a template based on its number (starts input process), eg: \"{nf} "+mCommands[1]+" 3\"",
         "show help for available commands, eg: \"{nf} "+mCommands[2]+"\"",
         "exit app, eg: \"{nf} "+mCommands[3]+"\"",
-        "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\""
+        "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\"",
+        "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\""
     };
     
     private static int mUseTemplateIndex; //the integer number of the current template being used
@@ -71,6 +73,9 @@ public class Newfiles {
                 break;
             case 4: //4: open the root templates directory file-system window
                 openDirWindow(mTemplatesRoot);
+                break;
+            case 5: //5: export a project's template files, eg: "nf export 3"
+                export(args);
                 break;
             default:
                 //invalid command (int code)
@@ -152,6 +157,89 @@ public class Newfiles {
         //the user can enter another command
         waitForNextCommand();  
     }
+    //export/package a set of generated template files
+    private static void export(String[] args){
+        //clear previous use template index (if any)
+        mUseTemplateIndex=-1;
+        //load the template list, if not already loaded
+        loadTemplateList();
+        //if there are any templates
+        if(mTemplateList.size()>0){
+            if(args.length>0){
+                int tIndex=-1;
+                //if the first argument is the "export" command
+                String templateIndex=args[0].trim();
+                if(templateIndex.equals(mCommands[5])){
+                    //if there is a second argument
+                    if(args.length>1){
+                        //get the second argument
+                        templateIndex=args[1].trim();
+                    }
+                }
+                boolean invalidInt=false;
+                try{
+                    //try to parse the input into an integer index position
+                    tIndex=Integer.parseInt(templateIndex);
+                } catch (NumberFormatException e) {
+                    System.out.println("\""+templateIndex+"\" invalid integer index.");
+                    invalidInt=true;
+                }
+                //if a valid integer was chosen
+                if(tIndex>-1){
+                    //if the integer is within the range of the template indexes
+                    if(tIndex<mTemplateList.size()){
+                        //set the index of the template being used
+                        mUseTemplateIndex=tIndex;
+                        //show template header
+                        System.out.println("  EXPORTING: ");
+                        //show the chosen template
+                        File[] files=show_template_ls(tIndex, mTemplateList.get(tIndex));
+                        //init a list of files to include into the template build
+                        ArrayList<File> includeFiles = new ArrayList<File>();                       
+                        //loop through each File[] files and include the appropriate files into includeFiles
+                        for(int f=0;f<files.length;f++){
+                            //if the file does NOT start with "_"
+                            if(files[f].getName().indexOf("_")!=0){
+                                includeFiles.add(files[f]);
+                            }
+                        }
+                        //set the files to use during the template-export
+                        mBuild.useFiles(includeFiles);
+                        //export the package for the includeFiles
+                        mBuild.export();
+                        //reset the use template index
+                        mUseTemplateIndex=-1;
+                    }else{
+                        //index too high out of range
+                        templateIndexTooHighMsg(templateIndex);
+                    }
+                }else{
+                    if(!invalidInt){
+                        //index is below zero
+                        templateIndexTooLowMsg(templateIndex);
+                    }
+                }
+            }
+        }else{
+            //no templates available...
+            showNoTemplatesMsg();
+        }
+    }
+    //show a message indicating that there are no templates
+    private static void showNoTemplatesMsg(){
+        System.out.println("There are no templates");
+        System.out.println("Your setup looks for templates in: ");
+        System.out.println(mTemplatesRoot);
+        System.out.println("A sub directory under this folder (with at least one file) is considered a template.");
+    }
+    //show message for template index too high
+    private static void templateIndexTooHighMsg(String index){
+        System.out.println("\""+index+"\" is too high. No template matched (don't confuse template index with file index).");
+    }
+    //show message for template index too low
+    private static void templateIndexTooLowMsg(String index){
+        System.out.println("\""+index+"\" is too low (below zero).");
+    }
     //use one of the available templates
     private static void use(String[] args){
         //clear previous use template index (if any)
@@ -171,11 +259,13 @@ public class Newfiles {
                         templateIndex=args[1].trim();
                     }
                 }
+                boolean invalidInt=false;
                 try{
                     //try to parse the input into an integer index position
                     tIndex=Integer.parseInt(templateIndex);
                 } catch (NumberFormatException e) {
                     System.out.println("\""+templateIndex+"\" invalid integer index.");
+                    invalidInt=true;
                 }
                 //if a valid integer was chosen
                 if(tIndex>-1){
@@ -257,20 +347,23 @@ public class Newfiles {
                         ArrayList<File> includeFiles = new ArrayList<File>();                       
                         //loop through each File[] files and include the appropriate files into includeFiles
                         for(int f=0;f<files.length;f++){
-                            //if including all files
-                            if(fileIndexList.size()<1){
-                                includeFiles.add(files[f]);
-                            }else{
-                                //NOT including all of the template files...
-                                //if this file is NOT one of the excluded files
-                                if(isExclude&&!fileIndexList.contains(f)){
-                                    //include this file
+                            //if the file does NOT start with "_"
+                            if(files[f].getName().indexOf("_")!=0){
+                                //if including all files
+                                if(fileIndexList.size()<1){
                                     includeFiles.add(files[f]);
                                 }else{
-                                    //if this file IS one of the included files
-                                    if(!isExclude&&fileIndexList.contains(f)){
+                                    //NOT including all of the template files...
+                                    //if this file is NOT one of the excluded files
+                                    if(isExclude&&!fileIndexList.contains(f)){
                                         //include this file
                                         includeFiles.add(files[f]);
+                                    }else{
+                                        //if this file IS one of the included files
+                                        if(!isExclude&&fileIndexList.contains(f)){
+                                            //include this file
+                                            includeFiles.add(files[f]);
+                                        }
                                     }
                                 }
                             }
@@ -297,16 +390,18 @@ public class Newfiles {
                         mUseTemplateIndex=-1;
                     }else{
                         //index too high out of range
-                        System.out.println("\""+templateIndex+"\" is too high. No template matched (don't confuse template index with file index).");
+                        templateIndexTooHighMsg(templateIndex);
+                    }
+                }else{
+                    if(!invalidInt){
+                        //index is below zero
+                        templateIndexTooLowMsg(templateIndex);
                     }
                 }
             }
         }else{
             //no templates available...
-            System.out.println("There are no templates");
-            System.out.println("Your setup looks for templates in: ");
-            System.out.println(mTemplatesRoot);
-            System.out.println("A sub directory under this folder (with at least one file) is considered a template.");
+            showNoTemplatesMsg();
         }
     }
     //show a single template director and listing
@@ -324,8 +419,9 @@ public class Newfiles {
             if(!subFiles[f].isDirectory()){
                 //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
                 if(subFiles[f].getName().indexOf("_")!=0){
+                    String configStr="";
                     //print the file item
-                    System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName());
+                    System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName() + configStr);
                     //next file index
                     fileIndex++;
                 }
@@ -351,10 +447,7 @@ public class Newfiles {
             }
         }else{
             //no templates available...
-            System.out.println("There are no templates");
-            System.out.println("Your setup looks for templates in: ");
-            System.out.println(mTemplatesRoot);
-            System.out.println("A sub directory under this folder (with at least one file) is considered a template.");
+            showNoTemplatesMsg();
         }
     }
     //print the help text
@@ -409,6 +502,7 @@ public class Newfiles {
                     //this is NOT a directory, it's a file...
 
                     //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
+                    //but a file called _template.xml is a special config file for the template
                     if(subFiles[f].getName().indexOf("_")!=0){
                         //since dir contains at least one file, it should be added to mTemplateList
                         dirHasFile=true;
