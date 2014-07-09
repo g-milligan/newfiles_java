@@ -83,7 +83,7 @@ public class BuildTemplate {
                 //only replace token value in the inFileNameTokens list
                 setTokenValues(inFileNameTokens);
                 //4) write the export files
-                //***
+                writeOutputFiles("export");
                 //reset the include files
                 mIncludeFiles=null;
             }
@@ -804,7 +804,34 @@ public class BuildTemplate {
         }
     }
     //write the output files
-    private void writeOutputFiles(){
+    private void writeOutputFiles(){writeOutputFiles("build");}
+    private void writeOutputFiles(String writeType){
+        //if exporting a completed project file-set
+        String exportDir="";
+        if(writeType.equals("export")){
+            //get a root directory path to export to
+            exportDir=mTargetDir + File.separator + "export";
+            //if this export directory already exists
+            if(new File(exportDir).exists()){
+                int dirIndex = 2;
+                //while this directory PLUS the index exists
+                while(new File(exportDir + dirIndex).exists()){
+                    //increase the index
+                    dirIndex++;
+                }
+                //modify the export directory name so that it's unique
+                exportDir+=dirIndex;
+            }
+            //create the export directory
+            File exportDirFile=new File(exportDir);
+            try{
+                //try to create this directory
+                exportDirFile.mkdir();
+            }catch(SecurityException se){
+                System.out.println("\n Uh oh... failed to create directory --> "+exportDir);
+                se.printStackTrace();
+            }
+        }
         //LOOP EACH FILE A FINAL THIRD TIME
         //1) create a new file based on the corresponding template file (the new file will have real input values instead of tokens)
         //=================================
@@ -835,7 +862,18 @@ public class BuildTemplate {
                 //make sure each directory exists... create them if they don't
                 changedFileDir=changedFileDir.replace(File.separator, "/");
                 String[] dirs = changedFileDir.split("/");
-                String currentDir = mTargetDir + File.separator;
+                String currentDir = "";
+                //depending on the write type...
+                switch(writeType){
+                    case "build": //if building a boiler-plate template files...
+                        currentDir = mTargetDir + File.separator;
+                    break;
+                    case "export": //if exporting a completed project files...
+                        currentDir = exportDir + File.separator;
+                    break;
+                }
+                //MAKE SURE EACH OUTPUT DIRECTORY IS CREATED IF IT DOESN'T ALREADY EXIST
+                //for each sub directory (that may need to be created)
                 for (int d=0;d<dirs.length;d++){
                     //if this directory doesn't exist
                     currentDir += dirs[d].trim() + File.separator;
@@ -854,40 +892,97 @@ public class BuildTemplate {
                 //append the final \\ at the end of the directory path
                 changedFileDir += File.separator;
             }
-            //get the new file content
-            String fileContent = mFileContentLookup.get(filePath);
-            String newFilePath = mTargetDir + File.separator + changedFileDir + fileName;
-            File newFile=new File(newFilePath);
-            //if the new file doesn't already exist
-            if (!newFile.exists()){
-                //if the file content is NOT blank
-                fileContent = fileContent.trim();
-                if (fileContent.length() > 0){
-                    //restore certain string contents
-                    fileContent = fileContent.replace(mStartEscToken, mStartToken);
-                    fileContent = fileContent.replace(mEndEscToken, mEndToken);
-                    //create the file with its content (maybe changed or maybe not changed and just copied over)
-                    boolean success=writeFile(newFile.getPath(), fileContent);
-                    if(success){
-                        System.out.println(" FILE CREATED: \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
-                        fileCount++;
-                    }else{
-                        errFileCount++;
+            //set the ouput file path (relative to the current directory)
+            String outputFilePath = File.separator + changedFileDir + fileName;
+            //depending on the write type...
+            switch(writeType){
+                case "build": //if building a boiler-plate template file...
+                    //set the target directory as the root of the output file path
+                    outputFilePath = mTargetDir + outputFilePath;
+                    //get the new file content
+                    String fileContent = mFileContentLookup.get(filePath);
+                    File newFile=new File(outputFilePath);
+                    //if the new file doesn't already exist
+                    if (!newFile.exists()){
+                        //if the file content is NOT blank
+                        fileContent = fileContent.trim();
+                        if (fileContent.length() > 0){
+                            //restore certain string contents
+                            fileContent = fileContent.replace(mStartEscToken, mStartToken);
+                            fileContent = fileContent.replace(mEndEscToken, mEndToken);
+                            //create the file with its content (maybe changed or maybe not changed and just copied over)
+                            boolean success=writeFile(newFile.getPath(), fileContent);
+                            if(success){
+                                System.out.println(" FILE CREATED: \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
+                                fileCount++;
+                            }else{
+                                errFileCount++;
+                            }
+                        }
+                        else
+                        {
+                            System.out.println(" FILE SKIP (BLANK): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
+                            skippedFileCount++;
+                        }
                     }
-                }
-                else
-                {
-                    System.out.println(" FILE SKIP (BLANK): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
-                    skippedFileCount++;
-                }
-            }
-            else
-            {
-                System.out.println(" FILE SKIP (ALREADY EXISTS): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
-                skippedFileCount++;
+                    else
+                    {
+                        System.out.println(" FILE SKIP (ALREADY EXISTS): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
+                        skippedFileCount++;
+                    }
+                break;
+                case "export": //if exporting a completed project file...
+                    //normalize file path separators
+                    outputFilePath=outputFilePath.replace("\\", "/");
+                    outputFilePath=outputFilePath.replace("///", "/");
+                    outputFilePath=outputFilePath.replace("//", "/");
+                    outputFilePath=outputFilePath.replace("/", File.separator);
+                    //get the file to export
+                    File exportFile=new File(mTargetDir + outputFilePath);
+                    //if the new file already exists
+                    if (exportFile.exists()){
+                        //try to get the file content
+                        String exportContent = ""; boolean errorReading=false;
+                        try{
+                            exportContent = readFile(exportFile.getPath());
+                        }catch (IOException errread){
+                            errorReading=true;
+                            System.out.println("\nERROR READING FILE: \n"+exportFile.getPath()+" \n...\n"+errread.getMessage()+"\n");
+                            errFileCount++;
+                        }
+                        //if the file could be read
+                        if(!errorReading){
+                            //if the file content is NOT blank
+                            if (exportContent.length() > 0){
+                                //write a copy of the export file under the exportDir root
+                                boolean success=writeFile(exportDir + outputFilePath, exportContent);
+                                if(success){
+                                    System.out.println(" FILE EXPORTED: \t" + "..."+(exportDir + outputFilePath).substring(mTargetDir.length()+1));
+                                    fileCount++;
+                                }else{
+                                    errFileCount++;
+                                }
+                            }
+                            else
+                            {
+                                System.out.println(" FILE SKIP (BLANK): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
+                                skippedFileCount++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        System.out.println(" FILE SKIP (DOES NOT EXIST): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
+                        skippedFileCount++;
+                    }
+                break;
             }
         }
         System.out.println("\n -------------------------------------------------------");
         System.out.println(" Done.\n Created files: (" + fileCount + ") \n Skipped files: (" + skippedFileCount + ") \n Error files: (" + errFileCount + ") \n ");
+        //if exported project files
+        if(writeType.equals("export")){
+            //***
+        }
     }
 }
