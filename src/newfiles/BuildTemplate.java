@@ -78,7 +78,12 @@ public class BuildTemplate {
                 //1) look through all of the mIncludeFiles and load the content/token/alias hash lookups
                 boolean atLeastOneToken = loadFilesData();
                 //2) accept user input for tokens (only if the token is used to build out the file path)
-                //*** userInputForTokens(atLeastOneToken);
+                ArrayList<String> inFileNameTokens=userInputForFilenameTokens(atLeastOneToken);
+                //3) set the template files' contents with replaced filename-tokens
+                //only replace token value in the inFileNameTokens list
+                setTokenValues(inFileNameTokens);
+                //4) write the export files
+                //***
                 //reset the include files
                 mIncludeFiles=null;
             }
@@ -402,7 +407,7 @@ public class BuildTemplate {
         return line;
     }
     //get the input from the user for all of the template tokens
-    private void getAllTokenInput(int startIndex, boolean isBack){
+    private void getAllTokenInput(ArrayList<String> uniqueTokenNames, int startIndex, boolean isBack){
         String backTxt="<<";
         //if NOT moved back
         if(!isBack){
@@ -413,12 +418,12 @@ public class BuildTemplate {
         }
         //for each input value to enter
         String lastTokenName=null;
-        for(int i=startIndex;i<=mUniqueTokenNames.size();i++){
+        for(int i=startIndex;i<=uniqueTokenNames.size();i++){
             String input="";
             //if NOT entered all of the values
-            if(i<mUniqueTokenNames.size()){
+            if(i<uniqueTokenNames.size()){
                 //get user input
-                input=getInput("" + (i+1) + "/" + mUniqueTokenNames.size() + ") Enter --> \"" +mUniqueTokenNames.get(i) + "\"");
+                input=getInput("" + (i+1) + "/" + uniqueTokenNames.size() + ") Enter --> \"" +uniqueTokenNames.get(i) + "\"");
             }else{
                 //entered all of the values
                 System.out.println("");
@@ -440,18 +445,112 @@ public class BuildTemplate {
                     }
                 }
                 //recursive move back
-                getAllTokenInput(i-1,true);
+                getAllTokenInput(uniqueTokenNames,i-1,true);
                 break;
             }else{
                 //if NO already saved all input values
-                if(i<mUniqueTokenNames.size()){
+                if(i<uniqueTokenNames.size()){
                     //add this input value to the list
-                    mTokenInputValues.put(mUniqueTokenNames.get(i), input);
+                    mTokenInputValues.put(uniqueTokenNames.get(i), input);
                     //record the last token name to be assigned a value
-                    lastTokenName=mUniqueTokenNames.get(i);
+                    lastTokenName=uniqueTokenNames.get(i);
                 }
             }
         }
+    }
+    //get a list of tokens that have an influence on filename/paths
+    //note: the only way for a token to influence a file name or file path is for it to have its alias inside either the name or path
+    private ArrayList<String> getTokensInFilenames(){
+        ArrayList<String> inFileNameTokens = new ArrayList<String>();
+        //for each file that contains tokens
+        for (String filePath : mFileTokensLookup.keySet()) {
+            //for each token belonging to this file
+            ArrayList<String> tokens = mFileTokensLookup.get(filePath);
+            for(int t=0;t<tokens.size();t++){
+                //get the token text, eg: <<var:l:something>>
+                String tokenStr=tokens.get(t);
+                String[] tokenParts = tokenStr.split(mTokenSeparator);
+                //get the token alias
+                String tokenType=getTokenPart("type", tokenParts);
+                //if the token type is filename
+                if(tokenType.equals("filename")){
+                    //get the file name
+                    String name=getTokenPart("name", tokenParts);
+                    //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
+                    if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
+                        name=""; //no need to check a NON-string literal. It will NOT contain any aliases
+                    }
+                    //get the file folder
+                    String dir=getTokenPart("dir", tokenParts);
+                    //if EITHER the filename directory OR the name is a candidate for possibly containing token aliases
+                    if(name.length()>0||dir.length()>0){
+                        //for each alias inside this file (one or more aliases MAY appear inside either the filename "name" or "dir")
+                        for (String aliasStr : mFileAliasesLookup.get(filePath).keySet()) {
+                            //get the token name, associated with this alias
+                            String nameForAlias=getTokenPart("name", mFileAliasesLookup.get(filePath).get(aliasStr));
+                            //if this token name is NOT ALREADY listed as influencing one or more filename/paths
+                            if(!inFileNameTokens.contains(nameForAlias)){
+                                boolean aliasInflencesFilename=false;
+                                //if the "name" might contain one or more aliases
+                                if(name.length()>0){
+                                    //if this alias string is inside the file "name"
+                                    if(name.contains(aliasStr)){
+                                        aliasInflencesFilename=true;
+                                    }
+                                }
+                                //if this alias was NOT found as part of the file "name"
+                                if(!aliasInflencesFilename){
+                                    //if the "dir" might contain one or more aliases
+                                    if(dir.length()>0){
+                                        //if this alias string is inside the file "directory"
+                                        if(dir.contains(aliasStr)){
+                                            aliasInflencesFilename=true;
+                                        }
+                                    }
+                                }
+                                //if this alias influences this filename
+                                if(aliasInflencesFilename){
+                                    //add the token name (associated with this alias) to the list
+                                    //the user will have to input a value for this token in order to determine the file path
+                                    inFileNameTokens.add(nameForAlias);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return inFileNameTokens;
+    }
+    //accept user input ONLY for tokens that effect the file-name/paths
+    private ArrayList<String> userInputForFilenameTokens(boolean atLeastOneToken){ 
+        //get ONLY the token names that have influence over one or more filenames or paths
+        ArrayList<String> inFileNameTokens=getTokensInFilenames();
+        //if there is at least one token
+        if(inFileNameTokens.size()>0){
+            System.out.println(" Which project would you like to export? \n");
+            //if more than one token value to input
+            if(inFileNameTokens.size()>1){
+                System.out.println(" "+inFileNameTokens.size()+" unique token values needed to identify your project: ");
+            }else{
+               //only one token value to input 
+               System.out.println(" only ONE token value needed to identify your project: ");
+            }
+            //for each token value to input
+            System.out.print(" ");
+            for(int v=0;v<inFileNameTokens.size();v++){
+                //if NOT the first unique token name
+                if(v!=0){
+                    System.out.print(", ");
+                }
+                //print the token name
+                System.out.print("\""+inFileNameTokens.get(v)+"\"");
+            }
+            System.out.println("");
+            //get all of the token input values from the user
+            getAllTokenInput(inFileNameTokens,0,false);System.out.println("");
+        }
+        return inFileNameTokens;
     }
     //accept user input for each of the unique tokens
     private void userInputForTokens(boolean atLeastOneToken){
@@ -493,64 +592,76 @@ public class BuildTemplate {
                 }
             }
             //get all of the token input values from the user
-            getAllTokenInput(0,false);System.out.println("");
+            getAllTokenInput(mUniqueTokenNames,0,false);System.out.println("");
         }else{
             //no token values to input
             System.out.println(" ZERO unique token values to input: ");
         }
     }
     //formats the value based on token parameters and input value, eg: decides the casing to apply to the user input
-    private String getFormattedTokenValue(String[] tokenParts){
+    private String getFormattedTokenValue(String[] tokenParts){return getFormattedTokenValue(tokenParts, null);}
+    private String getFormattedTokenValue(String[] tokenParts, ArrayList<String> inFileNameTokens){
+        String tokenValue = "";
         //get the token name
         String tokenName=getTokenPart("name", tokenParts);
-        //get the token type
-        String type=getTokenPart("type", tokenParts);
-        //get the token casing
-        String casing=getTokenPart("casing", tokenParts);
-        //if not a blank tokenName, represented by a dot, . AND not a static value surrounded by "quotes"
-        String tokenValue = "";
-        if (!tokenName.equals(".") && tokenName.indexOf("\"") != 0 && tokenName.indexOf("'") != 0){
-            //get the token value... the value is formatted based on the different token parts, eg: casing
-            tokenValue = mTokenInputValues.get(tokenName);
-            //get the first letter of the casing 
-            String firstCharCasing = casing.trim().toLowerCase();
-            firstCharCasing = firstCharCasing.substring(0, 1);
-            //default casing
-            casing = "normal";
-            //standardized what casing is assigned based on the first letter 
-            //(for code-readability... no other reason)
-            switch (firstCharCasing){
-                case "u":
-                    casing = "uppercase";
-                    break;
-                case "l":
-                    casing = "lowercase";
-                    break;
-                case "c":
-                    casing = "capitalize";
-                    break;
-                default:
-                    break;
+        //if inFileNameTokens is NOT null
+        boolean doGetVal=true;
+        if(inFileNameTokens!=null){
+            //if this token name SHOULD be ignored because it is NOT listed in inFileNameTokens
+            if(!inFileNameTokens.contains(tokenName)){
+                doGetVal=false;
             }
-            //format depending on casing
-            switch (casing){
-                case "uppercase":
-                    tokenValue = tokenValue.toUpperCase();
-                    break;
-                case "lowercase":
-                    tokenValue = tokenValue.toLowerCase();
-                    break;
-                case "capitalize":
-                    String firstChar = tokenValue.substring(0, 1);
-                    String theRest = tokenValue.substring(1);
-                    firstChar = firstChar.toUpperCase();
-                    tokenValue = firstChar + theRest;
-                    break;
-                case "normal":
-                    //yep... do nothing. Leave as is
-                    break;
-                default:
-                    break;
+        }
+        //if this token name is NOT being ignored because it is NOT listed in inFileNameTokens
+        if(doGetVal){
+            //get the token type
+            String type=getTokenPart("type", tokenParts);
+            //get the token casing
+            String casing=getTokenPart("casing", tokenParts);
+            //if not a blank tokenName, represented by a dot, . AND not a static value surrounded by "quotes"
+            if (!tokenName.equals(".") && tokenName.indexOf("\"") != 0 && tokenName.indexOf("'") != 0){
+                //get the token value... the value is formatted based on the different token parts, eg: casing
+                tokenValue = mTokenInputValues.get(tokenName);
+                //get the first letter of the casing 
+                String firstCharCasing = casing.trim().toLowerCase();
+                firstCharCasing = firstCharCasing.substring(0, 1);
+                //default casing
+                casing = "normal";
+                //standardized what casing is assigned based on the first letter 
+                //(for code-readability... no other reason)
+                switch (firstCharCasing){
+                    case "u":
+                        casing = "uppercase";
+                        break;
+                    case "l":
+                        casing = "lowercase";
+                        break;
+                    case "c":
+                        casing = "capitalize";
+                        break;
+                    default:
+                        break;
+                }
+                //format depending on casing
+                switch (casing){
+                    case "uppercase":
+                        tokenValue = tokenValue.toUpperCase();
+                        break;
+                    case "lowercase":
+                        tokenValue = tokenValue.toLowerCase();
+                        break;
+                    case "capitalize":
+                        String firstChar = tokenValue.substring(0, 1);
+                        String theRest = tokenValue.substring(1);
+                        firstChar = firstChar.toUpperCase();
+                        tokenValue = firstChar + theRest;
+                        break;
+                    case "normal":
+                        //yep... do nothing. Leave as is
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         return tokenValue;
@@ -575,12 +686,14 @@ public class BuildTemplate {
         return fileContent;
     }
     //build out the template files
-    private void setTokenValues(){
+    private void setTokenValues(){setTokenValues(null);}
+    private void setTokenValues(ArrayList<String> inFileNameTokens){
         //LOOP EACH FILE A SECOND TIME
         //1) remove alias definitions from file content and determine what value each alias should be replaced with
         //2) replace non-aliased tokens with their actual values
         //3) determine the file-path and file name that each file will have
         //============================
+        //IF inFileNameTokens is NOT null, then only replace the tokens that are named in this inFileNameTokens list
         //for each template file
         for (String filePath : mFileTokensLookup.keySet()) {
             //get key values related to this file
@@ -604,7 +717,7 @@ public class BuildTemplate {
                         //split the token key parts up
                         String[] tokenParts = tokenStr.split(mTokenSeparator);
                         //get the formatted token value
-                        String tokenValue = getFormattedTokenValue(tokenParts);
+                        String tokenValue = getFormattedTokenValue(tokenParts,inFileNameTokens);
                         //associate this value with this alias (only for this file)
                         aliasValueLookup.put(aliasKey, tokenValue);
                     }
@@ -620,7 +733,7 @@ public class BuildTemplate {
                 //split the token key parts up
                 String[] tokenParts=tokenKey.split(mTokenSeparator);
                 //get the formatted token value
-                String tokenValue=getFormattedTokenValue(tokenParts);
+                String tokenValue=getFormattedTokenValue(tokenParts,inFileNameTokens);
                 //INSERT THE FORMATTED TOKEN VALUE INTO THE CONTENT (OR SET IT AS A SPECIAL VALUE, LIKE FILENAME, ETC...)
                 //=======================================================================================================
                 //get the token name
