@@ -72,7 +72,8 @@ public class BuildTemplate {
         }
     }
     //export a package based on a template
-    public void export(){
+    public String export(){
+        String exportDir="";
         if(mIncludeFiles!=null){
             if(mIncludeFiles.size()>0){
                 //1) look through all of the mIncludeFiles and load the content/token/alias hash lookups
@@ -83,11 +84,19 @@ public class BuildTemplate {
                 //only replace token value in the inFileNameTokens list
                 setTokenValues(inFileNameTokens);
                 //4) write the export files
-                writeOutputFiles("export");
+                exportDir=writeOutputFiles("export");
                 //reset the include files
                 mIncludeFiles=null;
             }
         }
+        return exportDir;
+    }
+    //delete a directory recursively
+    private void deleteDir(File f) throws IOException {
+      if (f.isDirectory()) {
+        for (File c : f.listFiles())
+          deleteDir(c);
+      }
     }
     //read the contents of a file into a string (default UTF 8 encoding) 
     private static String readFile(String path) throws IOException {
@@ -804,11 +813,26 @@ public class BuildTemplate {
         }
     }
     //write the output files
-    private void writeOutputFiles(){writeOutputFiles("build");}
-    private void writeOutputFiles(String writeType){
+    private String writeOutputFiles(){return writeOutputFiles("build");}
+    private String writeOutputFiles(String writeType){
         //if exporting a completed project file-set
-        String exportDir="";
+        String exportDir=""; String failedExportDir="";
         if(writeType.equals("export")){
+            //CREATE A UNIQUE FAILED EXPORT FOLDER NAME, JUST IN CASE
+            //get a root directory path to export to
+            failedExportDir=mTargetDir + File.separator + "DELETE_THIS_FAILED_EXPORT";
+            //if this export directory already exists
+            if(new File(failedExportDir).exists()){
+                int dirIndex = 2;
+                //while this directory PLUS the index exists
+                while(new File(failedExportDir + dirIndex).exists()){
+                    //increase the index
+                    dirIndex++;
+                }
+                //modify the export directory name so that it's unique
+                failedExportDir+=dirIndex;
+            }
+            //REAL EXPORT DIRECTORY
             //get a root directory path to export to
             exportDir=mTargetDir + File.separator + "export";
             //if this export directory already exists
@@ -982,7 +1006,54 @@ public class BuildTemplate {
         System.out.println(" Done.\n Created files: (" + fileCount + ") \n Skipped files: (" + skippedFileCount + ") \n Error files: (" + errFileCount + ") \n ");
         //if exported project files
         if(writeType.equals("export")){
-            //***
+            //if any files were successfully exported
+            if(fileCount > 0){
+                //get just the export folder name (without the full path)
+                String exportFolder=exportDir;
+                if(exportFolder.contains(File.separator)){
+                    exportFolder=exportFolder.substring(exportFolder.lastIndexOf(File.separator)+File.separator.length());
+                }
+                //get the new export directory file name
+                String newName = getInput("Rename the \"" + exportFolder + "\" root folder by typing a new name... \n OR hit [enter] to keep this name");
+                //if a new folder name was given
+                newName=newName.trim();
+                if(newName.length()>0){
+                    System.out.println(" Renaming: \"" + exportFolder + "\" --> \"" + newName + "\" \n");
+                    //rename the export directory
+                    File existingDir = new File(exportDir);
+                    File renamedDir = new File(existingDir.getParent() + File.separator + newName);
+                    //if this folder doesn't already exist
+                    if(!renamedDir.exists()){
+                        //rename
+                        existingDir.renameTo(renamedDir);
+                        exportDir=renamedDir.getPath();
+                    }else{
+                        //already exists message
+                        System.out.println(" No. \"" + newName + "\" already exists. \n");
+                    }
+                }
+            }else{
+                //no files were successfully exported... 
+                
+                //remove the exportDir
+                File emptyDir = new File(exportDir);
+                //make sure the failed export folder path is still unique
+                String indexStr="";int index=2;
+                while(new File(failedExportDir+indexStr).exists()){
+                    indexStr=index+"";
+                    index++;
+                }
+                failedExportDir+=indexStr;
+                //rename the export directory so that it's obvious that it's a failed export
+                emptyDir.renameTo(new File(failedExportDir));
+                //display failer message
+                System.out.println(" No files were successfully exported.");
+                System.out.println(" Note: This app renamed the failed export folder. You can manually delete this folder:");
+                System.out.println(" " + failedExportDir + "\n\n");
+                //clear the export directory path since the export failed
+                exportDir="";
+            }
         }
+        return exportDir;
     }
 }

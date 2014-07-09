@@ -208,7 +208,30 @@ public class Newfiles {
                         //set the files to use during the template-export
                         mBuild.useFiles(includeFiles);
                         //export the package for the includeFiles
-                        mBuild.export();
+                        String exportDir=mBuild.export();
+                        //if any root export directory path is received
+                        if(exportDir.length()>0){
+                            //if the root export directory exists
+                            File exportDirFile=new File(exportDir);
+                            if(exportDirFile.exists()){
+                                //ask to open the export directory
+                                System.out.print(" View \""+exportDirFile.getName()+"\" in a file-system window? y/n >> ");
+                                String line = "";
+                                try{
+                                    //accept next input from user
+                                    BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
+                                    line = bufferRead.readLine();
+                                    line=line.trim();
+                                }
+                                catch(IOException e) {
+                                    e.printStackTrace();
+                                }
+                                //ifthe user wants to open the export directory
+                                if(line.trim().toLowerCase().indexOf("y")==0){
+                                    openDirWindow(exportDirFile.getParent());
+                                }
+                            }
+                        }
                         //reset the use template index
                         mUseTemplateIndex=-1;
                     }else{
