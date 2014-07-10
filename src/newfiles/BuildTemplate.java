@@ -91,12 +91,16 @@ public class BuildTemplate {
         }
         return exportDir;
     }
-    //delete a directory recursively
-    private void deleteDir(File f) throws IOException {
-      if (f.isDirectory()) {
-        for (File c : f.listFiles())
-          deleteDir(c);
-      }
+    //copy a non-text OR normal text file to some location
+    private static void copyFileTo(File source, File dest) {
+        try {
+            //try to copy the file to a destination
+            Files.copy(source.toPath(), dest.toPath());
+        } catch (IOException ex) {
+            //show a message if the copy failed
+            System.out.println("\n Uh oh... failed to copy file --> "+source.toPath() + " ");
+            System.out.println("to destination --> " + dest.toPath() + " \n" + ex.getMessage() + "\n");
+        }
     }
     //read the contents of a file into a string (default UTF 8 encoding) 
     private static String readFile(String path) throws IOException {

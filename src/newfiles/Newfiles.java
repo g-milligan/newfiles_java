@@ -43,6 +43,7 @@ public class Newfiles {
     
     private static int mUseTemplateIndex; //the integer number of the current template being used
     private final static int mNumArgsFromBatch=3; //the number of arguments that get passed to this app automatically
+    private final static String mNonTextFilenames = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined 
     //open up a direcctory window
     private static void openDirWindow(String dirPath){
         Desktop desktop = Desktop.getDesktop();
@@ -55,6 +56,56 @@ public class Newfiles {
             System.out.println("\nUh oh... failed to open directory --> " + dirPath);
             System.out.println(e.getMessage()+"\n");
         }
+    }
+    //determine if the file is a text-based file or other... eg: an image...
+    //this info is needed to decide if a file should be written or copied to a location
+    private static boolean isTextBasedFile(File f){
+        boolean isTxt=true;
+        //if the file exists
+        if(f.exists()){
+            //get the file name
+            String fileName=f.getName();
+            //if the file name contains a dot, '.'
+            int lastIndexOfDot=fileName.lastIndexOf(".");
+            if(lastIndexOfDot>-1){
+                //get just the extension from the file name (trim off name)
+                String ext=fileName.substring(lastIndexOfDot+1);
+                ext=ext.trim();
+                //if the filename didn't just end with a dot
+                if(ext.length()>0){
+                   ext=ext.toLowerCase();
+                   //detect for NON-text based file extensions
+                   switch(ext){
+                       //COMMON IMAGE FILE EXTENSIONS
+                       case "jpeg": isTxt=false;break; case "jpg": isTxt=false;break;
+                       case "jfif": isTxt=false;break; case "exif": isTxt=false;break;
+                       case "tiff": isTxt=false;break; case "tif": isTxt=false;break;
+                       case "raw": isTxt=false;break; case "gif": isTxt=false;break;
+                       case "bmp": isTxt=false;break; case "png": isTxt=false;break;
+                       case "ppm": isTxt=false;break; case "pgm": isTxt=false;break;
+                       case "pbm": isTxt=false;break; case "pnm": isTxt=false;break;
+                       case "webp": isTxt=false;break; case "hdr": isTxt=false;break;
+                       //COMMON COMPRESSED FILE EXTENSIONS
+                       case "zip": isTxt=false;break; case "tgz": isTxt=false;break;
+                       case "gz": isTxt=false;break; case "tar": isTxt=false;break; 
+                       case "lbr": isTxt=false;break; case "iso": isTxt=false;break;
+                       case "7z": isTxt=false;break; case "ar": isTxt=false;break;
+                       case "rar": isTxt=false;break;
+                       //COMMON EXECUTABLE EXTENSIONS
+                       case "jar": isTxt=false;break; case "exe": isTxt=false;break;
+                       //COMMON COMPILED CODE EXTENSIONS
+                       case "dll": isTxt=false;break;
+                       //DEFAULT HANDLING
+                       default:
+                       break;
+                   }
+                }
+            }
+        }else{
+            //file doesn't exist
+            isTxt=false;
+        }
+        return isTxt;
     }
     //do something depending on the integer
     private static void doSomething(int doWhatInt, String[] args){
@@ -444,9 +495,13 @@ public class Newfiles {
             if(!subFiles[f].isDirectory()){
                 //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
                 if(subFiles[f].getName().indexOf("_")!=0){
-                    String configStr="";
+                    //if this file is NOT text based, eg: it's an image
+                    String notTxtBased="";
+                    if(!isTextBasedFile(subFiles[f])){
+                        notTxtBased=" --> " + mNonTextFilenames;
+                    }
                     //print the file item
-                    System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName() + configStr);
+                    System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName() + notTxtBased);
                     //next file index
                     fileIndex++;
                 }
