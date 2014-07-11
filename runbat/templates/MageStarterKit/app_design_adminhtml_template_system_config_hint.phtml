@@ -1,0 +1,22 @@
+<<filename:l:app/design/adminhtml/default/default/template/[module]/system/config/fieldset:"hint">>
+<<var:n:module prefix => [Prefix]>>
+<<var:l:module prefix => [prefix]>>
+<<var:c:module name => [Module]>>
+<<var:l:module name => [module]>>
+<<var:l:code pool => [codepool]>>
+
+<?php
+/**
+ * @see [Prefix]_[Module]_Block_Adminhtml_System_Config_Fieldset_Hint
+ */
+?>
+<div class="[module]-notice">
+    
+    <img class="helogo" src="<?php echo $this->getSkinUrl('[module]/helogo.jpg', array('_secure'=>true)) ?>" />
+        
+    <h4>
+        <?php echo Mage::helper('[module]')->__('<strong>[Module] for Magento v%s by <a target="_blank" href="http://human-element.com">Human<>Element</strong></a>', $this->get[Module]Version())?>
+        <br>
+        <?php echo Mage::helper('[module]')->__('<span>Need help? Got feedback? <a href="mailto:info@human-element.com?Subject=[Module] for Magento Version %s">Email us</a></span>', $this->get[Module]Version())?>
+    </h4>
+</div>

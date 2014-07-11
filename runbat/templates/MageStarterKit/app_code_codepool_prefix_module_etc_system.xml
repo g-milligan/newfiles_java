@@ -1,0 +1,88 @@
+<<filename:l:app/code/[codepool]/[Prefix]/[Module]/etc:"system">>
+<<var:n:module prefix => [Prefix]>>
+<<var:l:module prefix => [prefix]>>
+<<var:c:module name => [Module]>>
+<<var:l:module name => [module]>>
+<<var:l:code pool => [codepool]>>
+	
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <tabs>
+        <[module] translate="label" module="[module]">
+            <label>[Module] Settings</label>
+            <sort_order>100</sort_order>
+        </[module]>
+    </tabs>
+    <sections>
+        <[module] translate="label" module="[module]">
+            <label>[Module] Settings</label>
+            <class>[module]-section separator-top</class>
+            <tab>[module]</tab>
+            <sort_order>1000</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+            	<hint>
+					<frontend_model>[module]/adminhtml_system_config_fieldset_hint</frontend_model>
+					<sort_order>0</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>1</show_in_store>
+                </hint>
+                <option_group translate="label" module="[module]">
+                    <comment><![CDATA[This is a comment <a href="#">with HTML</a><br />Make sure to checkout -->  example.com/[module]/index/index]]></comment>
+                    <label>[Module] Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>1000</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <textfield_input translate="label">
+                            <label>Text Field Input</label>
+                            <comment>This is a text input field, it is required, and it has a tooltip</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry</validate>
+                            <tooltip>Yep, this is the tooltip</tooltip>
+                        </textfield_input>
+                        <yesno_input translate="label">
+					        <label>Yes/No Select Input</label>
+					        <comment>This is a Yes/No input field, it uses Magento's core source model</comment>
+					        <frontend_type>select</frontend_type>
+					        <source_model>adminhtml/system_config_source_yesno</source_model>
+					        <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+					    </yesno_input>
+                    </fields>
+                </option_group>
+                <anothersettings_group translate="label" module="[module]">
+                    <label>Even more [Module] Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>2000</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+					    <customsourcemodel_input translate="label">
+					        <label>Custom Select Input</label>
+					        <comment>This input field uses a custom source model. Look in app/code/[codepool]/[Prefix]/[Module]/Model/System/Config/Source/Example.php</comment>
+					        <frontend_type>select</frontend_type>
+					        <source_model>[module]/system_config_source_example</source_model>
+					        <sort_order>70</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+					    </customsourcemodel_input>
+                    </fields>
+                </anothersettings_group>
+            </groups>
+        </[module]>
+    </sections>
+</config>

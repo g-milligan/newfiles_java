@@ -37,7 +37,7 @@ next drop in the following text to configure NewFiles to run
 ```
 #!/bin/bash
 
-java -jar "/path/to/newfiles.jar" "/path/to/newfiles_java/runbat/templates" $(pwd) "dirname $0"
+java -jar "/path/to/newfiles.jar" "/path/to/newfiles_java/runbat/templates" $(pwd) "dirname $0" "$@"
 ```
 now make your new script executable
 ```

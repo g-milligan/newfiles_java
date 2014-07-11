@@ -1,0 +1,41 @@
+<<filename:l:app/design/frontend/default/default/template/[module]:"example">>
+<<var:n:module prefix => [Prefix]>>
+<<var:l:module prefix => [prefix]>>
+<<var:c:module name => [Module]>>
+<<var:l:module name => [module]>>
+<<var:l:code pool => [codepool]>>
+
+<?php 
+// grab config settings from sampleblock.php to do stuff with, or just do stuff
+
+// grab all settings
+$adminsettings = $this->getConfig();
+
+// grab specific settings
+$myoptions = $adminsettings['option_group'];
+$mysettings = $adminsettings['anothersettings_group'];
+
+?>
+
+
+<div>
+    <h1>[Prefix] [Module] Example PHTML template</h1>
+    <p>
+        this is output by:<br />
+        app/design/frontend/default/default/template/[module]/example.phtml
+    </p>
+    <p>
+        This is one way you can output a specific value or setting<br />
+        <h2><?php echo $myoptions['textfield_input']; ?></h2>
+        <span>^^^^  this value  ^^^^  can be entered/changed in System >> Configuration >> [Module] Settings</span><br />
+        also note that this stuff is stored in the database under core_config_data table, all the way at the end...
+    </p>
+</div>
+
+<h2>Printed Array of all settings</h2>
+<pre><?php print_r($adminsettings); ?></pre>
+
+<h2>Printed Array of specific field groups</h2>
+<pre><?php print_r($myoptions); ?></pre>
+<pre><?php print_r($mysettings); ?></pre>
+
