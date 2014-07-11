@@ -4,6 +4,7 @@
  */
 package newfiles;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -36,6 +37,9 @@ public class BuildTemplate {
     private static ArrayList<File> mIncludeFiles; //Files objects to include into the build 
     private static String mTargetDir;
     private static String mBatchFileName;
+    private static String mFilenamesXml; //_filenames.xml
+    private static String mTemplatesRoot;
+    private static String mUseTemplatePath; //the path to the current using template
     
     //constants
     private static final String mStartToken="<<";
@@ -44,15 +48,19 @@ public class BuildTemplate {
     private static final String mAliasSetter="=>";
     private static final String mStartEscToken="|_-+StrtToKen..=!_|";
     private static final String mEndEscToken="|_--eNdToKen..=!_|";
+    private static final String mNonTextFileContent="|_--nOT@tXTfiLE..=!_|~~JUB123eZ55_-CoO__|"; //unique text content to use as a non-text file content placeholder
     //constructor
-    public BuildTemplate(String targetDir, String batchFileName){
+    public BuildTemplate(String targetDir, String batchFileName, String templatesRoot, String filenamesXml){
         mIncludeFiles=null;
         mTargetDir=targetDir;
         mBatchFileName=batchFileName;
+        mTemplatesRoot=templatesRoot;
+        mFilenamesXml=filenamesXml;
     }
     //method to use a given list of files
-    public void useFiles(ArrayList<File> includeFiles){
+    public void useFiles(String useTemplatePath, ArrayList<File> includeFiles){
         mIncludeFiles=includeFiles;
+        mUseTemplatePath=useTemplatePath;
     }
     //build the template
     public void build(){
@@ -91,32 +99,106 @@ public class BuildTemplate {
         }
         return exportDir;
     }
+     //open up a direcctory window
+    public static void openDirWindow(String dirPath){
+        Desktop desktop = Desktop.getDesktop();
+        try {
+            File dirToOpen = new File(dirPath);
+            System.out.print(" opening... ");
+            desktop.open(dirToOpen);
+            System.out.println("");
+        } catch (IOException e) {
+            System.out.println("\nUh oh... failed to open directory --> " + dirPath);
+            System.out.println(e.getMessage()+"\n");
+        }
+    }
+    //determine if the file is a text-based file or other... eg: an image...
+    //this info is needed to decide if a file should be written or copied to a location
+    public static boolean isTextBasedFile(File f){
+        boolean isTxt=true;
+        //if the file exists
+        if(f.exists()){
+            //get the file name
+            String fileName=f.getName();
+            //if the file name contains a dot, '.'
+            int lastIndexOfDot=fileName.lastIndexOf(".");
+            if(lastIndexOfDot>-1){
+                //get just the extension from the file name (trim off name)
+                String ext=fileName.substring(lastIndexOfDot+1);
+                ext=ext.trim();
+                //if the filename didn't just end with a dot
+                if(ext.length()>0){
+                   ext=ext.toLowerCase();
+                   //detect for NON-text based file extensions
+                   switch(ext){
+                       //COMMON IMAGE FILE EXTENSIONS
+                       case "jpeg": isTxt=false;break; case "jpg": isTxt=false;break;
+                       case "jfif": isTxt=false;break; case "exif": isTxt=false;break;
+                       case "tiff": isTxt=false;break; case "tif": isTxt=false;break;
+                       case "raw": isTxt=false;break; case "gif": isTxt=false;break;
+                       case "bmp": isTxt=false;break; case "png": isTxt=false;break;
+                       case "ppm": isTxt=false;break; case "pgm": isTxt=false;break;
+                       case "pbm": isTxt=false;break; case "pnm": isTxt=false;break;
+                       case "webp": isTxt=false;break; case "hdr": isTxt=false;break;
+                       //COMMON COMPRESSED FILE EXTENSIONS
+                       case "zip": isTxt=false;break; case "tgz": isTxt=false;break;
+                       case "gz": isTxt=false;break; case "tar": isTxt=false;break; 
+                       case "lbr": isTxt=false;break; case "iso": isTxt=false;break;
+                       case "7z": isTxt=false;break; case "ar": isTxt=false;break;
+                       case "rar": isTxt=false;break;
+                       //COMMON EXECUTABLE EXTENSIONS
+                       case "jar": isTxt=false;break; case "exe": isTxt=false;break;
+                       //COMMON COMPILED CODE EXTENSIONS
+                       case "dll": isTxt=false;break;
+                       //DEFAULT HANDLING
+                       default:
+                       break;
+                   }
+                }
+            }
+        }else{
+            //file doesn't exist
+            isTxt=false;
+        }
+        return isTxt;
+    }
+    //read the contents of a file into a string (default UTF 8 encoding) 
+    public static String readFile(String path) throws IOException {
+        return readFile(path, StandardCharsets.UTF_8);
+    }
+    //read the contents of a file into a string
+    public static String readFile(String path, Charset encoding) throws IOException {
+        String str="";
+        //if this is a text based file, eg: not an image file
+        if(isTextBasedFile(new File(path))){
+            byte[] encoded = Files.readAllBytes(Paths.get(path));
+            str=new String(encoded, encoding);
+        }else{
+            //this is a non-text based file...
+            str=mNonTextFileContent;
+        }
+        return str;
+    }
     //copy a non-text OR normal text file to some location
-    private static void copyFileTo(File source, File dest) {
+    public static boolean copyFileTo(File source, File dest) {
+        boolean success=false;
         try {
             //try to copy the file to a destination
             Files.copy(source.toPath(), dest.toPath());
+            success=true;
         } catch (IOException ex) {
             //show a message if the copy failed
             System.out.println("\n Uh oh... failed to copy file --> "+source.toPath() + " ");
             System.out.println("to destination --> " + dest.toPath() + " \n" + ex.getMessage() + "\n");
         }
-    }
-    //read the contents of a file into a string (default UTF 8 encoding) 
-    private static String readFile(String path) throws IOException {
-        return readFile(path, StandardCharsets.UTF_8);
-    }
-    //read the contents of a file into a string
-    private static String readFile(String path, Charset encoding) throws IOException {
-        byte[] encoded = Files.readAllBytes(Paths.get(path));
-        return new String(encoded, encoding);
+        return success;
     }
     //create / overwrite file (default UTF 8 encoding) 
-    private boolean writeFile(String filePath, String fileContent){
+    public boolean writeFile(String filePath, String fileContent){
         return writeFile(filePath, fileContent, StandardCharsets.UTF_8);
     }
     //create / overwrite file
-    private boolean writeFile(String filePath, String fileContent, Charset encoding){
+    public boolean writeFile(String filePath, String fileContent, Charset encoding){
         Writer writer = null; boolean success=false;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(
@@ -404,7 +486,7 @@ public class BuildTemplate {
         return atLeastOneToken;
     }
     //prompt the user for the next input
-    private String getInput(String inputLabel){
+    public String getInput(String inputLabel){
         //prompt for next command
         System.out.print(" " + inputLabel + " >> ");
         String line = "";
@@ -935,11 +1017,20 @@ public class BuildTemplate {
                         //if the file content is NOT blank
                         fileContent = fileContent.trim();
                         if (fileContent.length() > 0){
-                            //restore certain string contents
-                            fileContent = fileContent.replace(mStartEscToken, mStartToken);
-                            fileContent = fileContent.replace(mEndEscToken, mEndToken);
                             //create the file with its content (maybe changed or maybe not changed and just copied over)
-                            boolean success=writeFile(newFile.getPath(), fileContent);
+                            boolean success=false;
+                            //if this is a NON-text file, eg and image
+                            if(fileContent.equals(mNonTextFileContent)){
+                                //copy the NON text file to the build location
+                                success=copyFileTo(new File(mUseTemplatePath + File.separator + newFile.getName()), newFile);
+                            }else{
+                                //this IS a text-based file...
+                                //restore certain string contents
+                                fileContent = fileContent.replace(mStartEscToken, mStartToken);
+                                fileContent = fileContent.replace(mEndEscToken, mEndToken);
+                                //write the token-replaced file content
+                                success=writeFile(newFile.getPath(), fileContent);
+                            }
                             if(success){
                                 System.out.println(" FILE CREATED: \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
                                 fileCount++;
@@ -982,8 +1073,8 @@ public class BuildTemplate {
                         if(!errorReading){
                             //if the file content is NOT blank
                             if (exportContent.length() > 0){
-                                //write a copy of the export file under the exportDir root
-                                boolean success=writeFile(exportDir + outputFilePath, exportContent);
+                                //make a copy of the export file under the exportDir root
+                                boolean success=copyFileTo(exportFile, new File(exportDir + outputFilePath));
                                 if(success){
                                     System.out.println(" FILE EXPORTED: \t" + "..."+(exportDir + outputFilePath).substring(mTargetDir.length()+1));
                                     fileCount++;
