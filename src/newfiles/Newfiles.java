@@ -28,7 +28,8 @@ public class Newfiles {
         "help", //2: show help for available commands, eg: "nf" or "nf help" or "nf help ls"
         "end", //3: stop entering commands for newfiles.jar... exit app, eg: "nf end"
         "templates", //4: open the root templates directory file-system window
-        "export" //5: export a project's template files, eg: "nf export 3"
+        "export", //5: export a project's template files, eg: "nf export 3"
+        "filenames" //6: create/update the xml document used to define the template's filenames/paths
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
@@ -38,11 +39,11 @@ public class Newfiles {
         "show help for available commands, eg: \"{nf} "+mCommands[2]+"\"",
         "exit app, eg: \"{nf} "+mCommands[3]+"\"",
         "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\"",
-        "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\""
+        "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\"",
+        "create/update an xml doc, used to define the template's filenames/paths, eg: \"{nf} "+mCommands[6]+" 3\""
     };
     private static int mUseTemplateIndex; //the integer number of the current template being used
     private final static int mNumArgsFromBatch=3; //the number of arguments that get passed to this app automatically
-    private final static String mFilenamesXml = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined 
     //do something depending on the integer
     private static void doSomething(int doWhatInt, String[] args){
         boolean isEnd=false;
@@ -65,6 +66,9 @@ public class Newfiles {
                 break;
             case 5: //5: export a project's template files, eg: "nf export 3"
                 export(args);
+                break;
+            case 6: //6: create/update the xml document used to define the template's filenames/paths
+                filenames(args);
                 break;
             default:
                 //invalid command (int code)
@@ -241,6 +245,61 @@ public class Newfiles {
     //show message for template index too low
     private static void templateIndexTooLowMsg(String index){
         System.out.println("\""+index+"\" is too low (below zero).");
+    }
+    //create update the _filenames.xml document for a selected template
+    private static void filenames(String[] args){
+        //clear previous use template index (if any)
+        mUseTemplateIndex=-1;
+        //load the template list, if not already loaded
+        loadTemplateList();
+        //if there are any templates
+        if(mTemplateList.size()>0){
+            if(args.length>0){
+                int tIndex=-1;
+                //if the first argument is the "filenames" command
+                String templateIndex=args[0].trim();
+                if(templateIndex.equals(mCommands[6])){
+                    //if there is a second argument
+                    if(args.length>1){
+                        //get the second argument
+                        templateIndex=args[1].trim();
+                    }
+                }
+                boolean invalidInt=false;
+                try{
+                    //try to parse the input into an integer index position
+                    tIndex=Integer.parseInt(templateIndex);
+                } catch (NumberFormatException e) {
+                    System.out.println("\""+templateIndex+"\" invalid integer index.");
+                    invalidInt=true;
+                }
+                //if a valid integer was chosen
+                if(tIndex>-1){
+                    //if the integer is within the range of the template indexes
+                    if(tIndex<mTemplateList.size()){
+                        //set the index of the template being used
+                        mUseTemplateIndex=tIndex;
+                        //show template header
+                        System.out.println("  UPDATING FILENAMES: ");
+                        //create or update the filenames xml
+                        mBuild.createUpdateFilenamesXml(mTemplateList.get(tIndex)); 
+                        //reset the use template index
+                        mUseTemplateIndex=-1;
+                    }else{
+                        //index too high out of range
+                        templateIndexTooHighMsg(templateIndex);
+                    }
+                }else{
+                    if(!invalidInt){
+                        //index is below zero
+                        templateIndexTooLowMsg(templateIndex);
+                    }
+                }
+            }
+        }else{
+            //no templates available...
+            showNoTemplatesMsg();
+        }
     }
     //use one of the available templates
     private static void use(String[] args){
@@ -424,7 +483,7 @@ public class Newfiles {
                     //if this file is NOT text based, eg: it's an image
                     String notTxtBased="";
                     if(!mBuild.isTextBasedFile(subFiles[f])){
-                        notTxtBased=" --> " + mFilenamesXml;
+                        notTxtBased=" --> non-text";
                     }
                     //print the file item
                     System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName() + notTxtBased);
@@ -463,7 +522,7 @@ public class Newfiles {
         for (int h=0;h<mCmdHelpText.length;h++){
             //print the command and help text
             System.out.println("  "+mCommands[h]+" -->\t\t "+mCmdHelpText[h].replace("{nf}", mBatchFileName));
-            System.out.println("---------------------------------------------------------------------------------------------------");
+            System.out.println("-------------------------------------------------------------------------------------------------------------------------------------");
         }
         System.out.println("\n");
     }
@@ -620,7 +679,7 @@ public class Newfiles {
             File batchFile = new File(mBatchFilePath);
             mBatchFileName = batchFile.getName();
             mUseTemplateIndex=-1;
-            mBuild = new BuildTemplate(mTargetDir, mBatchFileName, mTemplatesRoot, mFilenamesXml); //object used to build the given template files
+            mBuild = new BuildTemplate(mTargetDir, mBatchFileName, mTemplatesRoot); //object used to build the given template files
             //start the app
             start(args);
         }else{

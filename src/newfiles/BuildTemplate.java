@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -19,6 +20,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -37,7 +44,6 @@ public class BuildTemplate {
     private static ArrayList<File> mIncludeFiles; //Files objects to include into the build 
     private static String mTargetDir;
     private static String mBatchFileName;
-    private static String mFilenamesXml; //_filenames.xml
     private static String mTemplatesRoot;
     private static String mUseTemplatePath; //the path to the current using template
     
@@ -49,13 +55,15 @@ public class BuildTemplate {
     private static final String mStartEscToken="|_-+StrtToKen..=!_|";
     private static final String mEndEscToken="|_--eNdToKen..=!_|";
     private static final String mNonTextFileContent="|_--nOT@tXTfiLE..=!_|~~JUB123eZ55_-CoO__|"; //unique text content to use as a non-text file content placeholder
+    private static final String mAppResDir="res"; //root folder name of resources packaged inside the .jar app
+    private static final String mAppResXmlDir="xml";
+    private final static String mFilenamesXml = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined
     //constructor
-    public BuildTemplate(String targetDir, String batchFileName, String templatesRoot, String filenamesXml){
+    public BuildTemplate(String targetDir, String batchFileName, String templatesRoot){
         mIncludeFiles=null;
         mTargetDir=targetDir;
         mBatchFileName=batchFileName;
         mTemplatesRoot=templatesRoot;
-        mFilenamesXml=filenamesXml;
     }
     //method to use a given list of files
     public void useFiles(String useTemplatePath, ArrayList<File> includeFiles){
@@ -98,6 +106,85 @@ public class BuildTemplate {
             }
         }
         return exportDir;
+    }
+    //create/update _filenames.xml for the files inside this template
+    public void createUpdateFilenamesXml(String useTemplatePath){
+        //get the template folder
+        mUseTemplatePath=useTemplatePath;
+        File templateFolder=new File(mUseTemplatePath);
+        //get the _filenames.xml file (if it already exists)
+        File fnXmlFile=new File(mUseTemplatePath+File.separator+mFilenamesXml);
+        //if _filenames.xml does NOT exist
+        if(!fnXmlFile.exists()){
+            //get boilerplate content for _filenames.xml
+            String xmlStr=getFilenamesXmlStr();
+            //create _filenames.xml
+            writeFile(fnXmlFile.getPath(),xmlStr);
+        }
+        //get the XML document object
+        Document xmlDoc=getXmlDoc(fnXmlFile);
+        if(xmlDoc!=null){
+            //get the document root
+            Element root=xmlDoc.getDocumentElement();
+            //loop through each file inside useTemplatePath folder and add the <rename> node to xmlDoc, if it's not already there
+            //***
+        }
+    }
+    //get an xml document object from the given file object
+    private Document getXmlDoc(File file){return getXmlDoc(file, false);}
+    private Document getXmlDoc(File file, boolean doNormalize){
+        Document document = null;
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        try
+        {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            document = db.parse(file);
+            if(doNormalize){
+                document.getDocumentElement().normalize();
+            }
+        }catch(ParserConfigurationException pex){
+            System.out.println("\n Uh oh... failed to parse XML file --> "+file.getPath());
+            System.out.println(pex.getStackTrace()+"\n");
+        }catch(SAXException sax){
+            System.out.println("\n Uh oh... failed to sax XML file --> "+file.getPath());
+            System.out.println(sax.getStackTrace()+"\n");
+        }catch(IOException iox){
+            System.out.println("\n Uh oh... failed to io XML file --> "+file.getPath());
+            System.out.println(iox.getStackTrace()+"\n");
+        }
+        return document;
+    }
+    //get the url to a resource file packaged inside the .jar app
+    private String getFilenamesXmlStr() {
+        //use / instead of File.separator because this is an internal resource path
+        return getResStr(mAppResDir + "/" + mAppResXmlDir + "/" + mFilenamesXml);
+    }
+    //gets a string from an internal resource stream
+    private String getResStr(String resPath){
+        String str=null;
+        //get the stream
+        InputStream is = this.getClass().getResourceAsStream(resPath);
+        BufferedReader reader = null;
+        //start reading
+        try {
+            //create a buffered reader
+            reader = new BufferedReader(new InputStreamReader(is));
+            //create a string builder
+            StringBuilder out = new StringBuilder();
+            String line;
+            //try to read the file
+            while ((line = reader.readLine()) != null) {
+                out.append(line+"\n");
+            }
+            //set the file contents
+            str=out.toString();
+        } catch (IOException ex) {
+            System.out.println("\n Uh oh... failed to read resource file --> "+resPath);
+            ex.printStackTrace();
+        } finally {
+           try {reader.close();} catch (Exception ex) {}
+        }
+        return str;
     }
      //open up a direcctory window
     public static void openDirWindow(String dirPath){
