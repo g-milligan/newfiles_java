@@ -30,6 +30,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -151,18 +152,23 @@ public class BuildTemplate {
                                         if(new File(filePath).exists()){
                                             removeNode=false;
                                             //get the <rename> node inner text
-                                            renameNode.normalize();
-                                            String nodeText=renameNode.getNodeValue();
-                                            if(nodeText!=null){
-                                                //if the node text is NOT blank
-                                                nodeText=nodeText.trim();
-                                                if(nodeText.length()>0){
+                                            renameNode.normalize(); //remove comment text inside the node
+                                            String nodeText=renameNode.getTextContent();
+                                            if(nodeText==null){nodeText="";}
+                                            nodeText=nodeText.trim();
+                                            //if the node text is NOT blank
+                                            if(nodeText.length()>0){
+                                                //if the token contains the token separator
+                                                if(nodeText.contains(mTokenSeparator)){
                                                     //create the full token text
                                                     nodeText=mStartToken+"filename"+mTokenSeparator+nodeText+mEndToken;
-                                                    //add the token string to the map list
-                                                    renameList.put(filePath, nodeText);
+                                                }else{
+                                                    //invalid token string format
+                                                    nodeText="";
                                                 }
                                             }
+                                            //add the token string to the map list
+                                            renameList.put(filePath, nodeText);
                                         }
                                     }else{
                                         //filePath already a key in the list...
@@ -213,8 +219,45 @@ public class BuildTemplate {
         //get the XML document object
         Document xmlDoc=getXmlDoc(fnXmlFile);
         if(xmlDoc!=null){
-            //loop through each file inside useTemplatePath folder and add the <rename> node to xmlDoc, if it's not already there
-            //***
+            Element root=xmlDoc.getDocumentElement();
+            //loop through each file inside templateFolder folder and add the <rename> node to xmlDoc, if it's not already there
+            boolean xmlChangeMade=false;
+            File[] subFiles = templateFolder.listFiles(); int fileIndex=0;
+            for(int f=0;f<subFiles.length;f++){
+                //if file is NOT commented out
+                if(subFiles[f].getName().indexOf("_")!=0){
+                    System.out.println(" "+subFiles[f].getName() + "\n");
+                    String filnameXmlMsg=" \t"+mFilenamesXml+" \n \t\tundefined\n";
+                    //if this file is NOT already in the _filenames.xml file
+                    if(!renameNodeList.containsKey(subFiles[f].getPath())){
+                        //create tab before the rename node
+                        root.appendChild(xmlDoc.createTextNode("\t"));
+                        //create this <rename> node in the xmlDoc
+                        Element renameNode=(Element)xmlDoc.createElement("rename");
+                        renameNode.setAttribute("name", subFiles[f].getName());
+                        Comment renameComment = xmlDoc.createComment("{1}"+mTokenSeparator+"{2}"+mTokenSeparator+"{3}");
+                        renameNode.appendChild(renameComment);
+                        root.appendChild(renameNode);
+                        //create newline after the rename node
+                        root.appendChild(xmlDoc.createTextNode("\n"));
+                        //print message
+                        System.out.println(filnameXmlMsg); //*** add token filename listing too (if any)
+                        xmlChangeMade=true;
+                    }else{
+                        //print message
+                        String xmlTokenStr=renameNodeList.get(subFiles[f].getPath());
+                        if(xmlTokenStr.length()>0){
+                            filnameXmlMsg=" \t"+mFilenamesXml+" \n \t\t"+xmlTokenStr+"\n";
+                        }     
+                        System.out.println(filnameXmlMsg);
+                    }
+                }
+            }
+            //if there were any xml changes
+            if(xmlChangeMade){
+                //save the changed xml document
+                saveXmlDoc(xmlDoc, fnXmlFile);
+            }
         }
     }
     private boolean saveXmlDoc(Document xmlDoc, File output){

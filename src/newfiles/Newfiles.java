@@ -280,7 +280,7 @@ public class Newfiles {
                         //set the index of the template being used
                         mUseTemplateIndex=tIndex;
                         //show template header
-                        System.out.println("  UPDATING FILENAMES: ");
+                        System.out.println(" FILENAMES: ");
                         //create or update the filenames xml
                         mBuild.createUpdateFilenamesXml(mTemplateList.get(tIndex)); 
                         //reset the use template index
