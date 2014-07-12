@@ -23,8 +23,17 @@ import java.util.HashMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -107,6 +116,78 @@ public class BuildTemplate {
         }
         return exportDir;
     }
+    //get a list of rename values from _filenames.xml 
+    //and remove any <rename> node that is pointing at nothing OR a file that doesn't exist 
+    private HashMap<String, String> getXmlRenameHashValues(){
+        HashMap<String, String> renameList = new HashMap<String, String>();
+        boolean xmlChangesMade=false;
+        //get the _filenames.xml file (if it already exists)
+        File fnXmlFile=new File(mUseTemplatePath+File.separator+mFilenamesXml);
+        if(fnXmlFile.exists()){
+            //get the XML document object
+            Document xmlDoc=getXmlDoc(fnXmlFile);
+            if(xmlDoc!=null){
+                //get the document root
+                Element root=xmlDoc.getDocumentElement();
+                //loop through each <rename> node inside the root node
+                NodeList renameNodes = root.getChildNodes();
+                for (int r=0;r<renameNodes.getLength();r++){
+                    //if this child node is an element (not a text node)
+                    Node renameNode=renameNodes.item(r);
+                    if (renameNode.getNodeType()==Node.ELEMENT_NODE) {
+                        //if this child node is a "rename" node
+                        if(renameNode.getNodeName().toLowerCase().equals("rename")){
+                            boolean removeNode=true;
+                            //if there is a name attribute
+                            Node nameAttr=renameNode.getAttributes().getNamedItem("name");
+                            if(nameAttr!=null){
+                                //if the name attribute is NOT blank
+                                String nameAttrVal=nameAttr.getNodeValue();
+                                if(nameAttrVal.length()>0){
+                                    //if the name attribute's filePath value is not already a key in the list
+                                    String filePath=mUseTemplatePath+File.separator+nameAttrVal;
+                                    if(!renameList.containsKey(filePath)){
+                                        //if the file actual exists
+                                        if(new File(filePath).exists()){
+                                            removeNode=false;
+                                            //get the <rename> node inner text
+                                            renameNode.normalize();
+                                            String nodeText=renameNode.getNodeValue();
+                                            if(nodeText!=null){
+                                                //if the node text is NOT blank
+                                                nodeText=nodeText.trim();
+                                                if(nodeText.length()>0){
+                                                    //create the full token text
+                                                    nodeText=mStartToken+"filename"+mTokenSeparator+nodeText+mEndToken;
+                                                    //add the token string to the map list
+                                                    renameList.put(filePath, nodeText);
+                                                }
+                                            }
+                                        }
+                                    }else{
+                                        //filePath already a key in the list...
+                                        removeNode=false;
+                                    }
+                                }
+                            }
+                            //if this node should be removed
+                            if(removeNode){
+                                //remove this <rename> node
+                                root.removeChild(renameNode);
+                                xmlChangesMade=true;
+                            }
+                        }
+                    }
+                }
+                //if any changes were made to the xml file
+                if(xmlChangesMade){
+                    //save the changes
+                    saveXmlDoc(xmlDoc, fnXmlFile);
+                }
+            }
+        }
+        return renameList;
+    }
     //create/update _filenames.xml for the files inside this template
     public void createUpdateFilenamesXml(String useTemplatePath){
         //get the template folder
@@ -114,21 +195,41 @@ public class BuildTemplate {
         File templateFolder=new File(mUseTemplatePath);
         //get the _filenames.xml file (if it already exists)
         File fnXmlFile=new File(mUseTemplatePath+File.separator+mFilenamesXml);
+        //HashMap<[filePathInTemplate], [filenameTokenTxt]>
+        HashMap<String, String> renameNodeList = new HashMap<String, String>();
         //if _filenames.xml does NOT exist
         if(!fnXmlFile.exists()){
             //get boilerplate content for _filenames.xml
             String xmlStr=getFilenamesXmlStr();
             //create _filenames.xml
             writeFile(fnXmlFile.getPath(),xmlStr);
+        }else{
+            //_filenames.xml already exists...
+            
+            //get the HashMaps of rename values
+            //HashMap<[filePathInTemplate], [filenameTokenTxt]>
+            renameNodeList = getXmlRenameHashValues();
         }
         //get the XML document object
         Document xmlDoc=getXmlDoc(fnXmlFile);
         if(xmlDoc!=null){
-            //get the document root
-            Element root=xmlDoc.getDocumentElement();
             //loop through each file inside useTemplatePath folder and add the <rename> node to xmlDoc, if it's not already there
             //***
         }
+    }
+    private boolean saveXmlDoc(Document xmlDoc, File output){
+        boolean success=false;
+        try{
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            Result result = new StreamResult(output);
+            Source input = new DOMSource(xmlDoc);
+            transformer.transform(input, result);
+            success=true;
+        }catch(TransformerException te){
+            System.out.println("\n Uh oh... failed to save XML file --> "+output.getPath());
+            System.out.println(te.getStackTrace()+"\n");
+        }
+        return success;
     }
     //get an xml document object from the given file object
     private Document getXmlDoc(File file){return getXmlDoc(file, false);}
