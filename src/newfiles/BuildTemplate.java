@@ -818,16 +818,23 @@ public class BuildTemplate {
                             //if this token has an alias
                             String tAlias = getTokenPart("alias", tokens.get(t));
                             if(tAlias.length()>0){
+                                String tAliasPath=mIncludeFiles.get(f).getPath();
+                                //is this alias coming from _filenames.xml?
+                                String tAliasSource = getTokenPart("source", tokens.get(t));
+                                if(tAliasSource.equals(mFilenamesXml)){
+                                    //set the path of _filenames.xml instead of the template files
+                                    tAliasPath=fNamesXmlFile.getPath();
+                                }                                
                                 //if this file path isn't already a key in mFileAliasesLookup
-                                if(!mFileAliasesLookup.containsKey(mIncludeFiles.get(f).getPath())){
+                                if(!mFileAliasesLookup.containsKey(tAliasPath)){
                                     //create this path-key in HashMap<[tokenAlias], [tokenStr]>
                                     HashMap<String, String> aliasTokenStr = new HashMap<String, String>();
-                                    mFileAliasesLookup.put(mIncludeFiles.get(f).getPath(), aliasTokenStr);
+                                    mFileAliasesLookup.put(tAliasPath, aliasTokenStr);
                                 }
                                 //if this alias isn't already listed for this file
-                                if (!mFileAliasesLookup.get(mIncludeFiles.get(f).getPath()).containsKey(tAlias)){
+                                if (!mFileAliasesLookup.get(tAliasPath).containsKey(tAlias)){
                                     //add the alias/name to the file's listing
-                                    mFileAliasesLookup.get(mIncludeFiles.get(f).getPath()).put(tAlias, tokens.get(t));
+                                    mFileAliasesLookup.get(tAliasPath).put(tAlias, tokens.get(t));
                                 }
                             }
                             //STORE ALL OF UNIQUE TOKEN NAMES FOR ALL FILES
@@ -924,56 +931,83 @@ public class BuildTemplate {
         ArrayList<String> inFileNameTokens = new ArrayList<String>();
         //for each file that contains tokens
         for (String filePath : mFileTokensLookup.keySet()) {
-            //for each token belonging to this file
-            ArrayList<String> tokens = mFileTokensLookup.get(filePath);
-            for(int t=0;t<tokens.size();t++){
-                //get the token text, eg: <<var:l:something>>
-                String tokenStr=tokens.get(t);
+            String fileAliasPath=filePath;
+            String name="";String dir="";
+            //GET THE FILENAME TOKEN FROM EITHER _filenames.xml OR WITHIN A TOKEN INSIDE THE FILE
+            //if this file's name gets defined in _filenames.xml
+            if(mFilenameXmlOverwriteLookup.containsKey(filePath)){
+                //the file aliases (used inside the filename) are assigned to _filenames.xml instead of the actual template file
+                fileAliasPath=mUseTemplatePath+File.separator+mFilenamesXml;
+                //get the token string
+                String tokenStr=mFilenameXmlOverwriteLookup.get(filePath);
                 String[] tokenParts = tokenStr.split(mTokenSeparator);
-                //get the token alias
-                String tokenType=getTokenPart("type", tokenParts);
-                //if the token type is filename
-                if(tokenType.equals("filename")){
-                    //get the file name
-                    String name=getTokenPart("name", tokenParts);
-                    //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
-                    if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
-                        name=""; //no need to check a NON-string literal. It will NOT contain any aliases
+                //get the file name
+                name=getTokenPart("name", tokenParts);
+                //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
+                if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
+                    name=""; //no need to check a NON-string literal. It will NOT contain any aliases
+                }
+                //get the file folder
+                dir=getTokenPart("dir", tokenParts);
+            }else{
+                //TRY TO FIND A FILENAME TOKEN WITHIN THE TEMPLATE FILE... _filenames.xml DOESN'T INFLUENCE THIS TEMPLATE FILE'S NAME...
+                //for each token belonging to this file
+                ArrayList<String> tokens = mFileTokensLookup.get(filePath);
+                for(int t=0;t<tokens.size();t++){
+                    //get the token text, eg: <<var:l:something>>
+                    String tokenStr=tokens.get(t);
+                    String[] tokenParts = tokenStr.split(mTokenSeparator);
+                    //get the token alias
+                    String tokenType=getTokenPart("type", tokenParts);
+                    //if the token type is filename
+                    if(tokenType.equals("filename")){
+                        //get the file name
+                        name=getTokenPart("name", tokenParts);
+                        //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
+                        if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
+                            name=""; //no need to check a NON-string literal. It will NOT contain any aliases
+                        }
+                        //get the file folder
+                        dir=getTokenPart("dir", tokenParts);
+                        //end the looped search for the filename token inside this file
+                        break;
                     }
-                    //get the file folder
-                    String dir=getTokenPart("dir", tokenParts);
-                    //if EITHER the filename directory OR the name is a candidate for possibly containing token aliases
-                    if(name.length()>0||dir.length()>0){
-                        //for each alias inside this file (one or more aliases MAY appear inside either the filename "name" or "dir")
-                        for (String aliasStr : mFileAliasesLookup.get(filePath).keySet()) {
-                            //get the token name, associated with this alias
-                            String nameForAlias=getTokenPart("name", mFileAliasesLookup.get(filePath).get(aliasStr));
-                            //if this token name is NOT ALREADY listed as influencing one or more filename/paths
-                            if(!inFileNameTokens.contains(nameForAlias)){
-                                boolean aliasInflencesFilename=false;
-                                //if the "name" might contain one or more aliases
-                                if(name.length()>0){
-                                    //if this alias string is inside the file "name"
-                                    if(name.contains(aliasStr)){
+                }
+            }
+            //CHECK ALL ALIASES TO SEE IF THEY ARE BEING USED IN EITHER THE FILE dir OR FILE name
+            //if EITHER the filename directory OR the name is a candidate for possibly containing token aliases
+            if(name.length()>0||dir.length()>0){
+                //if the file (that defines the filename token) contains any aliases
+                if(mFileAliasesLookup.containsKey(fileAliasPath)){
+                    //for each alias inside this file (one or more aliases MAY appear inside either the filename "name" or "dir")
+                    for (String aliasStr : mFileAliasesLookup.get(fileAliasPath).keySet()) {
+                        //get the token name, associated with this alias
+                        String nameForAlias=getTokenPart("name", mFileAliasesLookup.get(fileAliasPath).get(aliasStr));
+                        //if this token name is NOT ALREADY listed as influencing one or more filename/paths
+                        if(!inFileNameTokens.contains(nameForAlias)){
+                            boolean aliasInflencesFilename=false;
+                            //if the "name" might contain one or more aliases
+                            if(name.length()>0){
+                                //if this alias string is inside the file "name"
+                                if(name.contains(aliasStr)){
+                                    aliasInflencesFilename=true;
+                                }
+                            }
+                            //if this alias was NOT found as part of the file "name"
+                            if(!aliasInflencesFilename){
+                                //if the "dir" might contain one or more aliases
+                                if(dir.length()>0){
+                                    //if this alias string is inside the file "directory"
+                                    if(dir.contains(aliasStr)){
                                         aliasInflencesFilename=true;
                                     }
                                 }
-                                //if this alias was NOT found as part of the file "name"
-                                if(!aliasInflencesFilename){
-                                    //if the "dir" might contain one or more aliases
-                                    if(dir.length()>0){
-                                        //if this alias string is inside the file "directory"
-                                        if(dir.contains(aliasStr)){
-                                            aliasInflencesFilename=true;
-                                        }
-                                    }
-                                }
-                                //if this alias influences this filename
-                                if(aliasInflencesFilename){
-                                    //add the token name (associated with this alias) to the list
-                                    //the user will have to input a value for this token in order to determine the file path
-                                    inFileNameTokens.add(nameForAlias);
-                                }
+                            }
+                            //if this alias influences this filename
+                            if(aliasInflencesFilename){
+                                //add the token name (associated with this alias) to the list
+                                //the user will have to input a value for this token in order to determine the file path
+                                inFileNameTokens.add(nameForAlias);
                             }
                         }
                     }
@@ -1154,10 +1188,23 @@ public class BuildTemplate {
         //3) determine the file-path and file name that each file will have
         //============================
         //IF inFileNameTokens is NOT null, then only replace the tokens that are named in this inFileNameTokens list
+        
+        
+                //GET FORMATTED VALUES FOR ALIASES AND REMOVE ALIAS DECLARATIONS FROM _filenames.xml
+        //==================================================================================
+        //if there are any aliases inside _filenames.xml
+        if(mFileAliasesLookup.containsKey(mUseTemplatePath + File.separator + mFilenamesXml)){
+            //***
+        }
+        
+        
+        
+        
         //for each template file
         for (String filePath : mFileTokensLookup.keySet()) {
             //get key values related to this file
             String fileContent=mFileContentLookup.get(filePath);
+            //*** could be placeholder content for a non-text based image
             ArrayList<String> tokens=mFileTokensLookup.get(filePath);
             //GET FORMATTED VALUES FOR ALIASES AND REMOVE ALIAS DECLARATIONS FROM FILE CONTENTS
             //=================================================================================
@@ -1389,7 +1436,7 @@ public class BuildTemplate {
                                 //if this is a NON-text file, eg and image
                                 if(fileContent.equals(mNonTextFileContent)){
                                     //copy the NON text file to the build location
-                                    success=copyFileTo(new File(mUseTemplatePath + File.separator + newFile.getName()), newFile);
+                                    success=copyFileTo(new File(mUseTemplatePath + File.separator + new File(filePath).getName()), newFile);
                                 }else{
                                     //this IS a text-based file...
                                     //restore certain string contents
