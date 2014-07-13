@@ -17,12 +17,12 @@
 			Example: 
 			========
 			
-				<rename name="image-name.jpg">l:image/path:"new-name"</rename>
+				<filename for="image-name.jpg">l:image/path:"new-name"</filename>
 				
 			Format:
 			=======
 			
-				<rename name="image-name.jpg">{1}:{2}:{3}</rename>
+				<filename for="image-name.jpg">{1}:{2}:{3}</filename>
 				
 			Parameters:
 			===========

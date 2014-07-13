@@ -117,8 +117,9 @@ public class BuildTemplate {
         }
         return exportDir;
     }
+    //*** use getXmlRenameHashValues to overwrite filename tokens, as needed
     //get a list of rename values from _filenames.xml 
-    //and remove any <rename> node that is pointing at nothing OR a file that doesn't exist 
+    //and remove any <filename> node that is pointing at nothing OR a file that doesn't exist 
     private HashMap<String, String> getXmlRenameHashValues(){
         HashMap<String, String> renameList = new HashMap<String, String>();
         boolean xmlChangesMade=false;
@@ -130,17 +131,17 @@ public class BuildTemplate {
             if(xmlDoc!=null){
                 //get the document root
                 Element root=xmlDoc.getDocumentElement();
-                //loop through each <rename> node inside the root node
+                //loop through each <filename> node inside the root node
                 NodeList renameNodes = root.getChildNodes();
                 for (int r=0;r<renameNodes.getLength();r++){
                     //if this child node is an element (not a text node)
                     Node renameNode=renameNodes.item(r);
                     if (renameNode.getNodeType()==Node.ELEMENT_NODE) {
-                        //if this child node is a "rename" node
-                        if(renameNode.getNodeName().toLowerCase().equals("rename")){
+                        //if this child node is a "filename" node
+                        if(renameNode.getNodeName().toLowerCase().equals("filename")){
                             boolean removeNode=true;
                             //if there is a name attribute
-                            Node nameAttr=renameNode.getAttributes().getNamedItem("name");
+                            Node nameAttr=renameNode.getAttributes().getNamedItem("for");
                             if(nameAttr!=null){
                                 //if the name attribute is NOT blank
                                 String nameAttrVal=nameAttr.getNodeValue();
@@ -151,7 +152,7 @@ public class BuildTemplate {
                                         //if the file actual exists
                                         if(new File(filePath).exists()){
                                             removeNode=false;
-                                            //get the <rename> node inner text
+                                            //get the <filename> node inner text
                                             renameNode.normalize(); //remove comment text inside the node
                                             String nodeText=renameNode.getTextContent();
                                             if(nodeText==null){nodeText="";}
@@ -178,7 +179,7 @@ public class BuildTemplate {
                             }
                             //if this node should be removed
                             if(removeNode){
-                                //remove this <rename> node
+                                //remove this <filename> node
                                 root.removeChild(renameNode);
                                 xmlChangesMade=true;
                             }
@@ -219,35 +220,81 @@ public class BuildTemplate {
         //get the XML document object
         Document xmlDoc=getXmlDoc(fnXmlFile);
         if(xmlDoc!=null){
+            //LOAD ALL OF THE TOKENS INSIDE THE TEMPLATE SO THAT THE FILENAME TOKENS CAN BE FOUND
+            if(mIncludeFiles==null){
+                mIncludeFiles=new ArrayList<File>();
+            }else{
+                mIncludeFiles.clear();
+            }
+            File[] subFiles = templateFolder.listFiles();
+            for(int f=0;f<subFiles.length;f++){
+                mIncludeFiles.add(subFiles[f]);
+            }
+            boolean atLeastOneToken=loadFilesData();
+            //LOOP THROUGH EACH FILE TO LIST ITS FILENAME DEFINITION(S) AND UPDATE IT'S _filename.xml FILE, IF NEEDED
             Element root=xmlDoc.getDocumentElement();
-            //loop through each file inside templateFolder folder and add the <rename> node to xmlDoc, if it's not already there
+            //loop through each file inside templateFolder folder and add the <filename> node to xmlDoc, if it's not already there
             boolean xmlChangeMade=false;
-            File[] subFiles = templateFolder.listFiles(); int fileIndex=0;
+            int fileIndex=0; String undefinedMsg="undefined";
             for(int f=0;f<subFiles.length;f++){
                 //if file is NOT commented out
                 if(subFiles[f].getName().indexOf("_")!=0){
                     System.out.println(" "+subFiles[f].getName() + "\n");
-                    String filnameXmlMsg=" \t"+mFilenamesXml+" \n \t\tundefined\n";
+                    //start the output messages (one for token filename and the other for xml filename)
+                    String filenameTokenMsg=" \ttoken \n \t\t";
+                    String filenameTokens=undefinedMsg;
+                    String tooManyFilenameTokensMsg="";
+                    String filnameXmlMsg=" \t"+mFilenamesXml+" \n \t\t";
+                    //if there is at least one token in any of the template files
+                    if(atLeastOneToken){
+                        //if this template file has ANY tokens
+                        if(mFileTokensLookup.containsKey(subFiles[f].getPath())){
+                            //for each token inside this file
+                            ArrayList<String> tokens=mFileTokensLookup.get(subFiles[f].getPath());
+                            for(int t=0;t<tokens.size();t++){
+                                //if this token is a filename type
+                                String tokenStr=tokens.get(t);
+                                String type=getTokenPart("type", tokenStr);
+                                if(type.equals("filename")){
+                                    //clear the default "undefined" message, if this is the first token
+                                    if(filenameTokens.indexOf(undefinedMsg)==0){filenameTokens="";}
+                                    //if NOT the first token
+                                    if(filenameTokens.length()>0){
+                                        filenameTokens+=" \n \t\t";
+                                        tooManyFilenameTokensMsg="\tERROR: there should be ONLY 0 or 1 filename token per file!!! \n";
+                                    }
+                                    //add the token string to the output
+                                    filenameTokens+=tokenStr;
+                                }
+                            }
+                        }
+                    }
+                    //filename defined as token message
+                    filenameTokenMsg+=filenameTokens;
+                    System.out.println(tooManyFilenameTokensMsg+filenameTokenMsg); 
                     //if this file is NOT already in the _filenames.xml file
                     if(!renameNodeList.containsKey(subFiles[f].getPath())){
-                        //create tab before the rename node
+                        //create tab before the filename node
                         root.appendChild(xmlDoc.createTextNode("\t"));
-                        //create this <rename> node in the xmlDoc
-                        Element renameNode=(Element)xmlDoc.createElement("rename");
-                        renameNode.setAttribute("name", subFiles[f].getName());
+                        //create this <filename> node in the xmlDoc
+                        Element renameNode=(Element)xmlDoc.createElement("filename");
+                        renameNode.setAttribute("for", subFiles[f].getName());
                         Comment renameComment = xmlDoc.createComment("{1}"+mTokenSeparator+"{2}"+mTokenSeparator+"{3}");
                         renameNode.appendChild(renameComment);
                         root.appendChild(renameNode);
-                        //create newline after the rename node
+                        //create newline after the filename node
                         root.appendChild(xmlDoc.createTextNode("\n"));
                         //print message
-                        System.out.println(filnameXmlMsg); //*** add token filename listing too (if any)
+                        filnameXmlMsg+=undefinedMsg+"\n";
+                        System.out.println(filnameXmlMsg); 
                         xmlChangeMade=true;
                     }else{
                         //print message
                         String xmlTokenStr=renameNodeList.get(subFiles[f].getPath());
                         if(xmlTokenStr.length()>0){
-                            filnameXmlMsg=" \t"+mFilenamesXml+" \n \t\t"+xmlTokenStr+"\n";
+                            filnameXmlMsg+=xmlTokenStr+"\n";
+                        }else{
+                           filnameXmlMsg+=undefinedMsg+"\n"; 
                         }     
                         System.out.println(filnameXmlMsg);
                     }
