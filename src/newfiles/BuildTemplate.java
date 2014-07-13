@@ -45,6 +45,7 @@ public class BuildTemplate {
     //fields 
     private static HashMap<String, String> mFileContentLookup; //HashMap<[filePath], [fileContent]>
     private static HashMap<String, ArrayList<String>> mFileTokensLookup; //HashMap<[filePath], ArrayList<[tokenItemText]>>
+    private static HashMap<String, String> mFilenameXmlOverwriteLookup; //HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
     private static HashMap<String, HashMap<String, String>> mFileAliasesLookup; //HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>
     private static ArrayList<String> mUniqueTokenNames; //ArrayList<[tokenName]> each token name only appears once
     private static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
@@ -61,6 +62,7 @@ public class BuildTemplate {
     private static final String mStartToken="<<";
     private static final String mEndToken=">>";
     private static final String mTokenSeparator=":";
+    private static final String mTokenSourceSeparator="-->";
     private static final String mAliasSetter="=>";
     private static final String mStartEscToken="|_-+StrtToKen..=!_|";
     private static final String mEndEscToken="|_--eNdToKen..=!_|";
@@ -117,17 +119,31 @@ public class BuildTemplate {
         }
         return exportDir;
     }
-    //*** use getXmlRenameHashValues to overwrite filename tokens, as needed
+    //get the _filenames.xml File object, if the file exists
+    private File getXmlFilenamesFile(){
+        return new File(mUseTemplatePath+File.separator+mFilenamesXml);
+    }
+    //get the _filenames.xml XML document object, if the file exists
+    private Document getXmlFilenamesDoc(){return getXmlFilenamesDoc(getXmlFilenamesFile());}
+    private Document getXmlFilenamesDoc(File fnXmlFile){
+       Document xmlDoc=null;
+        //if _filenames.xml exists
+        if(fnXmlFile.exists()){
+            //get the XML document object
+            xmlDoc=getXmlDoc(fnXmlFile);
+        }
+       return xmlDoc;
+    }
     //get a list of rename values from _filenames.xml 
     //and remove any <filename> node that is pointing at nothing OR a file that doesn't exist 
-    private HashMap<String, String> getXmlRenameHashValues(){
+    private HashMap<String, String> getXmlFilenameHashValues(){
         HashMap<String, String> renameList = new HashMap<String, String>();
         boolean xmlChangesMade=false;
         //get the _filenames.xml file (if it already exists)
-        File fnXmlFile=new File(mUseTemplatePath+File.separator+mFilenamesXml);
+        File fnXmlFile=getXmlFilenamesFile();
         if(fnXmlFile.exists()){
             //get the XML document object
-            Document xmlDoc=getXmlDoc(fnXmlFile);
+            Document xmlDoc=getXmlFilenamesDoc(fnXmlFile);
             if(xmlDoc!=null){
                 //get the document root
                 Element root=xmlDoc.getDocumentElement();
@@ -215,7 +231,7 @@ public class BuildTemplate {
             
             //get the HashMaps of rename values
             //HashMap<[filePathInTemplate], [filenameTokenTxt]>
-            renameNodeList = getXmlRenameHashValues();
+            renameNodeList = getXmlFilenameHashValues();
         }
         //get the XML document object
         Document xmlDoc=getXmlDoc(fnXmlFile);
@@ -235,16 +251,20 @@ public class BuildTemplate {
             Element root=xmlDoc.getDocumentElement();
             //loop through each file inside templateFolder folder and add the <filename> node to xmlDoc, if it's not already there
             boolean xmlChangeMade=false;
-            int fileIndex=0; String undefinedMsg="undefined";
+            int fileIndex=0; 
             for(int f=0;f<subFiles.length;f++){
                 //if file is NOT commented out
                 if(subFiles[f].getName().indexOf("_")!=0){
                     System.out.println(" "+subFiles[f].getName() + "\n");
                     //start the output messages (one for token filename and the other for xml filename)
-                    String filenameTokenMsg=" \ttoken \n \t\t";
-                    String filenameTokens=undefinedMsg;
+                    String filenameTokenMsg=""; int numFilenameXmlTokens=0;int numFilenameTokens=0;
                     String tooManyFilenameTokensMsg="";
-                    String filnameXmlMsg=" \t"+mFilenamesXml+" \n \t\t";
+                    String nonTextMsg="";
+                    //if this is NOT a text-based file
+                    if(!isTextBasedFile(subFiles[f])){
+                        nonTextMsg="\tConfigure filename in " + mFilenamesXml + "; this is NOT a text-based file type. \n";
+                        nonTextMsg+="\t-------------------------------------------------------------------------- \n";
+                    }
                     //if there is at least one token in any of the template files
                     if(atLeastOneToken){
                         //if this template file has ANY tokens
@@ -256,22 +276,23 @@ public class BuildTemplate {
                                 String tokenStr=tokens.get(t);
                                 String type=getTokenPart("type", tokenStr);
                                 if(type.equals("filename")){
-                                    //clear the default "undefined" message, if this is the first token
-                                    if(filenameTokens.indexOf(undefinedMsg)==0){filenameTokens="";}
+                                    //if this filename came from _filenames.xml...
+                                    String tokenSource=getTokenPart("source", tokenStr);
+                                    if(tokenSource.equals(mFilenamesXml)){numFilenameXmlTokens++;}
+                                    else{numFilenameTokens++;}
+                                    //write the token output
+                                    filenameTokenMsg+="\t"+tokenStr+" \n";
                                     //if NOT the first token
-                                    if(filenameTokens.length()>0){
-                                        filenameTokens+=" \n \t\t";
+                                    if(numFilenameTokens>1||numFilenameXmlTokens>1){
                                         tooManyFilenameTokensMsg="\tERROR: there should be ONLY 0 or 1 filename token per file!!! \n";
+                                        tooManyFilenameTokensMsg+="\t------------------------------------------------------------- \n";
                                     }
-                                    //add the token string to the output
-                                    filenameTokens+=tokenStr;
                                 }
                             }
                         }
                     }
                     //filename defined as token message
-                    filenameTokenMsg+=filenameTokens;
-                    System.out.println(tooManyFilenameTokensMsg+filenameTokenMsg); 
+                    System.out.println(nonTextMsg+tooManyFilenameTokensMsg+filenameTokenMsg); 
                     //if this file is NOT already in the _filenames.xml file
                     if(!renameNodeList.containsKey(subFiles[f].getPath())){
                         //create tab before the filename node
@@ -285,18 +306,7 @@ public class BuildTemplate {
                         //create newline after the filename node
                         root.appendChild(xmlDoc.createTextNode("\n"));
                         //print message
-                        filnameXmlMsg+=undefinedMsg+"\n";
-                        System.out.println(filnameXmlMsg); 
                         xmlChangeMade=true;
-                    }else{
-                        //print message
-                        String xmlTokenStr=renameNodeList.get(subFiles[f].getPath());
-                        if(xmlTokenStr.length()>0){
-                            filnameXmlMsg+=xmlTokenStr+"\n";
-                        }else{
-                           filnameXmlMsg+=undefinedMsg+"\n"; 
-                        }     
-                        System.out.println(filnameXmlMsg);
                     }
                 }
             }
@@ -441,16 +451,23 @@ public class BuildTemplate {
         return isTxt;
     }
     //read the contents of a file into a string (default UTF 8 encoding) 
-    public static String readFile(String path) throws IOException {
+    public static String readFile(String path){
         return readFile(path, StandardCharsets.UTF_8);
     }
     //read the contents of a file into a string
-    public static String readFile(String path, Charset encoding) throws IOException {
+    public static String readFile(String path, Charset encoding){
         String str="";
         //if this is a text based file, eg: not an image file
         if(isTextBasedFile(new File(path))){
-            byte[] encoded = Files.readAllBytes(Paths.get(path));
-            str=new String(encoded, encoding);
+            try{
+                //read the file content
+                byte[] encoded = Files.readAllBytes(Paths.get(path));
+                str=new String(encoded, encoding);
+            }catch (IOException errread){
+                str=null;
+                System.out.println("\n Uh oh... failed to read file --> " + path + " ");
+                System.out.println(errread.getStackTrace() + "\n");
+            }
         }else{
             //this is a non-text based file...
             str=mNonTextFileContent;
@@ -491,6 +508,7 @@ public class BuildTemplate {
         }
         return success;
     }
+    //return an array list of tokens found in string content (appended to the tokens)
     private ArrayList<String> getTokensFromContent(String contents){
         ArrayList<String> tokens = new ArrayList<String>();
         //what are the different possible token type starting strings?
@@ -647,6 +665,25 @@ public class BuildTemplate {
                     }
                 }
                 break;
+            case "source": //what file did the token come from? most times it will be from the file where the token is placed, but sometimes the token can come from _filenames.xml for example
+                returnStr = "";
+                //recursively get type
+                String tfType = getTokenPart("type", tokenParts);
+                //if this type is a "filename" (only filename types can have a source other than the file where the token is written)
+                if (tfType.equals("filename")){
+                    //if there are two or more token parts
+                    if(tokenParts.length>1){
+                        //get the last token part
+                        String lastPart=tokenParts[tokenParts.length-1];
+                        //if the last part contains -->
+                        if(lastPart.contains(mTokenSourceSeparator)){
+                            //get just the string after the -->
+                            lastPart=lastPart.substring(lastPart.lastIndexOf(mTokenSourceSeparator)+mTokenSourceSeparator.length());
+                            returnStr=lastPart.trim();
+                        }
+                    }
+                }
+                break;
         }
         return returnStr;
     }
@@ -694,28 +731,78 @@ public class BuildTemplate {
         }else{
             mChangedFileDirs.clear();
         }
-        boolean atLeastOneToken = false;
+        if(mFilenameXmlOverwriteLookup==null){
+            mFilenameXmlOverwriteLookup=new HashMap<String, String>();
+        }else{
+            mFilenameXmlOverwriteLookup.clear();
+        }
+        //get the _filenames.xml file (if it exists)
+        HashMap<String, String> filenamesFromXml = new HashMap<String, String>();
+        File fNamesXmlFile=getXmlFilenamesFile();
+        ArrayList<String> filenameTokens = new ArrayList<String>();
+        if(fNamesXmlFile.exists()){
+            //include the filenames xml file in the list of files to collect tokens from
+            mIncludeFiles.add(fNamesXmlFile);
+            //get all of the filenames from the xml (if any)
+            filenamesFromXml=getXmlFilenameHashValues();
+            //get the content from _filenames.xml
+            String filenamesContent=readFile(fNamesXmlFile.getPath());
+            //if file read was successful
+            if(filenamesContent!=null){
+                //escape tokens, as needed
+                filenamesContent = filenamesContent.replace("\\"+mStartToken, mStartEscToken);
+                filenamesContent = filenamesContent.replace("\\"+mEndToken, mEndEscToken);
+                //get the tokens used inside _filenames.xml
+                filenameTokens=getTokensFromContent(filenamesContent);
+            }
+        }
         //for each file
+        boolean atLeastOneToken = false;
         for(int f=0;f<mIncludeFiles.size();f++){
             //STORE ORIGINAL FILE CONTENTS AND GET AN ARRAY OF TOKENS FOR THIS FILE
             //=====================================================================
-            String contents=""; boolean fileReadErr=false;
-            try{
-                //get the file content
-                contents=readFile(mIncludeFiles.get(f).getPath());
-            }catch (IOException errread){
-                fileReadErr=true;
-                System.out.println("\nERROR READING FILE: \n"+mIncludeFiles.get(f).getPath()+" \n...\n"+errread.getMessage()+"\n");
-            }
+            String contents="";
+            //get the file content
+            contents=readFile(mIncludeFiles.get(f).getPath());
             //if file read was successful
-            if(!fileReadErr){
+            if(contents!=null){
+                //if this file has a <filename> in the _filenames.xml file
+                String overwriteFilename="";
+                if(filenamesFromXml.containsKey(mIncludeFiles.get(f).getPath())){
+                    //get the filename token string from inside the <filename> xml element 
+                    //(this string is formatted just like a normal token, eg: <<filename:l:path:name>>)
+                    String filenameXmlStr=filenamesFromXml.get(mIncludeFiles.get(f).getPath());
+                    //if the filename token string is NOT blank
+                    if(filenameXmlStr.length()>0){
+                        //any filename token in this file will be overwritten by the filename definition in _filenames.xml
+                        overwriteFilename=filenameXmlStr;
+                    }
+                }
                 //escape certain string contents
                 contents = contents.replace("\\"+mStartToken, mStartEscToken);
                 contents = contents.replace("\\"+mEndToken, mEndEscToken);
-                //store the file path and original content
-                mFileContentLookup.put(mIncludeFiles.get(f).getPath(), contents);
                 //store an array of tokens for this file
                 ArrayList<String> tokens=getTokensFromContent(contents);
+                //if there is a filename defined in _filenames.xml
+                if(overwriteFilename.length()>0){
+                    //if _filenames.xml contains any tokens
+                    if(filenameTokens.size()>0){
+                        //for each token inside _filenames.xml
+                        for(int t=0;t<filenameTokens.size();t++){
+                            String tStr=filenameTokens.get(t);
+                            //add the tokens from _filenames.xml to the tokens list
+                            tokens.add(tStr+" " + mTokenSourceSeparator + " " + mFilenamesXml);
+                        }
+                    }
+                    //add the <filename> xml node token
+                    overwriteFilename+=" " + mTokenSourceSeparator + " " + mFilenamesXml;
+                    tokens.add(overwriteFilename);
+                    //add to the list of files that have a filename xml overwrite
+                    mFilenameXmlOverwriteLookup.put(mIncludeFiles.get(f).getPath(), overwriteFilename);
+                }
+                //store the file path and original content
+                mFileContentLookup.put(mIncludeFiles.get(f).getPath(), contents);
+                //store the file path and tokens
                 mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), tokens);
                 //if there is at least one token for this file
                 if(tokens.size()>0){
@@ -1059,7 +1146,7 @@ public class BuildTemplate {
         return fileContent;
     }
     //build out the template files
-    private void setTokenValues(){setTokenValues(null);}
+    private void setTokenValues(){setTokenValues(null);} 
     private void setTokenValues(ArrayList<String> inFileNameTokens){
         //LOOP EACH FILE A SECOND TIME
         //1) remove alias definitions from file content and determine what value each alias should be replaced with
@@ -1177,7 +1264,7 @@ public class BuildTemplate {
         }
     }
     //write the output files
-    private String writeOutputFiles(){return writeOutputFiles("build");}
+    private String writeOutputFiles(){return writeOutputFiles("build");} 
     private String writeOutputFiles(String writeType){
         //if exporting a completed project file-set
         String exportDir=""; String failedExportDir="";
@@ -1227,134 +1314,92 @@ public class BuildTemplate {
         int fileCount = 0; int skippedFileCount = 0; int errFileCount = 0;
         for (String filePath : mFileContentLookup.keySet()) {
             String fileName = "";File templateFile=new File(filePath);
-            //if changing the file name
-            if (mChangedFileNames.containsKey(filePath)){
-                //get just the file extension
-                String fileExt = templateFile.getName();
-                if (fileExt.indexOf(".") != -1){
-                    //remove file name from the extension
-                    fileExt = fileExt.substring(fileExt.lastIndexOf("."));
-                    //add file extension to file name
-                    fileName = mChangedFileNames.get(filePath) + fileExt;
-                }else{fileExt="";}
-            }
-            else //use same filename as the original template file
-            {
-                //get just the filename with no path
-                fileName = templateFile.getName();
-            }
-            //if changing the file directory (under the current project directory)
-            String changedFileDir = "";
-            if (mChangedFileDirs.containsKey(filePath)){
-                changedFileDir = mChangedFileDirs.get(filePath);
-                //make sure each directory exists... create them if they don't
-                changedFileDir=changedFileDir.replace(File.separator, "/");
-                String[] dirs = changedFileDir.split("/");
-                String currentDir = "";
+            //if this file doesn't start with _, eg: _filenames.xml
+            if(templateFile.getName().indexOf("_")!=0){
+                //if changing the file name
+                if (mChangedFileNames.containsKey(filePath)){
+                    //get just the file extension
+                    String fileExt = templateFile.getName();
+                    if (fileExt.indexOf(".") != -1){
+                        //remove file name from the extension
+                        fileExt = fileExt.substring(fileExt.lastIndexOf("."));
+                        //add file extension to file name
+                        fileName = mChangedFileNames.get(filePath) + fileExt;
+                    }else{fileExt="";}
+                }
+                else //use same filename as the original template file
+                {
+                    //get just the filename with no path
+                    fileName = templateFile.getName();
+                }
+                //if changing the file directory (under the current project directory)
+                String changedFileDir = "";
+                if (mChangedFileDirs.containsKey(filePath)){
+                    changedFileDir = mChangedFileDirs.get(filePath);
+                    //make sure each directory exists... create them if they don't
+                    changedFileDir=changedFileDir.replace(File.separator, "/");
+                    String[] dirs = changedFileDir.split("/");
+                    String currentDir = "";
+                    //depending on the write type...
+                    switch(writeType){
+                        case "build": //if building a boiler-plate template files...
+                            currentDir = mTargetDir + File.separator;
+                        break;
+                        case "export": //if exporting a completed project files...
+                            currentDir = exportDir + File.separator;
+                        break;
+                    }
+                    //MAKE SURE EACH OUTPUT DIRECTORY IS CREATED IF IT DOESN'T ALREADY EXIST
+                    //for each sub directory (that may need to be created)
+                    for (int d=0;d<dirs.length;d++){
+                        //if this directory doesn't exist
+                        currentDir += dirs[d].trim() + File.separator;
+                        File dirFile=new File(currentDir);
+                        if (!dirFile.exists()){
+                            try{
+                                //try to create this directory
+                                dirFile.mkdir();
+                            }catch(SecurityException se){
+                                System.out.println("\n Uh oh... failed to create directory --> "+currentDir);
+                                se.printStackTrace();
+                                break;
+                            }
+                        }
+                    }
+                    //append the final \\ at the end of the directory path
+                    changedFileDir += File.separator;
+                }
+                //set the ouput file path (relative to the current directory)
+                String outputFilePath = File.separator + changedFileDir + fileName;
                 //depending on the write type...
                 switch(writeType){
-                    case "build": //if building a boiler-plate template files...
-                        currentDir = mTargetDir + File.separator;
-                    break;
-                    case "export": //if exporting a completed project files...
-                        currentDir = exportDir + File.separator;
-                    break;
-                }
-                //MAKE SURE EACH OUTPUT DIRECTORY IS CREATED IF IT DOESN'T ALREADY EXIST
-                //for each sub directory (that may need to be created)
-                for (int d=0;d<dirs.length;d++){
-                    //if this directory doesn't exist
-                    currentDir += dirs[d].trim() + File.separator;
-                    File dirFile=new File(currentDir);
-                    if (!dirFile.exists()){
-                        try{
-                            //try to create this directory
-                            dirFile.mkdir();
-                        }catch(SecurityException se){
-                            System.out.println("\n Uh oh... failed to create directory --> "+currentDir);
-                            se.printStackTrace();
-                            break;
-                        }
-                    }
-                }
-                //append the final \\ at the end of the directory path
-                changedFileDir += File.separator;
-            }
-            //set the ouput file path (relative to the current directory)
-            String outputFilePath = File.separator + changedFileDir + fileName;
-            //depending on the write type...
-            switch(writeType){
-                case "build": //if building a boiler-plate template file...
-                    //set the target directory as the root of the output file path
-                    outputFilePath = mTargetDir + outputFilePath;
-                    //get the new file content
-                    String fileContent = mFileContentLookup.get(filePath);
-                    File newFile=new File(outputFilePath);
-                    //if the new file doesn't already exist
-                    if (!newFile.exists()){
-                        //if the file content is NOT blank
-                        fileContent = fileContent.trim();
-                        if (fileContent.length() > 0){
-                            //create the file with its content (maybe changed or maybe not changed and just copied over)
-                            boolean success=false;
-                            //if this is a NON-text file, eg and image
-                            if(fileContent.equals(mNonTextFileContent)){
-                                //copy the NON text file to the build location
-                                success=copyFileTo(new File(mUseTemplatePath + File.separator + newFile.getName()), newFile);
-                            }else{
-                                //this IS a text-based file...
-                                //restore certain string contents
-                                fileContent = fileContent.replace(mStartEscToken, mStartToken);
-                                fileContent = fileContent.replace(mEndEscToken, mEndToken);
-                                //write the token-replaced file content
-                                success=writeFile(newFile.getPath(), fileContent);
-                            }
-                            if(success){
-                                System.out.println(" FILE CREATED: \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
-                                fileCount++;
-                            }else{
-                                errFileCount++;
-                            }
-                        }
-                        else
-                        {
-                            System.out.println(" FILE SKIP (BLANK): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
-                            skippedFileCount++;
-                        }
-                    }
-                    else
-                    {
-                        System.out.println(" FILE SKIP (ALREADY EXISTS): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
-                        skippedFileCount++;
-                    }
-                break;
-                case "export": //if exporting a completed project file...
-                    //normalize file path separators
-                    outputFilePath=outputFilePath.replace("\\", "/");
-                    outputFilePath=outputFilePath.replace("///", "/");
-                    outputFilePath=outputFilePath.replace("//", "/");
-                    outputFilePath=outputFilePath.replace("/", File.separator);
-                    //get the file to export
-                    File exportFile=new File(mTargetDir + outputFilePath);
-                    //if the new file already exists
-                    if (exportFile.exists()){
-                        //try to get the file content
-                        String exportContent = ""; boolean errorReading=false;
-                        try{
-                            exportContent = readFile(exportFile.getPath());
-                        }catch (IOException errread){
-                            errorReading=true;
-                            System.out.println("\nERROR READING FILE: \n"+exportFile.getPath()+" \n...\n"+errread.getMessage()+"\n");
-                            errFileCount++;
-                        }
-                        //if the file could be read
-                        if(!errorReading){
+                    case "build": //if building a boiler-plate template file...
+                        //set the target directory as the root of the output file path
+                        outputFilePath = mTargetDir + outputFilePath;
+                        //get the new file content
+                        String fileContent = mFileContentLookup.get(filePath);
+                        File newFile=new File(outputFilePath);
+                        //if the new file doesn't already exist
+                        if (!newFile.exists()){
                             //if the file content is NOT blank
-                            if (exportContent.length() > 0){
-                                //make a copy of the export file under the exportDir root
-                                boolean success=copyFileTo(exportFile, new File(exportDir + outputFilePath));
+                            fileContent = fileContent.trim();
+                            if (fileContent.length() > 0){
+                                //create the file with its content (maybe changed or maybe not changed and just copied over)
+                                boolean success=false;
+                                //if this is a NON-text file, eg and image
+                                if(fileContent.equals(mNonTextFileContent)){
+                                    //copy the NON text file to the build location
+                                    success=copyFileTo(new File(mUseTemplatePath + File.separator + newFile.getName()), newFile);
+                                }else{
+                                    //this IS a text-based file...
+                                    //restore certain string contents
+                                    fileContent = fileContent.replace(mStartEscToken, mStartToken);
+                                    fileContent = fileContent.replace(mEndEscToken, mEndToken);
+                                    //write the token-replaced file content
+                                    success=writeFile(newFile.getPath(), fileContent);
+                                }
                                 if(success){
-                                    System.out.println(" FILE EXPORTED: \t" + "..."+(exportDir + outputFilePath).substring(mTargetDir.length()+1));
+                                    System.out.println(" FILE CREATED: \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
                                     fileCount++;
                                 }else{
                                     errFileCount++;
@@ -1362,21 +1407,66 @@ public class BuildTemplate {
                             }
                             else
                             {
-                                System.out.println(" FILE SKIP (BLANK): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
+                                System.out.println(" FILE SKIP (BLANK): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
                                 skippedFileCount++;
                             }
                         }
-                    }
-                    else
-                    {
-                        System.out.println(" FILE SKIP (DOES NOT EXIST): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
-                        skippedFileCount++;
-                    }
-                break;
+                        else
+                        {
+                            System.out.println(" FILE SKIP (ALREADY EXISTS): \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
+                            skippedFileCount++;
+                        }
+                    break;
+                    case "export": //if exporting a completed project file...
+                        //normalize file path separators
+                        outputFilePath=outputFilePath.replace("\\", "/");
+                        outputFilePath=outputFilePath.replace("///", "/");
+                        outputFilePath=outputFilePath.replace("//", "/");
+                        outputFilePath=outputFilePath.replace("/", File.separator);
+                        //get the file to export
+                        File exportFile=new File(mTargetDir + outputFilePath);
+                        //if the new file already exists
+                        if (exportFile.exists()){
+                            //try to get the file content
+                            String exportContent = ""; boolean errorReading=false;
+                            exportContent = readFile(exportFile.getPath());
+                            if(exportContent==null){
+                                errorReading=true;
+                                errFileCount++;
+                            }
+                            //if the file could be read
+                            if(!errorReading){
+                                //if the file content is NOT blank
+                                if (exportContent.length() > 0){
+                                    //make a copy of the export file under the exportDir root
+                                    boolean success=copyFileTo(exportFile, new File(exportDir + outputFilePath));
+                                    if(success){
+                                        System.out.println(" FILE EXPORTED: \t" + "..."+(exportDir + outputFilePath).substring(mTargetDir.length()+1));
+                                        fileCount++;
+                                    }else{
+                                        errFileCount++;
+                                    }
+                                }
+                                else
+                                {
+                                    System.out.println(" FILE SKIP (BLANK): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
+                                    skippedFileCount++;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            System.out.println(" FILE SKIP (DOES NOT EXIST): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
+                            skippedFileCount++;
+                        }
+                    break;
+                }
             }
         }
+        //FILE WRITING COMPLETE... PRINT STATUS MESSAGE
         System.out.println("\n -------------------------------------------------------");
         System.out.println(" Done.\n Created files: (" + fileCount + ") \n Skipped files: (" + skippedFileCount + ") \n Error files: (" + errFileCount + ") \n ");
+        //ADDITIONAL INPUT FOR EXPORT OPERATIONS
         //if exported project files
         if(writeType.equals("export")){
             //if any files were successfully exported
