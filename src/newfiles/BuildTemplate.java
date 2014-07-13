@@ -689,32 +689,90 @@ public class BuildTemplate {
     }
     //look through all of the mIncludeFiles and load the content/token/alias hash lookups for each file
     private boolean loadFilesData(){
-        //LOOP EACH FILE THE FIRST TIME
-        //1) load a HashMap; HashMap<[filePath], [fileContent]>
-        //2) load a HashMap; HashMap<[filePath], ArrayList<[tokenItemText]>> ... get tokens (if any)
-        //3) load a HashMap; HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>> ... get token-aliases (if any)
-        //4) load an ArrayList; ArrayList<[tokenName]> where each token name only appears once
-        //=============================
-        //clear/init for new data
+        /*LOOP EACH FILE THE FIRST TIME
+        1) mFileContentLookup
+            load a HashMap; HashMap<[filePath], [fileContent]>
+
+            This will NOT hold the placeholder content for non-text files yet...
+            This contains the full content of template files and NOT _filenames.xml yet.
+
+        2) mFileTokensLookup
+            load a HashMap; HashMap<[filePath], ArrayList<[tokenItemText]>> ... get tokens (if any)
+
+            Token items are mixed together; both _filenames.xml AND template file tokens are included. 
+            But tokens from _filenames.xml are only included for a file IF THE FILE'S NAME IS DEFINED IN _filenames.xml...
+            AND the definition in _filenames.xml IS NOT BLANK TOKEN TEXT
+
+                    ../config.xml
+                            <<var:l:your hi>> --> _filenames.xml
+                            <<var:u:your something => [something]>>
+
+        3) mFileAliasesLookup
+            load a HashMap; HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>> ... get token-aliases (if any)
+
+            Contains alias lists, including aliases related to _filenames.xml
+
+                    ../config.xml
+                            [something]
+                                    <<var:u:your something => [something]>>
+                    ../_filenames.xml
+                            [name]
+                                    <<var:l:your name => [name]>> --> _filenames.xml
+                            [test]
+                                    <<var:l:your test => [test]>> --> _filenames.xml
+
+        4) mUniqueTokenNames
+            load an ArrayList; ArrayList<[tokenName]> where each token name only appears once.
+            Token names come from any template file PLUS _filenames.xml.
+
+            your name
+            your test
+            your something
+            your hi
+
+        5) mFilenameXmlOverwriteLookup
+            HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
+
+            Gets the filename defined in _filenames.xml... throughout the code, 
+            you can check to see if a file's name is defined in _filenames.xml by seeing 
+            if it's file path is a key inside mFilenameXmlOverwriteLookup.
+
+                    ../config.xml
+                            <<filename:u:path:[test]>> --> _filenames.xml
+                    ../Data.php
+                            <<filename:l:.>> --> _filenames.xml
+                    ../test.png
+                            <<filename:n:test/path:"newname">> --> _filenames.xml
+        */
         if(mFileContentLookup==null){
+            //1) load a HashMap; HashMap<[filePath], [fileContent]>
             mFileContentLookup=new HashMap<String, String>();
         }else{
             mFileContentLookup.clear();
         }
         if(mFileTokensLookup==null){
+            //2) load a HashMap; HashMap<[filePath], ArrayList<[tokenItemText]>> ... get tokens (if any)
             mFileTokensLookup=new HashMap<String, ArrayList<String>>();
         }else{
             mFileTokensLookup.clear();
         }
         if(mFileAliasesLookup==null){
+            //3) load a HashMap; HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>> ... get token-aliases (if any)
             mFileAliasesLookup=new HashMap<String, HashMap<String, String>>();
         }else{
             mFileAliasesLookup.clear();
         }
         if(mUniqueTokenNames==null){
+            //4) load an ArrayList; ArrayList<[tokenName]> where each token name only appears once
             mUniqueTokenNames=new ArrayList<String>();
         }else{
             mUniqueTokenNames.clear();
+        }
+        if(mFilenameXmlOverwriteLookup==null){
+            mFilenameXmlOverwriteLookup=new HashMap<String, String>();
+        }else{
+            //5) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
+            mFilenameXmlOverwriteLookup.clear();
         }
         if(mTokenInputValues==null){
             mTokenInputValues=new HashMap<String, String>();
@@ -730,11 +788,6 @@ public class BuildTemplate {
             mChangedFileDirs=new HashMap<String, String>();
         }else{
             mChangedFileDirs.clear();
-        }
-        if(mFilenameXmlOverwriteLookup==null){
-            mFilenameXmlOverwriteLookup=new HashMap<String, String>();
-        }else{
-            mFilenameXmlOverwriteLookup.clear();
         }
         //get the _filenames.xml file (if it exists)
         HashMap<String, String> filenamesFromXml = new HashMap<String, String>();
@@ -785,7 +838,7 @@ public class BuildTemplate {
                 ArrayList<String> tokens=getTokensFromContent(contents);
                 //if there is a filename defined in _filenames.xml
                 if(overwriteFilename.length()>0){
-                    //if _filenames.xml contains any tokens
+                    //if _filenames.xml contains any tokens (eg, <<var:l:name>>)
                     if(filenameTokens.size()>0){
                         //for each token inside _filenames.xml
                         for(int t=0;t<filenameTokens.size();t++){
@@ -875,6 +928,21 @@ public class BuildTemplate {
     }
     //get the input from the user for all of the template tokens
     private void getAllTokenInput(ArrayList<String> uniqueTokenNames, int startIndex, boolean isBack){
+        /*ASSIGN REAL USER VALUES TO EACH UNIQUE TOKEN NAME
+            1) mTokenInputValues
+            load a HashMap: HashMap<[tokenName], [userInput]>
+
+            HashMap values come from any file inside the template, including the special _filenames.xml file
+                
+                your name
+                    gmilligan
+                your test
+                    I am testing
+                your something
+                    in the way she moves...
+                your hi
+                    howdy
+         */
         String backTxt="<<";
         //if NOT moved back
         if(!isBack){
@@ -928,6 +996,18 @@ public class BuildTemplate {
     //get a list of tokens that have an influence on filename/paths
     //note: the only way for a token to influence a file name or file path is for it to have its alias inside either the name or path
     private ArrayList<String> getTokensInFilenames(){
+        /*RETURN A LIST OF ALL OF THE TOKENS (WITHIN THE TEMPLATE) THAT HAVE INFLUENCE OVER ANY FILENAME
+        Load an ArrayList<[uniqe token name]>
+        
+        This is an import list of tokens to have if you want to ask the user 
+        ONLY for tokens that distinguish an individual project's files from those belonging to a different project
+        
+        If a file's name is defined inside _filenames.xml, then ONLY token aliases within _filenames.xml (if any) can have influence for THAT file...
+        But a token can control a template file's name if it's NOT defined in _filenames.xml; _filenames.xml definitions overwrite token definitions.
+            
+            your name
+            your test
+         */
         ArrayList<String> inFileNameTokens = new ArrayList<String>();
         //for each file that contains tokens
         for (String filePath : mFileTokensLookup.keySet()) {
