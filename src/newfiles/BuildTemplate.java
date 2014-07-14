@@ -693,8 +693,9 @@ public class BuildTemplate {
         1) mFileContentLookup
             load a HashMap; HashMap<[filePath], [fileContent]>
 
-            This will NOT hold the placeholder content for non-text files yet...
-            This contains the full content of template files and NOT _filenames.xml yet.
+            IF a file is NOT TEXT-BASED, eg: an image file...
+            then the file content will be loaded with a placeholder string text, defined in the constant,
+            mNonTextFileContent
 
         2) mFileTokensLookup
             load a HashMap; HashMap<[filePath], ArrayList<[tokenItemText]>> ... get tokens (if any)
@@ -710,7 +711,14 @@ public class BuildTemplate {
         3) mFileAliasesLookup
             load a HashMap; HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>> ... get token-aliases (if any)
 
-            Contains alias lists, including aliases related to _filenames.xml
+            Contains alias lists, including aliases related to _filenames.xml.
+            
+            Note, there is a strict association between an alias and its file. The reason for this 1 to 1 relationship: 
+            The scope of an alias is ONLY within the file in which it was defined. This means...
+            There may be an alias with the SAME NAME in two different files, 
+            but they would be able to hold DIFFERENT VALUES unique to their own file, having no knowledge/relation to their twin(s) in separate file(s). 
+            
+            Image files and other NON-text based files will NEVER have any items in mFileAliasesLookup
 
                     ../config.xml
                             [something]
@@ -725,10 +733,10 @@ public class BuildTemplate {
             load an ArrayList; ArrayList<[tokenName]> where each token name only appears once.
             Token names come from any template file PLUS _filenames.xml.
 
-            your name
-            your test
-            your something
-            your hi
+                your name
+                your test
+                your something
+                your hi
 
         5) mFilenameXmlOverwriteLookup
             HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
@@ -736,6 +744,9 @@ public class BuildTemplate {
             Gets the filename defined in _filenames.xml... throughout the code, 
             you can check to see if a file's name is defined in _filenames.xml by seeing 
             if it's file path is a key inside mFilenameXmlOverwriteLookup.
+            
+            Each token string item is guaranteed to come from _filenames.xml AND
+            it's guaranteed to be a filename token type
 
                     ../config.xml
                             <<filename:u:path:[test]>> --> _filenames.xml
@@ -1259,36 +1270,85 @@ public class BuildTemplate {
         }
         return fileContent;
     }
+    //determine if the default file name / path should be changed based on the given token
+    private void setChangedFilenameForFile(String filePath, String[] tokenParts, String tokenValue, HashMap<String, String> aliasValueLookup){
+        //if this file doesn't already have a designated changed name
+        if (!mChangedFileNames.containsKey(filePath)){
+            //if there is a specified file name (other than the existing template file's name)
+            if (!tokenValue.equals("") && !tokenValue.equals(".")){
+                //replace any aliases with real values that may be inside the filename
+                tokenValue = getReplacedAliases(tokenValue, aliasValueLookup);
+                //set the new name of the file
+                mChangedFileNames.put(filePath, tokenValue);
+            }else{
+                //no specified file name...
+
+                String tokenName = getTokenPart("name", tokenParts);
+                //if the file name was literally hard-coded (surrounded by "quotes")
+                if (tokenName.indexOf("\"") == 0 || tokenName.indexOf("'") == 0){
+                    //set the static filename value surrounded by "quotes"
+                    tokenValue = tokenName;
+                    //strip off starting quote
+                    tokenValue = tokenValue.substring(1);
+                    //strip off ending quote
+                    tokenValue = tokenValue.substring(0, tokenValue.length() - 1);
+                    //trim
+                    tokenValue = tokenValue.trim();
+                    //if the literal file name value is not blank
+                    if (tokenValue.length() > 0){
+                        //replace any aliases with real values that may be inside the filename
+                        tokenValue = getReplacedAliases(tokenValue, aliasValueLookup);
+                        //set the static name of the file
+                        mChangedFileNames.put(filePath, tokenValue);
+                    }
+                }
+            }
+        }
+        //since this token specifies a filename, it may also specify the root directory for the file (if not, changedFileDir = "")...
+        //if this file doesn't already have a designated changed sub directory
+        if (!mChangedFileDirs.containsKey(filePath)){
+            //if there is a specified directory in the tokenParts
+            String changedDir = getTokenPart("dir", tokenParts);
+            if (!changedDir.equals("") && !changedDir.equals(".")){
+                //replace any aliases with real values that may be inside the directory
+                changedDir = getReplacedAliases(changedDir, aliasValueLookup);
+                //set the new sub directory of the file
+                mChangedFileDirs.put(filePath, changedDir);
+            }
+        }
+    }
     //build out the template files
     private void setTokenValues(){setTokenValues(null);} 
     private void setTokenValues(ArrayList<String> inFileNameTokens){
-        //LOOP EACH FILE A SECOND TIME
-        //1) remove alias definitions from file content and determine what value each alias should be replaced with
-        //2) replace non-aliased tokens with their actual values
-        //3) determine the file-path and file name that each file will have
-        //============================
-        //IF inFileNameTokens is NOT null, then only replace the tokens that are named in this inFileNameTokens list
-        
-        
-                //GET FORMATTED VALUES FOR ALIASES AND REMOVE ALIAS DECLARATIONS FROM _filenames.xml
-        //==================================================================================
-        //if there are any aliases inside _filenames.xml
-        if(mFileAliasesLookup.containsKey(mUseTemplatePath + File.separator + mFilenamesXml)){
-            //***
-        }
-        
-        
-        
+        /*LOOP EACH FILE A SECOND TIME
+        1) remove alias definitions from file content and determine what value each alias should be replaced with
+            Replace substring tokens in mFileContentLookup
+            with the actual values in mTokenInputValues
+        2) replace non-aliased tokens with their actual values
+        3) determine the file-path and file name that each file will have
+        ============================
+        IF inFileNameTokens is NOT null, then only replace the tokens that are named in this inFileNameTokens list
+        */        
         
         //for each template file
         for (String filePath : mFileTokensLookup.keySet()) {
             //get key values related to this file
             String fileContent=mFileContentLookup.get(filePath);
-            //*** could be placeholder content for a non-text based image
+            //if this file is NOT a non-text file, eg: an image
             ArrayList<String> tokens=mFileTokensLookup.get(filePath);
+            /*tokens:
+                ../config.xml
+                    <<var:l:your hi>> --> _filenames.xml
+                    <<var:u:your something => [something]>>
+                ../otherfile.txt
+                    <<filename:n:my/path:"newname">>
+                    <<filename:n:my/path:"overwrite">> --> _filenames.xml
+                    <<var:u:another thing => [yep]>>
+             */
             //GET FORMATTED VALUES FOR ALIASES AND REMOVE ALIAS DECLARATIONS FROM FILE CONTENTS
             //=================================================================================
-            //if there are any aliased tokens in this file
+            //if there are any aliased tokens in this file,
+            //side-note: ONLY text-based files might have associated aliases. Non-text files, like images, will never have any items in mFileAliasesLookup ...
             HashMap<String, String> aliasValueLookup=new HashMap<String, String>();
             if(mFileAliasesLookup.containsKey(filePath)){
                 //for each alias declaration inside the file
@@ -1310,15 +1370,29 @@ public class BuildTemplate {
                     }
                 }
             }
+            //SET THE OVERRIDING FILENAME FROM _filenames.xml, IF THIS FILE HAS SUCH AN OVERRIDE
+            //==================================================================================
+            //if this file has a filename defined in _filenames.xml
+            boolean filenameInXml=false;
+            if(mFilenameXmlOverwriteLookup.containsKey(filePath)){
+                String tokenStr=mFilenameXmlOverwriteLookup.get(filePath);
+                //split the token key parts up
+                String[] tokenParts=tokenStr.split(mTokenSeparator);
+                //get the formatted token value
+                String tokenValue=getFormattedTokenValue(tokenParts,inFileNameTokens);
+                //save the changed file name or directory, if either dir or name should be changed
+                setChangedFilenameForFile(filePath, tokenParts, tokenValue, aliasValueLookup);
+                filenameInXml=true;
+            }
             //LOOP THROUGH ALL OF THE NON-ALIASED TOKENS IN THIS FILE
             //=======================================================
             //for each token in the file
             for(int t=0;t<tokens.size();t++){
                 //FORMAT THE TOKEN VALUE DEPENDING ON IT'S PARAMETERS
                 //get the token key, eg: <<type:casing:name>>
-                String tokenKey=tokens.get(t);
+                String tokenStr=tokens.get(t);
                 //split the token key parts up
-                String[] tokenParts=tokenKey.split(mTokenSeparator);
+                String[] tokenParts=tokenStr.split(mTokenSeparator);
                 //get the formatted token value
                 String tokenValue=getFormattedTokenValue(tokenParts,inFileNameTokens);
                 //INSERT THE FORMATTED TOKEN VALUE INTO THE CONTENT (OR SET IT AS A SPECIAL VALUE, LIKE FILENAME, ETC...)
@@ -1330,53 +1404,15 @@ public class BuildTemplate {
                 switch (type){
                     case "var":
                         //replace the tokens with the actual values
-                        fileContent=fileContent.replace(tokenKey, tokenValue);
+                        fileContent=fileContent.replace(tokenStr, tokenValue);
                         break;
                     case "filename": 
                         //remove these tokens from the file content
-                        fileContent=fileContent.replace(tokenKey, "");
-                        //if this file doesn't already have a designated changed name
-                        if (!mChangedFileNames.containsKey(filePath)){
-                            //if there is a specified file name (other than the existing template file's name)
-                            if (!tokenValue.equals("") && !tokenValue.equals(".")){
-                                //replace any aliases with real values that may be inside the filename
-                                tokenValue = getReplacedAliases(tokenValue, aliasValueLookup);
-                                //set the new name of the file
-                                mChangedFileNames.put(filePath, tokenValue);
-                            }else{
-                                //no specified file name...
-
-                                //if the file name was literally hard-coded (surrounded by "quotes")
-                                if (tokenName.indexOf("\"") == 0 || tokenName.indexOf("'") == 0){
-                                    //set the static filename value surrounded by "quotes"
-                                    tokenValue = tokenName;
-                                    //strip off starting quote
-                                    tokenValue = tokenValue.substring(1);
-                                    //strip off ending quote
-                                    tokenValue = tokenValue.substring(0, tokenValue.length() - 1);
-                                    //trim
-                                    tokenValue = tokenValue.trim();
-                                    //if the literal file name value is not blank
-                                    if (tokenValue.length() > 0){
-                                        //replace any aliases with real values that may be inside the filename
-                                        tokenValue = getReplacedAliases(tokenValue, aliasValueLookup);
-                                        //set the static name of the file
-                                        mChangedFileNames.put(filePath, tokenValue);
-                                    }
-                                }
-                            }
-                        }
-                        //since this token specifies a filename, it may also specify the root directory for the file (if not, changedFileDir = "")...
-                        //if this file doesn't already have a designated changed sub directory
-                        if (!mChangedFileDirs.containsKey(filePath)){
-                            //if there is a specified directory in the tokenParts
-                            String changedDir = getTokenPart("dir", tokenParts);
-                            if (!changedDir.equals("") && !changedDir.equals(".")){
-                                //replace any aliases with real values that may be inside the directory
-                                changedDir = getReplacedAliases(changedDir, aliasValueLookup);
-                                //set the new sub directory of the file
-                                mChangedFileDirs.put(filePath, changedDir);
-                            }
+                        fileContent=fileContent.replace(tokenStr, "");
+                        //if the filename is NOT already defined in _filenames.xml
+                        if(!filenameInXml){
+                            //save the changed file name or directory, if either dir or name should be changed
+                            setChangedFilenameForFile(filePath, tokenParts, tokenValue, aliasValueLookup);
                         }
                         break;
                     default:
