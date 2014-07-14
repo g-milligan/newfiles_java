@@ -154,6 +154,8 @@ public class Newfiles {
     private static void export(String[] args){
         //clear previous use template index (if any)
         mUseTemplateIndex=-1;
+        //force the template list to reload (in case anything changed in the templates)
+        mTemplateList=null;
         //load the template list, if not already loaded
         loadTemplateList();
         //if there are any templates
@@ -250,6 +252,8 @@ public class Newfiles {
     private static void filenames(String[] args){
         //clear previous use template index (if any)
         mUseTemplateIndex=-1;
+        //force the template list to reload (in case anything changed in the templates)
+        mTemplateList=null;
         //load the template list, if not already loaded
         loadTemplateList();
         //if there are any templates
@@ -280,7 +284,7 @@ public class Newfiles {
                         //set the index of the template being used
                         mUseTemplateIndex=tIndex;
                         //show template header
-                        System.out.println(" FILENAMES: ");
+                        System.out.println("\n FILENAMES: \n");
                         //create or update the filenames xml
                         mBuild.createUpdateFilenamesXml(mTemplateList.get(tIndex)); 
                         //reset the use template index
@@ -305,6 +309,8 @@ public class Newfiles {
     private static void use(String[] args){
         //clear previous use template index (if any)
         mUseTemplateIndex=-1;
+        //force the template list to reload (in case anything changed in the templates)
+        mTemplateList=null;
         //load the template list, if not already loaded
         loadTemplateList();
         //if there are any templates
@@ -499,7 +505,9 @@ public class Newfiles {
     }
     //list the available templates
     private static void ls(){
-        //load the template list, if not already loaded
+        //force the template list to reload (in case anything changed in the templates)
+        mTemplateList=null;
+        //load the template list
         loadTemplateList();
         //if there are any templates
         if(mTemplateList.size()>0){

@@ -216,12 +216,14 @@ public class BuildTemplate {
         //get the template folder
         mUseTemplatePath=useTemplatePath;
         File templateFolder=new File(mUseTemplatePath);
+        System.out.println(" filenames from the template --> " + mUseTemplatePath + File.separator + "...");
         //get the _filenames.xml file (if it already exists)
         File fnXmlFile=new File(mUseTemplatePath+File.separator+mFilenamesXml);
         //HashMap<[filePathInTemplate], [filenameTokenTxt]>
         HashMap<String, String> renameNodeList = new HashMap<String, String>();
         //if _filenames.xml does NOT exist
         if(!fnXmlFile.exists()){
+            System.out.println(" creating --> " + mFilenamesXml + " ... ");
             //get boilerplate content for _filenames.xml
             String xmlStr=getFilenamesXmlStr();
             //create _filenames.xml
@@ -233,6 +235,8 @@ public class BuildTemplate {
             //HashMap<[filePathInTemplate], [filenameTokenTxt]>
             renameNodeList = getXmlFilenameHashValues();
         }
+        System.out.println(" Tip: filename definitions in " + mFilenamesXml + " will override filename definitions inside other template file tokens. ");
+        System.out.println(" ... \n");
         //get the XML document object
         Document xmlDoc=getXmlDoc(fnXmlFile);
         if(xmlDoc!=null){
