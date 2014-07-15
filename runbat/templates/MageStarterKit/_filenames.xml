@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><filenames>
+	<!-- 
+		your tokens here ...
+		...remove the \ escape characters from the below example for the token to work...
+		
+		\<<var:n:my token example => [my alias example]\>>
+		<<var:l:module name => [module]>>
+		
+		DOCUMENTATION
+		=============
+		
+			You are allowed to use tokens in this file so that user input 
+			values can influence filenames/paths of non-text-base files, such as images.
+			
+			In this file, rename filenames using similar syntax as in the filename token-type:
+			
+			Example: 
+			========
+			
+				<filename for="image-name.jpg">l:image/path:"new-name"</filename>
+				
+			Format:
+			=======
+			
+				<filename for="image-name.jpg">{1}:{2}:{3}</filename>
+				
+			Parameters:
+			===========
+			
+				{1} = casing, applied to filename
+					n = normal (leave as-is)
+					l = lowercase
+					u = uppercase
+					c = capitalize
+					
+				{2} = (optional) file path. If omitted the file is placed 
+						in the template build's root directory.
+						You are allowed to use tokens within the folder path.
+						
+				{3} = filename
+				
+					. = a dot/period means keep the current file name the same
+					
+					"my-name" = rename "image-name.jpg" to "my-name.jpg".
+						Surrounding quotes denote an exact string literal.
+						You are allowed to use tokens within the string literal.
+						
+					my-name = ask the use to input the file name through 
+						the console interface. 
+						It is assumed that this filname is user-defined
+						when quotes are NOT used.
+						
+			OVERWRITE PRECEDENCE
+			====================
+			
+				If BOTH this file AND a filename token is used to influence the name of the SAME file, 
+				then the renaming performed in THIS file has a higher priority and the token would be ignored.
+	-->
+	<filename for="app_code_codepool_prefix_module_block_adminhtml_system_config_fieldset_hint.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_block_sampleblock.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_controllers_adminhtml_indexcontroller.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_controllers_indexcontroller.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_etc_adminhtml.xml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_etc_config.xml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_etc_system.xml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_helper_data.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_helper_samplehelper.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_model_samplemodel.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_code_codepool_prefix_module_model_system_config_source_example.php"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_design_adminhtml_layout_module.xml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_design_adminhtml_template_system_config_hint.phtml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_design_frontend_layout_module.xml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_design_frontend_template_module_example.phtml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_etc_modules_prefix_module.xml"><!--{1}:{2}:{3}--></filename>
+	<filename for="app_locale_enUS_prefx_module.csv"><!--{1}:{2}:{3}--></filename>
+	<filename for="helogo.jpg">l:skin/adminhtml/default/default/[module]:.</filename>
+</filenames>
