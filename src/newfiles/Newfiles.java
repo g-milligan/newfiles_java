@@ -176,7 +176,7 @@ public class Newfiles {
                     //try to parse the input into an integer index position
                     tIndex=Integer.parseInt(templateIndex);
                 } catch (NumberFormatException e) {
-                    System.out.println("\""+templateIndex+"\" invalid integer index.");
+                    System.out.println("\""+templateIndex+"\" invalid template index.");
                     invalidInt=true;
                 }
                 //if a valid integer was chosen
@@ -274,7 +274,7 @@ public class Newfiles {
                     //try to parse the input into an integer index position
                     tIndex=Integer.parseInt(templateIndex);
                 } catch (NumberFormatException e) {
-                    System.out.println("\""+templateIndex+"\" invalid integer index.");
+                    System.out.println("\""+templateIndex+"\" invalid template index.");
                     invalidInt=true;
                 }
                 //if a valid integer was chosen
@@ -331,7 +331,7 @@ public class Newfiles {
                     //try to parse the input into an integer index position
                     tIndex=Integer.parseInt(templateIndex);
                 } catch (NumberFormatException e) {
-                    System.out.println("\""+templateIndex+"\" invalid integer index.");
+                    System.out.println("\""+templateIndex+"\" invalid template index.");
                     invalidInt=true;
                 }
                 //if a valid integer was chosen
@@ -413,6 +413,7 @@ public class Newfiles {
                         //init a list of files to include into the template build
                         ArrayList<File> includeFiles = new ArrayList<File>();                       
                         //loop through each File[] files and include the appropriate files into includeFiles
+                        String includedFileNames="";
                         for(int f=0;f<files.length;f++){
                             //if the file does NOT start with "_"
                             if(files[f].getName().indexOf("_")!=0){
@@ -425,11 +426,19 @@ public class Newfiles {
                                     if(isExclude&&!fileIndexList.contains(f)){
                                         //include this file
                                         includeFiles.add(files[f]);
+                                        //if not first included file... then add filename separator
+                                        if(includedFileNames.length()>0){includedFileNames+="\n";}
+                                        //add the filename
+                                        includedFileNames+=f + " --> "+files[f].getName();
                                     }else{
                                         //if this file IS one of the included files
                                         if(!isExclude&&fileIndexList.contains(f)){
                                             //include this file
                                             includeFiles.add(files[f]);
+                                            //if not first included file... then add filename separator
+                                            if(includedFileNames.length()>0){includedFileNames+="\n ";}
+                                            //add the filename
+                                            includedFileNames+=f + " --> "+files[f].getName();
                                         }
                                     }
                                 }
@@ -441,10 +450,14 @@ public class Newfiles {
                         }else{
                             //if numbers were excluded
                             if(isExclude){
-                                includeOrExclude=" excluded-files"+includeOrExclude+")\n";
+                                includeOrExclude=" excluded-files"+includeOrExclude+")\n ";
                             }else{
                                 //included numbers
-                                includeOrExclude=" included-files"+includeOrExclude+")\n";
+                                includeOrExclude=" included-files"+includeOrExclude+")\n ";
+                            }
+                            //if there were any included filenames
+                            if(includedFileNames.length()>0){
+                                includeOrExclude+=includedFileNames.trim() + "\n";
                             }
                         }
                         //print the include/exclude/all message
