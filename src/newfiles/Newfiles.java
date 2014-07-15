@@ -413,7 +413,7 @@ public class Newfiles {
                         //init a list of files to include into the template build
                         ArrayList<File> includeFiles = new ArrayList<File>();                       
                         //loop through each File[] files and include the appropriate files into includeFiles
-                        String includedFileNames="";
+                        String includedFileNames="";int fIndex=0;
                         for(int f=0;f<files.length;f++){
                             //if the file does NOT start with "_"
                             if(files[f].getName().indexOf("_")!=0){
@@ -423,25 +423,27 @@ public class Newfiles {
                                 }else{
                                     //NOT including all of the template files...
                                     //if this file is NOT one of the excluded files
-                                    if(isExclude&&!fileIndexList.contains(f)){
+                                    if(isExclude&&!fileIndexList.contains(fIndex)){
                                         //include this file
                                         includeFiles.add(files[f]);
                                         //if not first included file... then add filename separator
                                         if(includedFileNames.length()>0){includedFileNames+="\n";}
                                         //add the filename
-                                        includedFileNames+=f + " --> "+files[f].getName();
+                                        includedFileNames+=fIndex + " --> "+files[f].getName();
                                     }else{
                                         //if this file IS one of the included files
-                                        if(!isExclude&&fileIndexList.contains(f)){
+                                        if(!isExclude&&fileIndexList.contains(fIndex)){
                                             //include this file
                                             includeFiles.add(files[f]);
                                             //if not first included file... then add filename separator
                                             if(includedFileNames.length()>0){includedFileNames+="\n ";}
                                             //add the filename
-                                            includedFileNames+=f + " --> "+files[f].getName();
+                                            includedFileNames+=fIndex + " --> "+files[f].getName();
                                         }
                                     }
                                 }
+                                //next file index
+                                fIndex++;
                             }
                         }
                         //if no included or excluded files
