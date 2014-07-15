@@ -1,0 +1,92 @@
+<<filename:l:app/code/[codepool]/[Prefix]/[Module]/etc:"config">>
+<<var:n:module prefix => [Prefix]>>
+<<var:l:module prefix => [prefix]>>
+<<var:c:module name => [Module]>>
+<<var:l:module name => [module]>>
+<<var:l:code pool => [codepool]>>
+
+<?xml version="1.0"?>
+<config>
+	<modules> <!-- define version and optionally, define dependencies -->
+		<[Prefix]_[Module]>
+			<version><<var:n:extension version>></version>
+		</[Prefix]_[Module]>
+	</modules>
+
+	<frontend><!-- define layout handler(s) and translate file(s) -->
+		<routers>
+			<[module]>
+				<use>standard</use>
+				<args>
+					<module>[Prefix]_[Module]</module>
+					<frontName>[module]</frontName>
+				</args>
+			</[module]>	
+		</routers>
+		<layout>
+			<updates>
+				<[module]>
+					<file>[module].xml</file>
+				</[module]>
+			</updates>
+		</layout>
+		<translate>
+			<modules>
+				<[Prefix]_[Module]>
+					<files>
+						<default>[Prefix]_[Module].csv</default>
+					</files>
+				</[Prefix]_[Module]>
+			</modules>
+		</translate>
+	</frontend>
+
+    <admin>
+        <routers>
+            <[module]>
+                <use>admin</use>
+                <args>
+                    <module>[Prefix]_[Module]</module>
+                    <frontName>[module]</frontName>
+                </args>
+            </[module]>
+        </routers>
+    </admin>
+    
+    <adminhtml>
+    	<layout>
+	        <updates>
+	            <[module]>
+	                <file>[module].xml</file>
+	            </[module]>
+	        </updates>
+    	</layout>
+    </adminhtml>
+		
+	<global> <!-- defines module classes for helpers, models, and blocks -->
+		<blocks>
+			<[module]>
+				<class>[Prefix]_[Module]_Block</class>
+			</[module]>
+		</blocks>
+		<models> <!-- "Mage::getModel('[module]/modelname');" instead of " new [Prefix]_[Module]_Model_Modelname();" -->
+			<[module]>
+				<class>[Prefix]_[Module]_Model</class> 
+				<!-- define the namespace of the class name, 
+				eg: for a class called "Object", the full class name would be "[Prefix]_[Module]_Model_Object"
+				Filepath: [Prefix]/[Module]/Model/Object.php
+				Access in code: Mage::getModel('[prefix][module]/object'); -->
+			</[module]>
+		</models>
+		<helpers> <!-- "$this->helper('[prefix][module]')->someMethod();" -->
+			<[module]>
+				<class>[Prefix]_[Module]_Helper</class>
+				<!-- define the namespace of the class name, 
+				eg: for a class called "Doit", the full class name would be "[Prefix]_[Module]_Helper_Doit"
+				Filepath: [Prefix]/[Module]/Helper/Doit.php
+				Access in code: Mage::helper('[prefix][module]/doit'); -->
+			</[module]>
+		</helpers>
+	</global>
+	
+</config>

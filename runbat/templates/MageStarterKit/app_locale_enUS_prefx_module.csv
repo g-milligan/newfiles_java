@@ -1,0 +1,5 @@
+<<filename:l:app/locale/en_US:"[Prefix]_[Module]">>
+<<var:n:module prefix => [Prefix]>>
+<<var:c:module name => [Module]>>
+
+test
