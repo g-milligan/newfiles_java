@@ -137,17 +137,16 @@ jQuery(document).ready(function(){
 					
 					//enable slide left button
 					slideLeft.removeClass('disabled');
+				}
+				//if at the last slide
+				if(indexNum==slidesWrap.find('.btns .btn').length){
+					//disable slide right button
+					slideRight.addClass('disabled');
+				}else{
+					//not at last slide
 					
-					//if at the last slide
-					if(indexNum==slidesWrap.find('.btns .btn').length){
-						//disable slide right button
-						slideRight.addClass('disabled');
-					}else{
-						//not at last slide
-						
-						//enable slide right button
-						slideRight.removeClass('disabled');
-					}
+					//enable slide right button
+					slideRight.removeClass('disabled');
 				}
 			});
 			//if not at the end of the slides
