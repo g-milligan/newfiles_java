@@ -49,12 +49,17 @@
         <code file="templates/MyFirstTemplate/afile.txt">My favorite color is blue</code>
         <p>Tah dah. You have created your first template. It's that easy.</p>
         <p>Now, you will create a project based on this simple template. Where do you want to create this project? In your command-line console, change your current directory to where you want to create your project. You can put your project anywhere, but I will create a new directory called "myprojects" to use as an example:</p>
-        <img slide="" src="img/console1.gif" alt="example: create a projects directory" />
+        <img slide="true" slides="4" src="img/2_1.gif" alt="Example: Create a projects directory" />
         <p>Now, type the command, <cmd>nf ls</cmd> to make sure that Newfiles can see your new template in the console. "MyFirstTemplate" should be listed.</p>
-        <img slide="" src="img/console2.gif" alt="see a list of templates" />
+        <img slide="true" slides="1" src="img/3_1.gif" alt="See a list of templates" />
+        <p>Note the index number to the left of "MyFirstTemplate". This template index allows you to select your template. Your index may be different if your template library includes different templates.</p>
         <h3>Build a Project</h3>
-        
-        ***
+        <p>Now, you will build a new project based on your "MyFirstTemplate" template</p>
+        <p>The command to use a template, to build a new project, is <cmd>nf use {template-index}</cmd>. In this example, the "MyFirstTemplate" template's index is 0 so I'll type <cmd>use 0</cmd> to use <em>this</em> template:</p>
+        <img slide="true" slides="2" src="img/4_1.gif" alt="Build your first project" />
+        <p>Great. What just happened? A new project, based on our mind-numbingly simple template, was created:</p>
+        <img slide="true" slides="1" src="img/5_1.gif" alt="What was created?" />
+        <p>So what? For this example, it would have been easier to create this file by hand. True. This example was over-simplified to introduce you to some basic Newfiles commands. However, Newfiles becomes useful for more complicated templates, especially when it takes advantage of using <strong><em>tokens</em></strong>. You will learn about <strong>tokens</strong> in the next section.
         <h3>Recap -- What you learned:</h3>
         <ul>
         	<li>What is the templates folder?</li>
