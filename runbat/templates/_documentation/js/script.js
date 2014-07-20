@@ -31,14 +31,46 @@ jQuery(document).ready(function(){
 			headerWrap.append('<div class="count"><div class="current">1</div><div class="total">'+btns.length+'</div></div>');
 			//create left and right slide buttons
 			if(btns.length>1){
-				slidesWrap.append('<div class="slideLeft"></div><div class="slideRight"></div>');
+				slidesWrap.append('<div class="slideLeft disabled"></div><div class="slideRight"></div>');
 				var leftBtn=slidesWrap.children('.slideLeft:last');
 				var rightBtn=slidesWrap.children('.slideRight:last');
 				leftBtn.click(function(){
-					//***
+					jQuery(this).addClass('active');
+					var btn=jQuery(this);
+					setTimeout(function(){
+						btn.removeClass('active');
+					},300);
+					//get the current active button
+					var currentActiveBtn=slidesWrap.find('.btns .btn.active:first');
+					//try to get the previous button
+					var prevBtn=currentActiveBtn.prev('.btn:first');
+					if(prevBtn.length>0){
+						prevBtn.click();
+					}
 				});
 				rightBtn.click(function(){
-					//***
+					jQuery(this).addClass('active');
+					var btn=jQuery(this);
+					setTimeout(function(){
+						btn.removeClass('active');
+					},300);
+					//get the current active button
+					var currentActiveBtn=slidesWrap.find('.btns .btn.active:first');
+					//try to get the next button
+					var nextBtn=currentActiveBtn.next('.btn:first');
+					if(nextBtn.length>0){
+						nextBtn.click();
+					}
+				});
+				leftBtn.hover(function(){
+					jQuery(this).addClass('hover');
+				},function(){
+					jQuery(this).removeClass('hover');
+				});
+				rightBtn.hover(function(){
+					jQuery(this).addClass('hover');
+				},function(){
+					jQuery(this).removeClass('hover');
 				});
 			}else{
 				//only 1 slide... no need for slide buttons
@@ -75,6 +107,12 @@ jQuery(document).ready(function(){
 				numSlides=parseInt(slidesAttr);
 				imgElem.removeAttr('slides');
 			}
+			//add hover event to button
+			btn.hover(function(){
+				jQuery(this).addClass('hover');
+			},function(){
+				jQuery(this).removeClass('hover');
+			});
 			//add click event to button
 			btn.click(function(){
 				//remove active classes
@@ -84,6 +122,33 @@ jQuery(document).ready(function(){
 				jQuery(this).addClass('active');
 				var activeImg=imgsWrap.children('img[index="' + indexNum + '"]:first');
 				activeImg.addClass('active');
+				//refresh the slide count in the upper right
+				var currentCountElem=slidesWrap.find('.header .count .current:first');
+				currentCountElem.text(indexNum+'');
+				//get left/right slide buttons
+				var slideLeft=slidesWrap.find('.slideLeft:last');
+				var slideRight=slidesWrap.find('.slideRight:last');
+				//if at the first slide
+				if(indexNum==1){
+					//disable slide left button
+					slideLeft.addClass('disabled');
+				}else{
+					//not at first slide
+					
+					//enable slide left button
+					slideLeft.removeClass('disabled');
+					
+					//if at the last slide
+					if(indexNum==slidesWrap.find('.btns .btn').length){
+						//disable slide right button
+						slideRight.addClass('disabled');
+					}else{
+						//not at last slide
+						
+						//enable slide right button
+						slideRight.removeClass('disabled');
+					}
+				}
 			});
 			//if not at the end of the slides
 			if(numSlides==-1||numSlides>indexNum){
