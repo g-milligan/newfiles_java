@@ -70,5 +70,25 @@
             <li>What commands will use a template to build a new project?</li>
         </ul>
     </section>
+    <section>
+    	<h2>My First Token</h2>
+        <h3>What is a token?</h3>
+        <p>A <strong>token</strong> is a placeholder. For example, if you've ever had to fill out a legal form, you may have had to sign your name on a <em>"dotted" line</em>. In this example, the blank line is a <em>placeholder</em> for your name.</p> 
+        <p>Tokens are similar to <em>blank lines</em> in a legal document: Much of a template is "hard-coded", but you fill-in token values <em>on-the-fly</em> when you create your project.</p>
+        <p>When you write a template, you can decide where to position tokens that represent <em>variable</em> content.</p>
+        <h3>Write your first token</h3>
+        <p>Now that you understand what a token is, how could you make "MyFirstTemplate" better by including a token?</p>
+        <code file="templates/MyFirstTemplate/afile.txt">My favorite color is blue
+        </code>
+        <p>Right now, "MyFirstTemplate" isn't very useful; what if you need to create a new project that says "My favorite color is <u>red</u>", or "<u>green</u>" or "<u>lavender</u>"... etc?</p> 
+        <p>Different projects may all share pieces that are the same, but they also have parts that are unique.</p>
+        <p>We want our template to fill in the content that's always the same, (to save time) but we also want our template to let us fill in unique value(s) that vary in different projects. To accomplish this, let's write our first token:</p>
+        <code file="templates/MyFirstTemplate/afile.txt">My favorite color is <token>var:l:my favorite color</token>
+        </code>
+        <p>Go ahead, add the token, <token>var:l:my favorite color</token> to "afile.txt".</p>
+        <p>In this example, when we <cmd>nf use</cmd> "MyFirstTemplate", we decide what "my favorite color" will be. We don't have to worry about rewriting the hard-coded text again -- <em>"My favorite color is"</em> will always be the same in every project.</p>
+        <p>Does your "afile.txt" contain the token? Let's see what happens now when we <cmd>use</cmd> "MyFirstTemplate":
+        
+    </section>
 </body>
 </html>
