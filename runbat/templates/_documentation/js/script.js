@@ -1,4 +1,59 @@
 jQuery(document).ready(function(){
+	//CREATE ALL OF THE CODE SECTIONS
+	//===============================
+	//for each <code> element
+	var codeElems=jQuery('code');
+	codeElems.each(function(c){
+		var codeElem=jQuery(this);
+		//build the code structure
+		codeElem.after('<div class="code-wrap"><div class="header"></div><div class="code-content"></div></div><div style="clear:both;"></div>');
+		var codeWrap=codeElem.next('.code-wrap:first');
+		var codeHeader=codeWrap.children('.header:first');
+		var codeContent=codeWrap.children('.code-content:first');
+		codeContent.append('<div class="code-txt"><div class="line-numbers"></div><div class="source"></div></div>');
+		var codeTxtWrap=codeContent.children('.code-txt:first');
+		var lineNumsWrap=codeTxtWrap.children('.line-numbers:first');
+		var sourceWrap=codeTxtWrap.children('.source:first');
+		//set the code header, if there is a file attribute
+		var fileVal=codeElem.attr('file');
+		if(fileVal==undefined){fileVal='';}
+		codeHeader.html(fileVal);
+		//get the inner html of the code element
+		var codeHtml=codeElem.html();
+		if(codeHtml==undefined){codeHtml='';}
+		//split into an array of code lines
+		var codeLines=codeHtml.split("\n");
+		//internal function to add a code line to the view
+		var addCodeLine=function(lineTxt, index){
+			//if the line is blank
+			var blankClass='';
+			if(lineTxt.trim().length<1){
+				blankClass+=' blank';
+			}
+			//add the source code
+			sourceWrap.append('<div name="'+(index+1)+'" class="line'+blankClass+'">'+lineTxt+'</div>');
+			//add the line number
+			lineNumsWrap.append('<div name="'+(index+1)+'" class="line'+blankClass+'">'+(index+1)+'</div>');
+		};
+		//if there are any code lines
+		if(codeLines.length>0){
+			//for each code line
+			for(var c=0;c<codeLines.length;c++){
+				//add this code line to the view
+				addCodeLine(codeLines[c], c);
+			}
+			//remove the original code element
+			codeElem.remove();
+			//add the outer-code wrap
+			codeWrap.before('<div class="outer-code"></div>');
+			var outerCodeElem=codeWrap.prev('.outer-code:first');
+			outerCodeElem.append(codeWrap);
+		}else{
+			//no code lines...
+			//remove the generated code html
+			codeWrap.remove();
+		}
+	});
 	//CREATE ALL OF THE IMAGE SLIDERS
 	//===============================
 	//for each image that has slides
