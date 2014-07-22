@@ -269,6 +269,70 @@ jQuery(document).ready(function(){
 			}
 		});
 	};
+	//CREATE ALL OF THE TOKENS
+	//========================
+	//for each <token> element
+	var tokenElems=jQuery('token');
+	tokenElems.each(function(t){
+		//get the token text
+		var tokenElem=jQuery(this);
+		var tokenTxt=tokenElem.text();
+		if(tokenTxt==undefined){tokenTxt='';}
+		tokenTxt=tokenTxt.trim();
+		var source='';
+		//if there is any token text
+		if(tokenTxt.length>0){
+			//if the text contains the : separator
+			if(tokenTxt.indexOf(':')!=-1){
+				var tokenParts=tokenTxt.split(':');
+				//if there are at least three token parts
+				if(tokenParts.length>2){
+					//get the token type
+					var type=tokenParts[0];
+					type=type.trim();
+					type=type.toLowerCase();
+					//get the token casing
+					var casing=tokenParts[1];
+					casing=casing.trim();casing=casing.toLowerCase();
+					//start re-assembling the token text
+					var sep='<span class="sep">:</span>';
+					tokenTxt='<span class="part type">'+type+'</span>'
+						+sep+'<span class="part casing">'+casing+'</span>'+sep;
+					switch(type){
+						case 'var':
+							var name=tokenParts[2];
+							//if the name contains a source
+							var source='';
+							if(name.indexOf('-->')!=-1){
+								var nameParts=name.split('-->');
+								name=nameParts[0];
+								//separate out the source
+								source=nameParts[1];source=source.trim();
+								source='<span class="src sep">--&gt;</span><span class="part source">'+source+'</span>';
+							}
+							//if the name contains an alias
+							var alias='';
+							if(name.indexOf('=>')!=-1){
+								var nameParts=name.split('=>');
+								name=nameParts[0];
+								//separate out the alias
+								alias=nameParts[1];alias=alias.trim();
+								alias='<span class="al sep">=&gt;</span><span class="part alias">'+alias+'</span>';
+							}
+							name=name.trim();
+							tokenTxt+='<span class="part name">'+name+'</span>'+alias;
+							break;
+						case 'filename':
+							//***
+							break;
+					}
+				}
+			}
+		}
+		//set the token start and end tags
+		tokenTxt='<span class="startTag">&lt;&lt;</span>'+tokenTxt+'<span class="endTag">&gt;&gt;</span>'+source;
+		tokenElem.html(tokenTxt);
+	});
 	//window ready
 	jQuery(window).ready(function(){
 		//window resize

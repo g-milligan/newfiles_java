@@ -1,4 +1,5 @@
 body{font-size:1.5em;padding:1.5em;font-family:"Times New Roman",Georgia,serif;}
+ul{margin:30px 0px;padding:30px 55px;background-color:#FFF9E3;border-radius: 20px;box-shadow:inset 0px 0px 17px rgba(0,60,117,.1);}
 h1, h2, h3, p{padding:0px 0px 0px 0px;margin:0px 0px 1em 0px;}
 h1{font-size:250%;}
 h2{font-size:180%;color:#0C396C;}
@@ -71,3 +72,21 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', end
 .code-wrap .source .line{padding:3px 10px;color:#292929;}
 .code-wrap .line-numbers .line{color:#6C9221;font-weight:bold;text-align:center;}
 .code-wrap .line-numbers .line:after{content:"."}
+/*tokens*/
+token{white-space:nowrap;display:inline-block;font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;padding:2px 7px;background-color:#FFF9E3;border-radius:7px;box-shadow:inset 0px 0px 17px rgba(0,60,117,.1);font-size:95%;}
+token .sep, token .startTag, token .endTag{color:#B26313;font-weight:normal;opacity:.6;}
+token .sep{display:inline-block;}
+token .startTag, token .endTag{display:inline-block;}
+token .startTag{float:left;margin-right:5px;}
+token .endTag{margin-left:5px;}
+token .src.sep,token .al.sep{margin:0px 7px;}
+token .al.sep{}
+token .src.sep{color:#C3B082;}
+token > span{padding-top:2px;padding-bottom:2px;}
+token .part{display:inline-block;font-weight:bold;}
+token .type.part{float:left;color:#cc6633;}
+token .casing.part{color:#33674d;}
+token .name.part{color:#006699;}
+token .alias.part{color:#663399;}
+token .source.part{float:right;color:#1F317C;font-weight:bold;font-style:italic;}
+token .path.part{}
