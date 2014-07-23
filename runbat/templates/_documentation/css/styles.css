@@ -1,5 +1,5 @@
 body{font-size:1.5em;padding:1.5em;font-family:"Times New Roman",Georgia,serif;}
-ul{margin:30px 0px;padding:30px 55px;background-color:#FFF9E3;border-radius: 20px;box-shadow:inset 0px 0px 17px rgba(0,60,117,.1);}
+ul,ol{margin:30px 0px;padding:30px 55px;background-color:#FFF9E3;border-radius: 20px;box-shadow:inset 0px 0px 17px rgba(0,60,117,.1);}
 h1, h2, h3, p{padding:0px 0px 0px 0px;margin:0px 0px 1em 0px;}
 h1{font-size:250%;}
 h2{font-size:180%;color:#0C396C;}
@@ -7,8 +7,8 @@ h2:after{content:"";display:inline-block;width:0;height:0;border-style:solid;bor
 h3{padding:10px;border-radius:20px 0px 20px 0px;border-bottom:solid 2px rgba(30,87,153,.3);color:#1e5799;font-size:140%;}
 p{line-height:1.4em;}
 section{padding:0px 0px 50px 0px;margin:0px 0px 50px 0px;border-bottom:dashed 5px rgba(0,0,0,.3);}
-cmd{display:block;background-color:#000;color:#fff;padding:0px 10px;border:solid 3px #ccc;border-radius:5px;font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;}
-p cmd{display:inline-block;white-space:nowrap;}
+cmd{display:block;background-color:#000;color:#fff;padding:5px 10px;margin:0px 0px 25px 0px;border:solid 3px #ccc;border-radius:5px;font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;}
+p cmd,ul cmd{display:inline-block;white-space:nowrap;padding:0px 5px;margin:0px 0px 0px 0px;}
 /*slides AND code blocks*/
 .outer-slides,.outer-code{text-align:center;margin:30px 0px;padding:30px 0px;background-color:rgba(0,0,0,.1);border-radius: 20px;}
 .slides-wrap,.code-wrap{position:relative;display:inline-block;border:solid 3px #fff;border-radius:10px;box-shadow:-1px 1px 7px rgba(0,0,0,.8);}
@@ -69,7 +69,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', end
 .code-wrap .line-numbers{border-right:dashed 1px rgba(0,0,0,.5);border-radius:0px 0px 0px 7px;padding:0px 0px 10px 0px;background-color:#FFF9E3;}
 .code-wrap .source{}
 .code-wrap .line-numbers .line,.code-wrap .source .line{white-space:nowrap;line-height:1em;height:1em;display:block;padding:3px 5px;}
-.code-wrap .source .line{padding:3px 10px;color:#292929;}
+.code-wrap .source .line{padding:3px 10px;color:#292929;text-align:left;}
 .code-wrap .line-numbers .line{color:#6C9221;font-weight:bold;text-align:center;}
 .code-wrap .line-numbers .line:after{content:"."}
 /*tokens*/

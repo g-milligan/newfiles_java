@@ -61,7 +61,7 @@
         <p>Great. What just happened? A new project, based on our mind-numbingly simple template, was created:</p>
         <img slide="true" slides="1" src="img/5_1.gif" alt="What was created?" />
         <p>So what? For this example, it would have been easier to create this file by hand. True. This example was over-simplified to introduce you to some basic Newfiles commands. However, Newfiles becomes useful for more complicated templates, especially when it takes advantage of using <strong><em>tokens</em></strong>. You will learn about <strong>tokens</strong> in the next section.
-        <h3>Recap -- What you learned:</h3>
+        <h3>Checkpoint -- What you learned:</h3>
         <ul>
         	<li>What is the templates folder?</li>
             <li>What is a shortcut command to open the templates folder from the command line?</li>
@@ -87,7 +87,62 @@
         </code>
         <p>Go ahead, add the token, <token>var:l:my favorite color</token> to "afile.txt".</p>
         <p>With our new token, let's see what happens now when we <cmd>nf use</cmd> "MyFirstTemplate":</p>
-        
+        <img slide="true" slides="6" src="img/6_1.gif" alt="Use a template with a token" />
+        <p>What just happened? Here is a review of the commands we used:</p>
+        <ul>
+        	<li><cmd>nf use 0</cmd>... <strong>0</strong> is our template index. We chose which template to use.</li>
+            <li><cmd>1/1) Enter --&gt; "my favorite color" &gt;&gt; GREEN</cmd>... we chose what value to use for the <strong>"my favorite color"</strong> token. Remember, a token is just a placeholder for a value. Our token, <token>var:l:my favorite color</token> is a placeholder in the template. In this example, I entered the value, "<strong><em>GREEN</em></strong>".</li>
+        </ul>
+        <p>Great. What does the project look like? Take a look at the new <strong>afile.txt</strong> file. We will see that our token has been replaced by our value:</p>
+        <img slide="true" slides="1" src="img/7_1.gif" alt="What was created" />
+        <p>You may notice something strange... I entered uppercase "GREEN" into the command-line but in my project, the value is lowercase "green". Why?</p>
+        <h3>Tokens can control casing</h3>
+		<p>You can use tokens to determine the casing of input values. Look again at the token from the example: <token>var:l:my favorite color</token></p>
+        <p>This token contains three parts that are separated by a <em>colon</em>, ':'. The second part may look like the number one, but it's actually a lowercase letter 'l'.</p>
+        <p>This lowercase letter 'l' stands for <em>lowercase</em>. It will transform any input value into all lowercase letters. The <em>second token-part</em> will <u>always</u> control the letter casing of input values.</p>
+        <p>So, if you used a different letter, it would modify the input casing a different way:</p>
+        <ul>
+        	<li><strong>l</strong>: all <u>lowercase</u> letters</li>
+            <li><strong>u</strong>: all <u>UPPERCASE</u> letters</li>
+            <li><strong>c</strong>: <u>Capitalize</u> the first letter... leave the other letters alone.</li>
+            <li><strong>n</strong>: all letters will be left alone (<u>normal-casing</u>)</li>
+        </ul>
+        <h3>The parts of a token</h3>
+        <p>Now you know that tokens are made up of different colon-separated "<em>parts</em>". Now you'll learn what those parts are:</p>
+        <token>var:l:my favorite color</token>
+        <ol>
+        	<li><strong>Type</strong>: The first part of a token is <u>always</u> the <em>token-type</em>. In this example, the type is "<em>var</em>", which stands for "<em>variable</em>".</li>
+            <li><strong>Casing</strong>: The second part of a token is <u>always</u> the <em>token-casing</em>. In this example, the casing is "<em>lowercase</em>".</li>
+            <li><strong>Name</strong>: The last part of a token is <u>always</u> the <em>token-name</em>. Note, this part is always <em>last</em>, but it's not always <em>third</em>. In this example, the name is "<em>my favorite color</em>".</li>
+        </ol>
+        <p>The token name is what you will see when you are asked to enter a value in the command line, eg: <cmd>1/1) Enter --&gt; "my favorite color" &gt;&gt; </cmd>.</p> 
+        <h3>Using the same token name in different spots</h3>
+        <p>If my template used the token, <token>var:l:my favorite color</token> multiple times, I would <em>STILL</em> only have to enter "my favorite color" <em>ONE</em> time in the command line; multiple tokens, with the same name, are the same token.</p>
+        <p>To illustrate this, consider this template:</p>
+        <code file="Example: 2-token template">My favorite color is <token>var:l:my favorite color</token>.
+I SAID IT IS <token>var:u:my favorite color</token>!
+        </code>
+        <p>Now let's say I build a project with the following input:</p>
+        <cmd>1/1) Enter --&gt; "my favorite color" &gt;&gt; rEd</cmd>
+        <p>My resulting project file would look like this:</p>
+        <code file="Example: 2-token project">My favorite color is red.
+I SAID IT IS RED!</code>
+        <p>Although I only had to enter "rEd" one time, my value replaced each token that had the "my favorite color" name. Also note, you are able to set <em>different casing</em> for the same value in <em>different spots</em>, ie: "red" and "RED".</p>
+        <h3>Checkpoint -- What you learned:</h3>
+        <ul>
+        	<li>What is a token and how is it useful inside a template?</li>
+            <li>How do you use a token when building a project?</li>
+            <li>How can you review what tokens are present, inside a template, when you are building a project in the command line?</li>
+            <li>How will Newfiles handle building a project if one or more of the project files already exist?</li>
+            <li>What are the different parts of a token?</li>
+            <li>How do you control casing for input values?</li>
+        </ul>
+    </section>
+    <section>
+    	<h2>More "var" token-type examples</h2>
+        <h3>More than one token name</h3>
+        <h3>Using a token "alias"</h3>
+        <h3>Templates with multiple files</h3>
     </section>
 </body>
 </html>
