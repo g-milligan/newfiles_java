@@ -141,8 +141,30 @@ I SAID IT IS RED!</code>
     <section>
     	<h2>More "var" token-type examples</h2>
         <h3>More than one token name</h3>
+        <p>So far we've only seen a template that uses ONE token name, <em>"my favorite color"</em>. However, it's possible to create templates that have <em>many</em> different token names.</p>
+        <p>For this example, I'll create a new template called "VarTokenExamples". It will contain one file called "examples.html":</p>
+        <code file="templates/VarTokenExamples/examples.html">Hi <token>var:c:your name</token>,
+        
+        What's your favorite color?
+        Oh, it's <token>var:l:favorite color</token>?
+        That's a very <token>var:n:adjective</token> choice, <token>var:c:your name</token>!</code>
+        <p>Try this example for yourself:</p>
+        <ul>
+        	<li>Open your command-line console.</li>
+            <li>Open your templates folder with the shortcut command, <cmd>nf templates</cmd></li>
+            <li>In the templates folder, create a new file-system folder called "VarTokenExamples"</li>
+            <li>Now, in the command-line use <cmd>nf ls</cmd> to list your templates.
+            	<ul><li>Notice that "VarTokenExamples" is NOT in the list... this is because "VarTokenExamples" does NOT yet contain <em>at least one file</em>.</li></ul>
+            </li>
+            <li>In order for "VarTokenExamples" to be considered a template, you must add at least one file directly under this folder. Go ahead and add the "examples.html" file. Once this file is under "VarTokenExamples", try the <cmd>nf ls</cmd> command again to see that your new template is now showing up in the list.</li>
+            <li>Copy the example file content into "examples.html", if you haven't already.</li>
+        </ul>
+        <p>Once you created the new "VarTokenExamples" template, let's use it to create a new project:</p>
+        <img slide="true" slides="5" src="img/8_1.gif" alt="Use a template with multiple tokens" />
+        <p>Enter different token-values, if you wish then check to see what project content gets created.</p>
         <h3>Using a token "alias"</h3>
         <h3>Templates with multiple files</h3>
+        <h3>Token scope / alias scope</h3>
     </section>
 </body>
 </html>
