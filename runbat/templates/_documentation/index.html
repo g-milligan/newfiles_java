@@ -162,7 +162,41 @@ I SAID IT IS RED!</code>
         <p>Once you created the new "VarTokenExamples" template, let's use it to create a new project:</p>
         <img slide="true" slides="5" src="img/8_1.gif" alt="Use a template with multiple tokens" />
         <p>Enter different token-values, if you wish then check to see what project content gets created.</p>
-        <h3>Using a token "alias"</h3>
+        <h3>Using token "aliases"</h3>
+        <p>When you define a token once, is there a way to reuse the token without having to write the full syntax over-and-over again? Rewriting the full thing multiple times can get tedius and look cluttered. For example, my template uses <token>var:c:your name</token> in two spots... can I define type, casing, and name once, then reuse the repeated token definition multiple times?</p>
+		<code file="repeated token, 'your name'">Hi <token>var:c:your name</token>,
+        
+        What's your favorite color?
+        Oh, it's <token>var:l:favorite color</token>?
+        That's a very <token>var:n:adjective</token> choice, <token>var:c:your name</token>!</code>
+        <p>Also, what if I wanted to be able to change the casing for "your name" in the file? I would have to change it in both tokens. There has to be a more efficient way to write repeating tokens... there is; you can create a <em>token <strong>alias</strong></em>, which would look like this:</p>
+		<code file="Using a token alias"><token>var:c:your name =&gt; [Name]</token>
+
+        Hi <alias>[Name]</alias>,
+        
+        What's your favorite color?
+        Oh, it's <token>var:l:favorite color</token>?
+        That's a very <token>var:n:adjective</token> choice, <alias>[Name]</alias>!</code>
+        <p>In this example, we have a token definition, <token>var:c:your name =&gt; [Name]</token>. We assigned this token defintion to an <em><strong>alias</strong></em>, <alias>[Name]</alias> so that, instead of writing the full token multiple times, we could use the alias as a placeholder, instead. This makes the template easier to read and allows you to update the casing and token name in one spot for multiple aliases.</p>
+        <p>We could also have used aliases for our other two tokens too, but since they only appear once, there is less incentive to create an alias for them. It's up to you if you want to create aliases for all <strong>var</strong> tokens, but you don't have to.</p>
+        <p>What are the key syntax rules for aliases?</p>
+        <ul>
+        	<li>Not all token <em>types</em> can use aliases, but the "var" token type can use aliases.</li>
+            <li>Define an alias with the symbol, <strong>=&gt;</strong> to the right of the token name</li>
+            <li>In the previous example, brackets around the alias have <em>no significance</em> other than to make the alias more readable... brackets are NOT required. I could have used anything as my alias, like <alias>(Name)</alias> or <alias>nombre</alias> or event <alias>foO</alias>. Most anything after the <strong>=&gt;</strong> would work as an alias.</li>
+            <li>Capitalization matters! If you have two aliases with different capitalization, then they are considered different aliases. Notice in the example I spelled <alias>Name</alias> with a capital first letter. I prefer to match the token's casing rule with the casing of the alias for readability; you may have two tokens with the same name but different casings. If you use this convention, it's easy to remember the casing applied to the token by looking at the casing of the alias.</li>
+        </ul>
+        <p>Another way to write the previous example template with aliases (based on personal preference) is as follows. Each of these templates yield the same result when creating projects, but they have variations on the way the tokens/aliases are written:</p>
+		<code file="Using multiple aliases"><token>var:c:your name =&gt; [Name]</token>
+		<token>var:l:favorite color =&gt; (color)</token>
+        <token>var:n:adjective =&gt; |adj|</token>
+        
+        Hi <alias>[Name]</alias>,
+        
+        What's your favorite color?
+        Oh, it's <alias>(color)</alias>?
+        That's a very <alias>|adj|</alias> choice, <alias>[Name]</alias>!</code>
+        <p>Using token aliases can help make your template cleaner and easier to read.</p>
         <h3>More than one template file</h3>
         <h3>Token scope / alias scope</h3>
     </section>
