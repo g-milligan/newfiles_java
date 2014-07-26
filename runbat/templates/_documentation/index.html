@@ -186,7 +186,7 @@ I SAID IT IS RED!</code>
             <li>In the previous example, brackets around the alias have <em>no significance</em> other than to make the alias more readable... brackets are NOT required. I could have used anything as my alias, like <alias>(Name)</alias> or <alias>nombre</alias> or event <alias>foO</alias>. Most anything after the <strong>=&gt;</strong> would work as an alias.</li>
             <li>Capitalization matters! If you have two aliases with different capitalization, then they are considered different aliases. Notice in the example I spelled <alias>Name</alias> with a capital first letter. I prefer to match the token's casing rule with the casing of the alias for readability; you may have two tokens with the same name but different casings. If you use this convention, it's easy to remember the casing applied to the token by looking at the casing of the alias.</li>
         </ul>
-        <p>Another way to write the previous example template with aliases (based on personal preference) is as follows. Each of these templates yield the same result when creating projects, but they have variations on the way the tokens/aliases are written:</p>
+        <p>Another way to write the previous example template with aliases (based on personal preference) is as follows. This template will yield the same result, as the previous example, when creating projects. The difference is only in the way the tokens/aliases are written:</p>
 		<code file="Using multiple aliases"><token>var:c:your name =&gt; [Name]</token>
 		<token>var:l:favorite color =&gt; (color)</token>
         <token>var:n:adjective =&gt; |adj|</token>
@@ -198,8 +198,59 @@ I SAID IT IS RED!</code>
         That's a very <alias>|adj|</alias> choice, <alias>[Name]</alias>!</code>
         <p>Using token aliases can help make your template cleaner and easier to read.</p>
         <h3>More than one template file</h3>
-        <p>So far we've only created and used templates with one file. However, in the real world, projects usually contain multiple files. Let's add another file to our template, "VarTokenExamples" so we can study how tokens behave in templates with more than one file.</p>
+        <p>So far we've only created and used templates with one file. However, in the real world, projects usually contain multiple files. Let's add another file to our template, "VarTokenExamples" so we can study how tokens behave in templates with more than one file:</p>
+		<code file="templates/VarTokenExamples/anotherfile.html"><token>var:c:your name =&gt; Name</token>
+		<token>var:l:favorite color =&gt; colour</token>
+        <token>var:n:adjective =&gt; -ad-</token>
+        <token>var:n:disliked color =&gt; (color)</token>
+        
+        Hi again <alias>Name</alias>,
+        
+        So you want to see more examples?
+        You told me your favorite color was <alias>colour</alias>.
+        I still think that choice is <alias>-ad-</alias>. 
+        Yay.
+        My favorite color is <alias>(color)</alias>... oh you don't like it too? 
+        
+        Here's <strong>&lt;a href="examples.html"&gt;</strong>proof of our previous exchange<strong>&lt;/a&gt;</strong>.</code>
+        <p>After I create this new template file, I will re-build my project:</p>
+        <img slide="true" slides="5" src="img/9_1.gif" alt="Build a project with multiple template files" />
+        <p>Note the token aliases that were used between the two template files... </p>
+        <P>This demonstration reveals some key details about the <strong><em>scope</em></strong> of token <em>aliases</em>, compared to token <em>names</em>, across multiple template files.</p> 
         <h3>Token scope / alias scope</h3>
+        <p>The last demonstration used one template, "<strong>VarTokenExamples</strong>", that has two template files, "<strong>examples.html</strong>" and "<strong>anotherfile.html</strong>", to create a project. Both template files contain tokens and token aliases:</p>
+        <p><strong>examples.html</strong>:</p>
+        <ul>
+            <li><token>var:c:your name =&gt; [Name]</token></li>
+			<li><token>var:l:favorite color =&gt; (color)</token></li>
+        	<li><token>var:n:adjective =&gt; |adj|</token></li>
+        </ul>
+        <p><strong>anotherfile.html</strong>:</p>
+        <ul>
+            <li><token>var:c:your name =&gt; Name</token></li> The "your name" token uses "Name" as its alias instead of "[Name]"... <u>the scope of an alias is limited to the file in which it is defined</u>; this file has no knowledge of the "[Name]" alias defined in "examples.html". Instead, this file uses "Name" as the alias for this token.
+            <li><token>var:l:favorite color =&gt; colour</token></li>
+            <li><token>var:n:adjective =&gt; -ad-</token></li>
+            <li><token>var:n:disliked color =&gt; (color)</token> The "(color)" alias is used in both files... but for different token names. This is allowed because <u>the scope of an alias is limited to the file in which it is defined</u>.</li>
+        </ul>
+        <p>Token <em><strong>names</strong></em>, including "your name", will all represent the same value inside the template. However, token <em><strong>aliases</strong></em>, including "[Name]", will only represent the token name in the file in which the alias is defined. A single token name means the same thing in multiple token files... although a token alias only retains its meaning within a single file; if you want to use the same token alias in different files, then you must define the token alias again in each file.</p>
+        <h3>Checkpoint -- What you learned:</h3>
+        <ul>
+        	<li>If your templates folder contains an empty folder, then is this folder considered a template? What would you have to do to make your empty folder a listed Newfiles template?</li>
+            <li>What are token "<strong>aliases</strong>" and how do they make templates easier to read / maintain?</li>
+            <li>Will token names represent the same value when they are used in different template files?</li>
+            <li>If you define a token alias in one file, will the token alias automatically represent the same token name in <em>ALL</em> of the template's files?</li>
+            <li>Consider this token definition: <token>var:c:project name =&gt; [Project]</token>. If you use the <em>lowercase</em> token alias, <alias>[project]</alias> in the same file, will the alias represent the "project name" input value? Why not?</li>
+        </ul>
+    </section>
+    <section>
+    	<h2>Controlling project file names and folders</h2>
+        <h3>Introducing the "filename" token-type</h3>
+        <p>So far, all of our templates lack influence over the location or names of project files. In the real world, you may want to create projects that have different file/folder structure. This structure may change depending on the new project you want to create.</p> 
+        <p>Similar to creating value-placeholders with <strong><em>var</em></strong> tokens, Newfiles lets you create placeholders for both filenames and folder paths with the <strong><em>filename</em></strong> token type:</p>
+        <p>Here are some examples of the "<strong>filename</strong>" type's syntax:</p>
+        <ul>
+        	<li></li>
+        </ul>
     </section>
 </body>
 </html>
