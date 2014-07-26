@@ -90,4 +90,4 @@ token .casing.part{color:#33674d;}
 token .name.part{color:#006699;}
 token .alias.part, alias{color:#663399;}
 token .source.part{float:right;color:#1F317C;font-weight:bold;font-style:italic;}
-token .path.part{}
+token .path.part{color:#0F498E;}

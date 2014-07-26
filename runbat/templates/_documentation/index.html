@@ -249,6 +249,20 @@ I SAID IT IS RED!</code>
         <p>Similar to creating value-placeholders with <strong><em>var</em></strong> tokens, Newfiles lets you create placeholders for both filenames and folder paths with the <strong><em>filename</em></strong> token type:</p>
         <p>Here are some examples of the "<strong>filename</strong>" type's syntax:</p>
         <ul>
+        	<li><token>filename:l:"my-file-name"</token> changes the project file's name to lowercase "my-file-name".</li>
+            <li><token>filename:u:my-file-name</token> asks you to enter a value for the project's file name in the command line. Whatever you enter will be transformed to uppercase.</li>
+            <li><token>filename:n:.</token> keeps the file name the same as whatever it is inside the template.</li>
+        </ul>
+        <p>Those three filename examples only control a project's file name. What does the token look like if you want to change the file path? Here are some examples:</p>
+        <ul>
+        	<li><token>filename:l:new/file/path:"my-file-name"</token> changes the project file's name to lowercase "my-file-name". <em>This file will be placed in a new path, "<strong>new/file/path</strong>", starting at the root of wherever you build your project</em>.</li>
+            <li><token>filename:u:some/path:my-file-name</token> asks you to enter a value for the project's file name in the command line. Whatever you enter will be transformed to uppercase. <em>This file will be placed in a new path, "<strong>some/path</strong>", starting at the root of wherever you build your project</em>.</li>
+            <li><token>filename:n:my-path:.</token> keeps the file name the same as whatever it is inside the template. <em>This file will be placed in a new folder, "<strong>my-path</strong>", at the root of wherever you build your project</em>.</li>
+        </ul>
+        <p>Great. Now that you know the "filename" token-type syntax, let's try using this token type in a new template.</p>
+        <h3>Using "filename" tokens in a template</h3>
+        <p>First, I'll create a new template for demonstrate using "filename" tokens:</p>
+        <ul>
         	<li></li>
         </ul>
     </section>

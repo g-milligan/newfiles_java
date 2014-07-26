@@ -323,7 +323,35 @@ jQuery(document).ready(function(){
 							tokenTxt+='<span class="part name">'+name+'</span>'+alias;
 							break;
 						case 'filename':
-							//***
+							//filename type must have at least three parts
+							if(tokenParts.length>2){
+								//if this filename token includes a path
+								var path='';
+								if(tokenParts.length>3){
+									//get the path value
+									path=tokenParts[tokenParts.length-2];
+									//build the path html
+									path='<span class="part path">'+path+'</span>'+sep;
+								}
+								var name=tokenParts[tokenParts.length-1];
+								//if the name contains a source
+								var source='';
+								if(name.indexOf('-->')!=-1){
+									var nameParts=name.split('-->');
+									name=nameParts[0];
+									//separate out the source
+									source=nameParts[1];source=source.trim();
+									source='<span class="src sep">--&gt;</span><span class="part source">'+source+'</span>';
+								}
+								//if the name contains an alias
+								if(name.indexOf('=>')!=-1){
+									//get just the name and exclude the alias
+									var nameParts=name.split('=>');
+									name=nameParts[0];
+								}
+								name=name.trim();
+								tokenTxt+=path+'<span class="part name">'+name+'</span>';
+							}
 							break;
 					}
 				}
