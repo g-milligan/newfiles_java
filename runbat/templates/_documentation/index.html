@@ -259,12 +259,30 @@ I SAID IT IS RED!</code>
             <li><token>filename:u:some/path:my-file-name</token> asks you to enter a value for the project's file name in the command line. Whatever you enter will be transformed to uppercase. <em>This file will be placed in a new path, "<strong>some/path</strong>", starting at the root of wherever you build your project</em>.</li>
             <li><token>filename:n:my-path:.</token> keeps the file name the same as whatever it is inside the template. <em>This file will be placed in a new folder, "<strong>my-path</strong>", at the root of wherever you build your project</em>.</li>
         </ul>
+        <p>The parts of filename token types are as follows:</p>
+		<ol>
+        	<li><strong>Type</strong>: The first part of a token is <u>always</u> the <em>token-type</em>. These examples, use the "<em>filename</em>" type.</li>
+            <li><strong>File name casing</strong>: The second part of a token is <u>always</u> the <em>token-casing</em>. For example, <token>filename:u:some/path:my-file-name</token> uses UPPERCASE casing for the file's name, specified by the letter, "u".</li>
+            <li><strong>File root folder path (optional)</strong>: The second-to-last part of a filename token is the <em>file path</em>. The file path is optional. If no path is written in the token, then the file will be placed directly in your project's root directory, by default. <token>filename:u:some/path:my-file-name</token> will put the file under the "some/path" directory. Whereas, <token>filename:u:my-file-name</token> will place the file in the project's root folder.</li>
+            <li><strong>File name</strong>: The last part of a filename token is <u>always</u> the <em>file name</em>. Note, this part is always <em>last</em>, but it's not always <em>third</em> (ie: it will be the fourth part if the file path is specified).</li>
+        </ol>
         <p>Great. Now that you know the "filename" token-type syntax, let's try using this token type in a new template.</p>
         <h3>Using "filename" tokens in a template</h3>
-        <p>First, I'll create a new template for demonstrate using "filename" tokens:</p>
+        <p>First, I'll create a new template for demonstrating the use of "filename" tokens. This template will generate projects that follow standard web-site file structure conventions:</p>
         <ul>
-        	<li></li>
+        	<li><strong>index.html</strong> contains the markup-text for our simple web-site structure.</li>
+            <li><strong>css/styles.css</strong> contains the style rules</li>
+            <li><strong>js/script.js</strong> contains our custom javascript</li>
+            <li><strong>js/jquery.min.js</strong> contains the popular (and useful) jQuery javascript library</li>
         </ul>
+        <code file="index.html">
+        </code>
+        <code file="css/styles.css">
+        </code>
+        <code file="js/script.js">
+        </code>
+        <code file="js/jquery.min.js">
+        </code>
     </section>
 </body>
 </html>
