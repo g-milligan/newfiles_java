@@ -361,7 +361,63 @@ jQuery(document).ready(function(){
 		tokenTxt='<span class="startTag">&lt;&lt;</span>'+tokenTxt+'<span class="endTag">&gt;&gt;</span>'+source;
 		tokenElem.html(tokenTxt);
 	});
-	//window ready
+	//CREATE ALL OF THE <HTM> EXAMPLES
+	//================================
+	//for each <htm> node
+	var htmElems=jQuery('htm');
+	htmElems.each(function(h){
+		//get the inner text of this <htm> element
+		var htmTxt=jQuery(this).html();
+		if(htmTxt==undefined){htmTxt='';}
+		htmTxt=htmTxt.trim();
+		//if this IS an html comment
+		if(htmTxt.indexOf('!--')==0){
+			//add commment class
+			jQuery(this).addClass('comment');
+		}else{
+			//NOT an html comment...
+			
+			//if this is a closing <htm> section
+			if(htmTxt.indexOf('/')==0){
+				jQuery(this).addClass('close');
+			}else{
+				//open <htm> section
+				jQuery(this).addClass('open');
+				//if this is a self-closing section
+				if(htmTxt.lastIndexOf('/')==htmTxt.length - '/'.length){
+					jQuery(this).addClass('self-close');
+				}
+				//distinguish the attribute sections of this node
+				var attrs=htmTxt.split(' ');
+				if(attrs.length>1){
+					//add the tag name
+					htmTxt=attrs[0];
+					//for each attribute
+					for(var a=1;a<attrs.length;a++){
+						//if NOT self-closing '/'
+						if(attrs[a]!='/'){
+							//add the attribute html
+							htmTxt+=' <span class="attr">';
+							var keyVal=attrs[a].split('=');
+							htmTxt+='<span class="key">'+keyVal[0]+'</span>';
+							if(keyVal.length>1){
+								htmTxt+='<span class="sep">=</span>';
+								htmTxt+='<span class="val">'+keyVal[1]+'</span>';
+							}
+							htmTxt+='</span>';
+						}else{htmTxt+=' '+attrs[a];}
+					}
+				}
+			}
+		}
+		//set the text as trimmed
+		jQuery(this).html(htmTxt);
+		//surround the node content with < and >
+		jQuery(this).prepend('<span class="startHtm">&lt;</span>');
+		jQuery(this).append('<span class="endHtm">&gt;</span>');
+	});
+	//WINDOW READY
+	//============
 	jQuery(window).ready(function(){
 		//window resize
 		var resizeTimeout;

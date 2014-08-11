@@ -10,6 +10,12 @@ p{line-height:1.4em;}
 section{padding:0px 0px 50px 0px;margin:0px 0px 50px 0px;border-bottom:dashed 5px rgba(0,0,0,.3);}
 cmd{display:block;background-color:#000;color:#fff;padding:5px 10px;margin:0px 0px 25px 0px;border:solid 3px #ccc;border-radius:5px;font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;}
 p cmd,ul cmd{display:inline-block;white-space:nowrap;padding:0px 5px;margin:0px 0px 0px 0px;}
+htm{font-weight:bold;color:#00714B;background-color:rgba(53, 217, 50, 0.1);border-radius:7px;display:inline-block;padding:0px 5px;font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;}
+htm .attr{background-color:rgba(255, 190, 0, 0.1);}
+htm .attr .key,htm .attr .sep{color:#00A66E;font-style:italic;}
+htm .attr .sep{font-weight:normal;}
+htm .attr .val{color:#CF7E54;}
+htm.comment{background-color:transparent;color:#999999;font-weight:normal;}
 /*slides AND code blocks*/
 .outer-slides,.outer-code{text-align:center;margin:30px 0px;padding:30px 0px;background-color:rgba(0,0,0,.1);border-radius: 20px;}
 .slides-wrap,.code-wrap{position:relative;display:inline-block;border:solid 3px #fff;border-radius:10px;box-shadow:-1px 1px 7px rgba(0,0,0,.8);}

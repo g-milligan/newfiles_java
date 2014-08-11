@@ -212,7 +212,7 @@ I SAID IT IS RED!</code>
         Yay.
         My favorite color is <alias>(color)</alias>... oh you don't like it too? 
         
-        Here's <strong>&lt;a href="examples.html"&gt;</strong>proof of our previous exchange<strong>&lt;/a&gt;</strong>.</code>
+        Here's <htm>a href="examples.html"</htm>proof of our previous exchange<htm>/a</htm>.</code>
         <p>After I create this new template file, I will re-build my project:</p>
         <img slide="true" slides="5" src="img/9_1.gif" alt="Build a project with multiple template files" />
         <p>Note the token aliases that were used between the two template files... </p>
@@ -268,21 +268,65 @@ I SAID IT IS RED!</code>
         </ol>
         <p>Great. Now that you know the "filename" token-type syntax, let's try using this token type in a new template.</p>
         <h3>Using "filename" tokens in a template</h3>
-        <p>First, I'll create a new template for demonstrating the use of "filename" tokens. This template will generate projects that follow standard web-site file structure conventions:</p>
+        <p>First, I'll create a new template for demonstrating the use of "filename" tokens. This template will generate projects that follow standard web-site file structure conventions. I'll call the template <strong>"StandardWeb"</strong>. The template will be designed to generate the following project-file structure:</p>
         <ul>
         	<li><strong>index.html</strong> contains the markup-text for our simple web-site structure.</li>
             <li><strong>css/styles.css</strong> contains the style rules</li>
             <li><strong>js/script.js</strong> contains our custom javascript</li>
             <li><strong>js/jquery.min.js</strong> contains the popular (and useful) jQuery javascript library</li>
         </ul>
-        <code file="index.html">
+        <code file="templates/StandardWeb/index.html"><token>filename:l:[folder]:.</token>
+        	<token>var:n:project folder =&gt; [folder]</token>
+        	<token>var:c:project name =&gt; [Project]</token>
+        
+        	<htm>html</htm>
+            <htm>head</htm>
+            <htm>title</htm><alias>[Project]</alias><htm>/title</htm>
+            <htm>link type="text/css" rel="stylesheet" href="css/styles.css" /</htm>
+            <htm>script type="text/javascript" src="js/jquery.min.js"</htm><htm>/script</htm>
+			<htm>script type="text/javascript" src="js/script.js"</htm><htm>/script</htm>
+            <htm>/head</htm>
+            <htm>body</htm>
+            <htm>h1 class="main-title"</htm><alias>[Project]</alias><htm>/h1</htm>
+            <htm>!-- your content here --</htm>
+            <htm>/body</htm>         
+        <htm>/html</htm></code>
+        <p><strong>index.html</strong> contains some pretty standard HTML; it contains a link to a stylesheet; jQuery is linked to the page; there is a custom script file too; There is an <htm>h1</htm> title tag; finally, there is a page <htm>title</htm> (this title appears in the browser tab).</p>
+        <p>We are also using 3 tokens within <strong>index.html</strong> in order to identify unique project values:</p>
+        <ul>
+        	<li><token>filename:l:[folder]:.</token> The dot, '.' tells Newfiles to use <strong>index.html</strong> as the project-file's name (keep it the same). the letter 'l' tells Newfiles to make sure the filename is always lowercase. The <alias>[folder]</alias> alias is used as the parent folder for the <strong>index.html</strong> project-file so whatever you input for the "project folder" will be used as the parent folder name.</li>
+            <li><token>var:n:project folder =&gt; [folder]</token> This token's only purpose is to define the project's root folder name. The <alias>[folder]</alias> alias is used in defining the first folder name in the filename path.</li>
+            <li><token>var:c:project name =&gt; [Project]</token> This token defines the name of the project. The <alias>[Project]</alias> is used to define some variable content values in the file.</li>
+        </ul>
+        <code file="templates/StandardWeb/styles.css"><token>filename:l:[folder]/css:.</token>
+        <token>var:n:project folder =&gt; [folder]</token>
+        
+        body{font-size:1em;}
+        .main-title{}</code>
+        <p><token>filename:l:[folder]/css:.</token> tells newfiles to place this project file in the path, "<alias>[folder]</alias>/css". The file name will always be lowercase. A dot, '.' is used to tell Newfiles to keep the project-file the same name as the template file so, in this case, the project file will always be <strong>styles.css</strong>.</p>
+        <code file="templates/StandardWeb/script.js"><token>filename:l:[folder]/js:.</token>
+        <token>var:n:project folder =&gt; [folder]</token>
+        
+        jQuery(document).ready(function(){
+        &nbsp;&nbsp;&nbsp;/*your document-ready code here*/
+        
+        &nbsp;&nbsp;&nbsp;//window-ready happens AFTER document-ready
+        &nbsp;&nbsp;&nbsp;jQuery(window).ready(function(){
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*your window-ready code here*/
+        &nbsp;&nbsp;&nbsp;});
+        });</code>
+        <p><token>filename:l:[folder]/js:.</token> tells newfiles to place this project file in the path, "<alias>[folder]</alias>/js". The file name will always be lowercase. A dot, '.' is used to tell Newfiles to keep the project-file the same name as the template file so, in this case, the project file will always be <strong>script.js</strong>.</p>
+        <code file="templates/StandardWeb/jquery.min.js"><token>filename:l:[folder]/js:.</token>
+        <token>var:n:project folder =&gt; [folder]</token>
+        
+        /*! jQuery v2.1.1 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
+        !function(a,b){"object"==typeof module&amp;&amp;"object"==typeof module.exports...
+        
+        ... copy the full code from the <a href="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" target="_blank">jQuery Google Hosted Library</a> ...
         </code>
-        <code file="css/styles.css">
-        </code>
-        <code file="js/script.js">
-        </code>
-        <code file="js/jquery.min.js">
-        </code>
+        <p><token>filename:l:[folder]/js:.</token> tells newfiles to place this project file in the path, "<alias>[folder]</alias>/js". The file name will always be lowercase. A dot, '.' is used to tell Newfiles to keep the project-file the same name as the template file so, in this case, the project file will always be <strong>jquery.min.js</strong>.</p>
+        <p>The full code for jquery.min.js is NOT shown. If you want to copy the full code, you can click on the jQuery Google Hosted Library link in the example.</p>
+        <p>Go ahead and finish copying this new "StandardWeb" template, if you haven't already done so. We'll build a test project from this template to demonstrate the filename token's ability to define file names and paths:</p>
     </section>
 </body>
 </html>
