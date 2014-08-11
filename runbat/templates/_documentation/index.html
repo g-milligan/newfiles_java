@@ -302,7 +302,7 @@ I SAID IT IS RED!</code>
         <token>var:n:project folder =&gt; [folder]</token>
         
         body{font-size:1em;}
-        .main-title{}</code>
+        .main-title{font-size:180%;color:#0C396C;}</code>
         <p><token>filename:l:[folder]/css:.</token> tells newfiles to place this project file in the path, "<alias>[folder]</alias>/css". The file name will always be lowercase. A dot, '.' is used to tell Newfiles to keep the project-file the same name as the template file so, in this case, the project file will always be <strong>styles.css</strong>.</p>
         <code file="templates/StandardWeb/script.js"><token>filename:l:[folder]/js:.</token>
         <token>var:n:project folder =&gt; [folder]</token>
@@ -326,7 +326,29 @@ I SAID IT IS RED!</code>
         </code>
         <p><token>filename:l:[folder]/js:.</token> tells newfiles to place this project file in the path, "<alias>[folder]</alias>/js". The file name will always be lowercase. A dot, '.' is used to tell Newfiles to keep the project-file the same name as the template file so, in this case, the project file will always be <strong>jquery.min.js</strong>.</p>
         <p>The full code for jquery.min.js is NOT shown. If you want to copy the full code, you can click on the jQuery Google Hosted Library link in the example.</p>
-        <p>Go ahead and finish copying this new "StandardWeb" template, if you haven't already done so. We'll build a test project from this template to demonstrate the filename token's ability to define file names and paths:</p>
+        <p>Go ahead and finish creating this new "StandardWeb" template, if you haven't already done so. Remember, a quick way to open your templates folder, is to type <cmd>nf templates</cmd> in your command line console. After you create the "StandardWeb" template, we'll build a test project from this template to demonstrate the filename token's ability to define file names and paths:</p>
+        <img slide="true" slides="6" src="img/10_1.gif" alt="Demo the filename token type" />
+        <p>Notice the resulting folder structure for the project that was created: I used the filename token type to position each of my files exactly where they should go within my project. With Newfiles, you have precise control over the structure of your boiler-plate projects.</p>
+        <h3>Demo two methods to change project file names</h3>
+        <p>The previous "StandardWeb" template only used one of the three methods for controlling file names; each template file kept the same name when the project was created. For example, in index.html, <token>filename:l:[folder]:.</token> The dot, '.' tells Newfiles to use <strong>index.html</strong> as the project-file's name (keep it the same).</p>
+        <p>However, you do NOT always have to use the template file name as the project file name; there are two different ways to <em>change</em> the project file names, which weren't yet demonstrated:</p>
+        <ul>
+        	<li><strong>String literal</strong>. You can write the file name into the filename token. To do this, just surround the file name in quotes. The quotes make sure Newfiles views the written text as a <em>string literal</em>.
+            	<ul>
+                	<li>Token example: <token>filename:n:some/path:"my-file-name"</token></li>
+                </ul>
+            </li>
+            <li><strong>User input</strong>. You can set the file name by entering into the command line console when you are building a project. If you do NOT use quotes, then Newfiles will ask you to input a file name value instead of treating the name as a string literal, eg: <cmd>Enter --&gt; "my-file-name" &gt;&gt; </cmd>.
+            	<ul>
+                	<li>Token example: <token>filename:n:some/path:my-file-name</token></li>
+                </ul>
+            </li>
+        	<li><strong>Dot</strong>. This method was already demonstrated. A dot will tell Newfiles to keep the file name the same.
+            	<ul>
+                	<li>Token example: <token>filename:n:some/path:.</token></li>
+                </ul>
+            </li>
+        </ul>
     </section>
 </body>
 </html>
