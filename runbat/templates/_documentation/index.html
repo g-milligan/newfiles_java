@@ -266,6 +266,7 @@ I SAID IT IS RED!</code>
             <li><strong>File root folder path (optional)</strong>: The second-to-last part of a filename token is the <em>file path</em>. The file path is optional. If no path is written in the token, then the file will be placed directly in your project's root directory, by default. <token>filename:u:some/path:my-file-name</token> will put the file under the "some/path" directory. Whereas, <token>filename:u:my-file-name</token> will place the file in the project's root folder.</li>
             <li><strong>File name</strong>: The last part of a filename token is <u>always</u> the <em>file name</em>. Note, this part is always <em>last</em>, but it's not always <em>third</em> (ie: it will be the fourth part if the file path is specified).</li>
         </ol>
+        <p>It's important to note that you will NEVER write a file extension inside of a filename token; project file extensions always match the template file extensions from which they were created.</p>
         <p>Great. Now that you know the "filename" token-type syntax, let's try using this token type in a new template.</p>
         <h3>Using "filename" tokens in a template</h3>
         <p>First, I'll create a new template for demonstrating the use of "filename" tokens. This template will generate projects that follow standard web-site file structure conventions. I'll call the template <strong>"StandardWeb"</strong>. The template will be designed to generate the following project-file structure:</p>
@@ -298,6 +299,7 @@ I SAID IT IS RED!</code>
             <li><token>var:n:project folder =&gt; [folder]</token> This token's only purpose is to define the project's root folder name. The <alias>[folder]</alias> alias is used in defining the first folder name in the filename path.</li>
             <li><token>var:c:project name =&gt; [Project]</token> This token defines the name of the project. The <alias>[Project]</alias> is used to define some variable content values in the file.</li>
         </ul>
+        <p>One important thing to notice is that it is possible to use token-aliases as part of a file path.</p>
         <code file="templates/StandardWeb/styles.css"><token>filename:l:[folder]/css:.</token>
         <token>var:n:project folder =&gt; [folder]</token>
         
@@ -372,6 +374,27 @@ I SAID IT IS RED!</code>
         This template file demonstrates different methods for setting project file names.</code>
         <p>After you update <strong>filenamedemo.txt</strong>, let's use the "StandardWeb" template again to see what happens this time:</p>
         <img slide="true" slides="4" src="img/13_1.gif" alt="Demo a filename (with alias)" />
+        <p>Why isn't the file name, <strong>test_AliasNameTest.txt</strong> all lowercase? The filename token uses the letter "l" to make sure it's lowercase right? Yes. However, the token alias that's being used inside the literal name, "test_<alias>[folder]</alias>" has a normal "n" casing. The casing of the alias will hold true, even when it's used inside of a file name that has a different casing. If we wanted to <em>make sure</em> that the file name is <em>entirely</em> lowercase, we could also set the casing of the <alias>[folder]</alias> alias to lowercase by using "l" inside the "project folder" token, instead of "n".</p>
+        <p>It's important to note that the casing for any filename token is ignored when the token has a string literal name. String literals are hard-coded so what you see is what you get, including the casing, regardless of the token's casing. If you have quotes around the file name, you can be sure that the token's casing WILL BE IGNORED; the literal name is used as it appears.</p>
+        <p>Now that we've finished demonstrating the different types of filename tokens, delete the <strong>filenamedemo.txt</strong> file from the "StandardWeb" template. It won't be useful anymore in future demonstrations.</p>
+        <h3>Checkpoint -- What you learned:</h3>
+        <ul>
+        	<li>You have three template files named <strong>myFile.php</strong>, <strong>myFile.sql</strong>, and <strong>myFile.cpp</strong>. What token syntax can be used, in each of the three files, to make sure each project file name is the same as the template file name, when you build the project?</li>
+            <li>You have a template file named <strong>myFile.php</strong>. From this file, can you build a project file with a different file extension, like .html? What would you have to do to the template file to accomplish this extension change?</li>
+            <li>You have a template file named <strong>myFile.aspx</strong>. What token syntax could you use, inside the template file, to make sure that <strong>newName.aspx</strong> is the name of this project file?</li>
+            <li>You have a template file named <strong>someName.htm</strong>. What token syntax could you use, inside the template file, to make sure that the project file was renamed to whatever the user types into the command line? How could you modify this token so that the project file name is always uppercase?</li>
+            <li>What is a string literal? How is a string literal written (what makes it a string literal)?</li>
+            <li>Consider this token inside a template file called, <strong>myFile.css</strong>: <token>filename:l:"MY-FILE-NAME"</token>. What will this file name be in a new project?</li>
+            <li>What token would you use inside a template file called <strong>myFile.phtml</strong> to make sure the project file's path is <strong>some/custom/path/myFile.phtml</strong>?</li>
+            <li>Consider a template file that contains a token: <token>var:l:project folder =&gt; [folder]</token>. What additional token could you added to make sure that the project file was put under a folder, named as whatever the user enters for the "project folder" token value?</li>
+            <li>Consider a template file that contains a token: <token>var:l:project file =&gt; [file]</token>. What additional token could you added to make sure that the project file was is named as whatever the user enters for the "project file" token value?</li>
+        </ul>
+    </section>
+    <section>
+    	<h2>Commenting out template folders and files</h2>
+        <h3>Hide folders from the template list</h3>
+        <p>You may create a template that you no longer want to see in your template list. You may want to hide it from Newfiles without removing it. This type of ability is called "commenting out"; you don't want to see it, but you don't want to delete it.</p>
+        <p>It's easy to comment out templates. All you have to do is place an underscore before the folder name and Newfiles will ignore this template folder. Let's try it:</p>
     </section>
 </body>
 </html>
