@@ -349,6 +349,29 @@ I SAID IT IS RED!</code>
                 </ul>
             </li>
         </ul>
+        <p>Let's demonstrate the <strong>User input</strong> method first. To do this, just create a new file inside your "StandardWeb" template called <strong>filenamedemo.txt</strong>:</p>
+        <code file="templates/StandardWeb/filenamedemo.txt"><token>filename:l:[folder]:my-file-name</token>
+        <token>var:n:project folder =&gt; [folder]</token>
+        
+        This template file demonstrates different methods for setting project file names.</code>
+        <p>After you create <strong>filenamedemo.txt</strong>, let's use the "StandardWeb" template again to see what happens this time:</p>
+        <img slide="true" slides="4" src="img/11_1.gif" alt="Demo a user-input filename" />
+        <p>You can see from this demonstration that the .txt file name will come from the user input that you enter into the command line. Now, let's demonstrate what happens if the same template file uses a string literal...</p>
+        <p>You will need to update <strong>filenamedemo.txt</strong> so that <em>my-file-name</em> is in quotes (that's the only update):</p>
+        <code file="templates/StandardWeb/filenamedemo.txt"><token>filename:l:[folder]:"my-file-name"</token>
+        <token>var:n:project folder =&gt; [folder]</token>
+        
+        This template file demonstrates different methods for setting project file names.</code>
+        <p>After you update <strong>filenamedemo.txt</strong>, let's use the "StandardWeb" template again to see what happens this time:</p>
+        <img slide="true" slides="4" src="img/12_1.gif" alt="Demo a string-literal filename" />
+        <p>As you see in this demo, "my-file-name.txt" is the name of the project file. You do not have to enter this name into the command line because it's already a hard-coded string literal (surrounded by quotes) inside the template file.</p>
+        <p>There is one more scenario that hasn't been demonstrated yet... Let's say I want to use the <alias>[folder]</alias> as part of the name, similar to the way <alias>[folder]</alias> is being used in the folder path. This is possible; you can use aliases inside a string literal file name:</p>
+        <code file="templates/StandardWeb/filenamedemo.txt"><token>filename:l:[folder]:"test_[folder]"</token>
+        <token>var:n:project folder =&gt; [folder]</token>
+        
+        This template file demonstrates different methods for setting project file names.</code>
+        <p>After you update <strong>filenamedemo.txt</strong>, let's use the "StandardWeb" template again to see what happens this time:</p>
+        <img slide="true" slides="4" src="img/13_1.gif" alt="Demo a filename (with alias)" />
     </section>
 </body>
 </html>
