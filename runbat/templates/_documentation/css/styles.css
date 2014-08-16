@@ -9,7 +9,7 @@ h3{padding:10px;border-radius:20px 0px 20px 0px;border-bottom:solid 2px rgba(30,
 p{line-height:1.4em;}
 section{padding:0px 0px 50px 0px;margin:0px 0px 50px 0px;border-bottom:dashed 5px rgba(0,0,0,.3);}
 cmd{display:block;background-color:#000;color:#fff;padding:5px 10px;margin:0px 0px 25px 0px;border:solid 3px #ccc;border-radius:5px;font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;}
-p cmd,ul cmd{display:inline-block;white-space:nowrap;padding:0px 5px;margin:0px 0px 0px 0px;}
+p cmd,ul cmd,ol cmd{display:inline-block;white-space:nowrap;padding:0px 5px;margin:0px 0px 0px 0px;}
 htm{font-weight:bold;color:#00714B;background-color:rgba(53, 217, 50, 0.1);border-radius:7px;display:inline-block;padding:0px 5px;font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;}
 htm .attr{background-color:rgba(255, 190, 0, 0.1);}
 htm .attr .key,htm .attr .sep{color:#00A66E;font-style:italic;}

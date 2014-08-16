@@ -437,8 +437,38 @@ I SAID IT IS RED!</code>
         <p>Once you've added <htm>img src="img/company_logo.jpg" alt="company-logo" /</htm> <em>(line 13)</em> to your template file, you can try and build a new project from your "StandardWeb" template. You can probably predict that the <strong>company_logo.jpg</strong> will NOT be put into the correct place. Let's see:</p>
         <img slide="true" slides="3" src="img/16_1.gif" alt="Including an image file" />
         <p>By default, Newfiles will place a file in the root folder of your project (unless you tell Newfiles to place the file in a different location with a filename token). In the previous demo, we included an image, <strong>company_logo.jpg</strong>. We want the image to be placed under an "img" folder, but we can't use a token to tell Newfiles where to put the image; we can't write <token>filename:l:img:.</token> inside the image file because it's obviously NOT text-based. We need a different way to tell Newfiles where to put <strong>company_logo.jpg</strong>.</p>
-        <p>Newfiles allows you to control the placement of even non-text-based files in your projects by using the special <strong><em>_filenames.xml</em></strong> file. You don't have to write <strong>_filenames.xml</strong> yourself. Instead it's easier to create it automatically, via the command line. Let's try it:</p>
-        
+        <p>Newfiles allows you to control the placement of even non-text-based files in your projects by using the special <strong><em>_filenames.xml</em></strong> file. You don't have to write <strong>_filenames.xml</strong> yourself. Instead it's easier to create it automatically, via the <cmd>filenames</cmd> command. Let's try it:</p>
+        <img slide="true" slides="3" src="img/17_1.gif" alt="Generate _filenames.xml for a template" />
+        <p>The <cmd>filenames</cmd> command is similar to the <cmd>use</cmd> command in that a template index must be specified after the command. In the previous example, I typed <cmd>filenames 0</cmd> to select my "StandardWeb" template at index number 0.</p>
+        <p>What does <strong>_filenames.xml</strong> contain in this example? If you look at your own file, you will see a lot of included documentation comments. However, if you ignore the extra comments, the basic XML content would be as follows:</p>
+        <code file="templates/StandardWeb/_filenames.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+            <htm>filenames</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="company_logo.jpg"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="index.html"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="jquery.min.js"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="script.js"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="styles.css"</htm><htm>/filename</htm>
+            <htm>/filenames</htm></code>
+        <p>Notice that Newfiles added a <htm>filename</htm> XML node to represent each of the file names inside your template. Keep this in mind; we will talk more about this shortly.</p>
+        <p>What does the <cmd>filenames</cmd> command do?</p>
+        <ol>
+        	<li><strong>Create/update _filenames.xml</strong>: The <strong>_filenames.xml</strong> file is created or updated. Newfiles will make sure each of your template file names are represented inside <strong>_filenames.xml</strong>. If a file name is represented inside <strong>_filenames.xml</strong>, which is no longer in your template, then Newfiles will remove the name from <strong>_filenames.xml</strong>. Newfiles will make sure that _filenames.xml is up-to-date so you don't have to.</li>
+            <li><strong>List a template's filenames</strong>: A list of filename definitions (defined in either _filenames.xml OR by filename tokens) will be displayed in your command console. This makes the <cmd>filenames</cmd> command useful for checking filename definitions for each file inside a template.</li>
+        </ol>
+        <p>What's the purpose of <strong>_filenames.xml</strong> inside of a template? You may be able to guess; the purpose of <strong>_filenames.xml</strong> is to provide an alternate way to control file names and paths (besides using a filename token). You are allowed to control text-based file names and paths with <strong>_filenames.xml</strong>, but it's the only way to control non-text-based file names and paths... since you can't write tokens into a file that's not text-based.</p>
+        <p>For example, in my "StandardWeb" template, I can make sure <strong>company_logo.jpg</strong> is placed under a "img" project folder, by modifying the <strong>_filenames.xml</strong> file:</p>
+        <code file="templates/StandardWeb/_filenames.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+            <htm>filenames</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="company_logo.jpg"</htm>n:img:.<htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="index.html"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="jquery.min.js"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="script.js"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="styles.css"</htm><htm>/filename</htm>
+            <htm>/filenames</htm></code>
+        <p>On line 3, <br /><htm>filename for="company_logo.jpg"</htm>n:img:.<htm>/filename</htm> <br />tells Newfiles to place the <strong>company_logo.jpg</strong> under an "img" folder. A dot tells Newfiles NOT to change the <strong>company_logo.jpg</strong> name. The letter 'n' specifies <em>normal</em> casing for the filename. Do you recognize this syntax? This is the same as writing the token, <token>filename:n:img:.</token></p>
+        <p>Notice how the other <htm>filename</htm> nodes are empty. <htm>filename for="company_logo.jpg"</htm> is the only <htm>filename</htm> that has content. That's alright. You can leave these other nodes empty. If a <htm>filename</htm> node is empty, Newfiles will ignore it so that it doesn't interfere with the filename token defintition (if there is such a token definition).</p>
+        <p>What happens if a filename definition, for one file, is set BOTH in _filenames.xml AND by a filename token? In this case, Newfiles would ignore the token and only use the definition in _filenames.xml.</p>
+        <p>Alright. After you add the filename defintion for the <strong>company_logo.jpg</strong> file <em>(line 3)</em>, let's see what happens when building another project:</p>
    	</section>
 </body>
 </html>
