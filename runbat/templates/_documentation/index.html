@@ -395,6 +395,50 @@ I SAID IT IS RED!</code>
         <h3>Hide folders from the template list</h3>
         <p>You may create a template that you no longer want to see in your template list. You may want to hide it from Newfiles without removing it. This type of ability is called "commenting out"; you don't want to see it, but you don't want to delete it.</p>
         <p>It's easy to comment out templates. All you have to do is place an underscore before the folder name and Newfiles will ignore this template folder. Let's try it:</p>
+        <img slide="true" slides="4" src="img/14_1.gif" alt="Commenting out templates" />
+        <p>Commenting out templates is useful if you want to hide certain templates that you don't use very often, but you may want to uncomment and use in the future.</p>
+        <p>It's also possible to comment out individual files by using the same technique; any file name that begins with an underscore will also be commented out (just like a template folder). Let's try it...</p>
+        <p>In this example, we'll comment out <strong>anotherfile.html</strong> in the "VarTokenExamples" template:</p>
+        <img slide="true" slides="4" src="img/15_1.gif" alt="Commenting out files" />
+        <p>Great. Now you know how to comment out both template files and template folders. If you want to <em>uncomment</em>, then just remove the underscore from the front of the name. This will reveal the file or folder, to Newfiles, once again.</p>
+        <h3>Checkpoint -- What you learned:</h3>
+        <ul>
+        	<li>Let's say you've created a template that you use for building wordpress plugin projects... It's been a long time since you've needed to create a wordpress plugin and you've moved to working with other platforms. However, you think you may create more wordpress plugins in the future, but in the meantime, you want to hide your wordpress plugin template. How can you do this?</li>
+            <li>Let's say you've created a useful template that helps you start new Magento extension projects... you have a config.xml file inside the template, but lately you've written a different version of this template file. You still want to save the old config.xml version (in case you need it in the future), but for now, you want to hide it from Newfiles. How can you do this?</li>
+        </ul>
     </section>
+    <section>
+    	<h2>Non-text-based template files</h2>
+        <h3>How to set file paths for image files</h3>
+        <p>So far, we've only demonstrated using <em>text-based</em> template files. The method for setting the file name and path for a project file, is to write a filename token into the template file... but this isn't possible for non-text files (such as images). For example, you can't write the text, <token>filename:l:img:.</token> into an image file so that the file is placed under an "img" folder when a project is created.</p>
+        <p>Let's say that you wanted to include a company logo image into our "StandardWeb" template. Every time you create a new project from the "StandardWeb" template, the project should already have our company logo image under an "img" parent folder. How can you do this?</p>
+        <p>Before we learn how to control the placement of non-text-based files, let's see what would happen if we included our logo into the "StandardWeb" template:</p>
+        <ul>
+        	<li>Copy this image into your "StandardWeb" template folder: <img title="yes. this is your company logo." src="img/company_logo.jpg" alt="company logo" /></li>
+            <li>Add <htm>img src="img/company_logo.jpg" alt="company-logo" /</htm> to your content in <strong>templates/StandardWeb/index.html</strong>...</li>
+        </ul>
+        <code file="templates/StandardWeb/index.html"><token>filename:l:[folder]:.</token>
+        	<token>var:n:project folder =&gt; [folder]</token>
+        	<token>var:c:project name =&gt; [Project]</token>
+        
+        	<htm>html</htm>
+            <htm>head</htm>
+            <htm>title</htm><alias>[Project]</alias><htm>/title</htm>
+            <htm>link type="text/css" rel="stylesheet" href="css/styles.css" /</htm>
+            <htm>script type="text/javascript" src="js/jquery.min.js"</htm><htm>/script</htm>
+			<htm>script type="text/javascript" src="js/script.js"</htm><htm>/script</htm>
+            <htm>/head</htm>
+            <htm>body</htm>
+            <htm>img src="img/company_logo.jpg" alt="company-logo" /</htm>
+            <htm>h1 class="main-title"</htm><alias>[Project]</alias><htm>/h1</htm>
+            <htm>!-- your content here --</htm>
+            <htm>/body</htm>         
+        <htm>/html</htm></code>
+        <p>Once you've added <htm>img src="img/company_logo.jpg" alt="company-logo" /</htm> <em>(line 13)</em> to your template file, you can try and build a new project from your "StandardWeb" template. You can probably predict that the <strong>company_logo.jpg</strong> will NOT be put into the correct place. Let's see:</p>
+        <img slide="true" slides="3" src="img/16_1.gif" alt="Including an image file" />
+        <p>By default, Newfiles will place a file in the root folder of your project (unless you tell Newfiles to place the file in a different location with a filename token). In the previous demo, we included an image, <strong>company_logo.jpg</strong>. We want the image to be placed under an "img" folder, but we can't use a token to tell Newfiles where to put the image; we can't write <token>filename:l:img:.</token> inside the image file because it's obviously NOT text-based. We need a different way to tell Newfiles where to put <strong>company_logo.jpg</strong>.</p>
+        <p>Newfiles allows you to control the placement of even non-text-based files in your projects by using the special <strong><em>_filenames.xml</em></strong> file. You don't have to write <strong>_filenames.xml</strong> yourself. Instead it's easier to create it automatically, via the command line. Let's try it:</p>
+        
+   	</section>
 </body>
 </html>
