@@ -468,7 +468,24 @@ I SAID IT IS RED!</code>
         <p>On line 3, <br /><htm>filename for="company_logo.jpg"</htm>n:img:.<htm>/filename</htm> <br />tells Newfiles to place the <strong>company_logo.jpg</strong> under an "img" folder. A dot tells Newfiles NOT to change the <strong>company_logo.jpg</strong> name. The letter 'n' specifies <em>normal</em> casing for the filename. Do you recognize this syntax? This is the same as writing the token, <token>filename:n:img:.</token></p>
         <p>Notice how the other <htm>filename</htm> nodes are empty. <htm>filename for="company_logo.jpg"</htm> is the only <htm>filename</htm> that has content. That's alright. You can leave these other nodes empty. If a <htm>filename</htm> node is empty, Newfiles will ignore it so that it doesn't interfere with the filename token defintition (if there is such a token definition).</p>
         <p>What happens if a filename definition, for one file, is set BOTH in _filenames.xml AND by a filename token? In this case, Newfiles would ignore the token and only use the definition in _filenames.xml.</p>
-        <p>Alright. After you add the filename defintion for the <strong>company_logo.jpg</strong> file <em>(line 3)</em>, let's see what happens when building another project:</p>
+        <p>Alright. After you add the filename defintion for the <strong>company_logo.jpg</strong> file <em>(line 3)</em>, let's see what happens when building another project. <em>If you have been paying close attention, you may guess that company_logo.jpg will be placed in the wrong path again</em>:</p>
+        <img slide="true" slides="1" src="img/18_1.gif" alt="Use _filenames.xml to place an image" />
+        <p>Although we were successful in placing the "company_logo.jpg" file under an "img" folder, we failed to put this "img" folder under the correct project folder. In this case, the project folder was "FilenamesXmlTest"; we defined this folder name, in the command line console, while using our "StandardWeb" template.</p>
+        <p>How can we change our template so that "company_logo.jpg" will have the correct folder path, "<strong><u>project name</u></strong>/img/company_logo.jpg"? You probably guessed that we must be able to use tokens, such as <token>var:n:project folder =&gt; [folder]</token> inside <strong>_filenames.xml</strong>. Yes:</p>
+        <code file="templates/StandardWeb/_filenames.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+            <htm>filenames</htm>
+            &nbsp;&nbsp;&nbsp;&lt;!--
+            &nbsp;&nbsp;&nbsp;&nbsp;<token>var:n:project folder =&gt; [folder]</token>
+            &nbsp;&nbsp;&nbsp;--&gt;
+            &nbsp;&nbsp;&nbsp;<htm>filename for="company_logo.jpg"</htm>n:<alias>[folder]</alias>/img:.<htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="index.html"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="jquery.min.js"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="script.js"</htm><htm>/filename</htm>
+            &nbsp;&nbsp;&nbsp;<htm>filename for="styles.css"</htm><htm>/filename</htm>
+            <htm>/filenames</htm></code>
+            <p>Modify <strong>_filenames.xml</strong> to include the "project folder" token. Notice that I wrap this token inside XML comment tags: <htm>!-- --</htm> <em>(lines 3 and 5)</em>. I use these XML comment tags so that <strong>_filenames.xml</strong> can pass as a valid XML document. Otherwise, my uncommented token <token>var:n:project folder =&gt; [folder]</token> would confuse XML validators / parsors.</p>
+            <p>On line 6, you can see that I use my token alias value as part of my folder path for the "company_logo.jpg" file. Now when I build a project with this template, "company_logo.jpg" will be placed in the correct folder:</p>
+            <img slide="true" slides="2" src="img/19_1.gif" alt="_filenames.xml &amp; token" />
    	</section>
 </body>
 </html>

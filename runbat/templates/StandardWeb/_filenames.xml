@@ -1,63 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><filenames>
-	<!-- 
-		your tokens here ...
-		...remove the \ escape characters from the below example for the token to work...
-		
-		\<<var:n:my token example => [my alias example]\>>
-		
-		DOCUMENTATION
-		=============
-		
-			You are allowed to use tokens in this file so that user input 
-			values can influence filenames/paths of non-text-base files, such as images.
-			
-			In this file, rename filenames using similar syntax as in the filename token-type:
-			
-			Example: 
-			========
-			
-				<filename for="image-name.jpg">l:image/path:"new-name"</filename>
-				
-			Format:
-			=======
-			
-				<filename for="image-name.jpg">{1}:{2}:{3}</filename>
-				
-			Parameters:
-			===========
-			
-				{1} = casing, applied to filename
-					n = normal (leave as-is)
-					l = lowercase
-					u = uppercase
-					c = capitalize
-					
-				{2} = (optional) file path. If omitted the file is placed 
-						in the template build's root directory.
-						You are allowed to use tokens within the folder path.
-						
-				{3} = filename
-				
-					. = a dot/period means keep the current file name the same
-					
-					"my-name" = rename "image-name.jpg" to "my-name.jpg".
-						Surrounding quotes denote an exact string literal.
-						You are allowed to use tokens within the string literal.
-						
-					my-name = ask the use to input the file name through 
-						the console interface. 
-						It is assumed that this filname is user-defined
-						when quotes are NOT used.
-						
-			OVERWRITE PRECEDENCE
-			====================
-			
-				If BOTH this file AND a filename token is used to influence the name of the SAME file, 
-				then the renaming performed in THIS file has a higher priority and the token would be ignored.
-	-->
-	<filename for="company_logo.jpg">n:img:.</filename>
-	<filename for="index.html"><!--{1}:{2}:{3}--></filename>
-	<filename for="jquery.min.js"><!--{1}:{2}:{3}--></filename>
-	<filename for="script.js"><!--{1}:{2}:{3}--></filename>
-	<filename for="styles.css"><!--{1}:{2}:{3}--></filename>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<filenames>
+   <!--
+    <<var:n:project folder=>[folder]>>
+   -->
+   <filename for="company_logo.jpg">n:[folder]/img:.</filename>
+   <filename for="index.html"></filename>
+   <filename for="jquery.min.js"></filename>
+   <filename for="script.js"></filename>
+   <filename for="styles.css"></filename>
 </filenames>
