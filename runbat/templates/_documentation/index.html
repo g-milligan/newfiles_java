@@ -471,7 +471,7 @@ I SAID IT IS RED!</code>
         <p>Alright. After you add the filename defintion for the <strong>company_logo.jpg</strong> file <em>(line 3)</em>, let's see what happens when building another project. <em>If you have been paying close attention, you may guess that company_logo.jpg will be placed in the wrong path again</em>:</p>
         <img slide="true" slides="1" src="img/18_1.gif" alt="Use _filenames.xml to place an image" />
         <p>Although we were successful in placing the "company_logo.jpg" file under an "img" folder, we failed to put this "img" folder under the correct project folder. In this case, the project folder was "FilenamesXmlTest"; we defined this folder name, in the command line console, while using our "StandardWeb" template.</p>
-        <p>How can we change our template so that "company_logo.jpg" will have the correct folder path, "<strong><u>project name</u></strong>/img/company_logo.jpg"? You probably guessed that we must be able to use tokens, such as <token>var:n:project folder =&gt; [folder]</token> inside <strong>_filenames.xml</strong>. Yes:</p>
+        <p>How can we change our template so that "company_logo.jpg" will have the correct folder path, "<strong><u>project folder</u></strong>/img/company_logo.jpg"? You probably guessed that we must be able to use tokens, such as <token>var:n:project folder =&gt; [folder]</token> inside <strong>_filenames.xml</strong>. Yes:</p>
         <code file="templates/StandardWeb/_filenames.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
             <htm>filenames</htm>
             &nbsp;&nbsp;&nbsp;&lt;!--
@@ -483,9 +483,26 @@ I SAID IT IS RED!</code>
             &nbsp;&nbsp;&nbsp;<htm>filename for="script.js"</htm><htm>/filename</htm>
             &nbsp;&nbsp;&nbsp;<htm>filename for="styles.css"</htm><htm>/filename</htm>
             <htm>/filenames</htm></code>
-            <p>Modify <strong>_filenames.xml</strong> to include the "project folder" token. Notice that I wrap this token inside XML comment tags: <htm>!-- --</htm> <em>(lines 3 and 5)</em>. I use these XML comment tags so that <strong>_filenames.xml</strong> can pass as a valid XML document. Otherwise, my uncommented token <token>var:n:project folder =&gt; [folder]</token> would confuse XML validators / parsors.</p>
-            <p>On line 6, you can see that I use my token alias value as part of my folder path for the "company_logo.jpg" file. Now when I build a project with this template, "company_logo.jpg" will be placed in the correct folder:</p>
-            <img slide="true" slides="2" src="img/19_1.gif" alt="_filenames.xml &amp; token" />
+        <p>Modify <strong>_filenames.xml</strong> to include the "project folder" token. Notice that I wrap this token inside XML comment tags: <htm>!-- --</htm> <em>(lines 3 and 5)</em>. I use these XML comment tags so that <strong>_filenames.xml</strong> can pass as a valid XML document. Otherwise, my uncommented token <token>var:n:project folder =&gt; [folder]</token> would confuse XML validators / parsors.</p>
+        <p>On line 6, you can see that I use my token alias value as part of my folder path for the "company_logo.jpg" file. Now when I build a project with this template, "company_logo.jpg" will be placed in the correct folder:</p>
+        <img slide="true" slides="2" src="img/19_1.gif" alt="_filenames.xml &amp; token" />
+        <h3>Checkpoint -- What you learned:</h3>
+        <ul>
+        	<li>What is the special file, "_filenames.xml" and how can you use it to replace filename tokens?</li>
+            <li>Let's say you have a template that doesn't already have a "_filenames.xml" file. You want to add "_filenames.xml" to the template. You type the command, <cmd>nf ls</cmd> and find out that your template is at index #4. What command can you use to quickly generate "_filenames.xml" for this template (so you NEVER have to create "_filenames.xml" from scratch)?</li>
+            <li>Let's say you add three new files to a template, (at index #2) then remove two of the files from this same template. This template already has a "_filenames.xml" file. What command can you type to automatically update the list in "_filenames.xml" for this template at index #2?</li>
+            <li>Imagine a template file called "file.php" that contains this token: <token>filename:n:"somename" =&gt; [Name]</token>. Imagine that this file's template also contains <htm>filename for="file.php"</htm>n:"othername"<htm>/filename</htm> in "_filenames.xml". When you build a project, what will the new name be for this "file.php" template file?</li>
+            <li>Imagine a template file called "file.html" that contains this token: <token>filename:n:"yourname" =&gt; [Name]</token>. Imagine that this file's template also contains <htm>filename for="file.php"</htm><htm>/filename</htm> in "_filenames.xml". When you build a project, what will the new name be for this "file.html" template file?</li>
+            <li>Can you use tokens inside "_filenames.xml"? In what scenario would you have to use one or more tokens inside "_filenames.xml"?</li>
+            <li>Let's say you are confused about where your template's file paths are being defined... you know file paths can be defined by either a token or inside "_filenames.xml". Is there a way to quickly view a list of ALL of these definitions at once? What is it?</li>
+        </ul>
    	</section>
+    <section>
+    	<h2>Exporting projects</h2>
+        <h3>Extracting and packaging a project's collection of files</h3>
+        <p>Imagine you've created a project whose files are meshed into the file-system of a larger application. For example, your project is a Magento extension.</p>
+        <p>Magento is an ecommerce platform that has a fairly expansive collection of files that are distributed under different directories throughout its file system tree. Although all of your project's files SHOULD be packaged together, they are instead spread out in various places within the Magento file structure. Now that you are done developing and testing your new extension, you are ready to package your extension so that you can distribute it to other Magento sites. In order to do this, you have to sift through the Magento tree structure and copy all of your project's files into a single directory. Newfiles provides an export feature to help make this task easier.</p>
+        <p>Let's create a similar scenario in order to demonstrate the Newfiles export feature:</p>
+    </section>
 </body>
 </html>
