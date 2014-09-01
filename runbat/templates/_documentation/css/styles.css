@@ -71,7 +71,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', end
 /*code sections*/
 .code-wrap{font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;font-size:.7em;}
 .code-wrap .code-content{border-radius:0px 0px 7px 7px;border:solid 1px #ccc;background-color:#fff;}
-.code-wrap .code-txt{box-sizing:border-box;-moz-box-sizing:border-box;overflow:auto;white-space:nowrap;min-width:500px;max-width:800px;max-height:800px;}
+.code-wrap .code-txt{box-sizing:border-box;-moz-box-sizing:border-box;overflow:auto;white-space:nowrap;min-width:500px;max-width:900px;max-height:800px;}
 .code-wrap .line-numbers,.code-wrap .source{display:inline-block;float:left;}
 .code-wrap .line-numbers{border-right:dashed 1px rgba(0,0,0,.5);border-radius:0px 0px 0px 7px;padding:0px 0px 10px 0px;background-color:#FFF9E3;}
 .code-wrap .source{}

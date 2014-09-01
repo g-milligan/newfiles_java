@@ -409,7 +409,7 @@ I SAID IT IS RED!</code>
     </section>
     <section>
     	<h2>Non-text-based template files</h2>
-        <h3>How to set file paths for image files</h3>
+        <h3>Image template file demo</h3>
         <p>So far, we've only demonstrated using <em>text-based</em> template files. The method for setting the file name and path for a project file, is to write a filename token into the template file... but this isn't possible for non-text files (such as images). For example, you can't write the text, <token>filename:l:img:.</token> into an image file so that the file is placed under an "img" folder when a project is created.</p>
         <p>Let's say that you wanted to include a company logo image into our "StandardWeb" template. Every time you create a new project from the "StandardWeb" template, the project should already have our company logo image under an "img" parent folder. How can you do this?</p>
         <p>Before we learn how to control the placement of non-text-based files, let's see what would happen if we included our logo into the "StandardWeb" template:</p>
@@ -437,6 +437,7 @@ I SAID IT IS RED!</code>
         <p>Once you've added <htm>img src="img/company_logo.jpg" alt="company-logo" /</htm> <em>(line 13)</em> to your template file, you can try and build a new project from your "StandardWeb" template. You can probably predict that the <strong>company_logo.jpg</strong> will NOT be put into the correct place. Let's see:</p>
         <img slide="true" slides="3" src="img/16_1.gif" alt="Including an image file" />
         <p>By default, Newfiles will place a file in the root folder of your project (unless you tell Newfiles to place the file in a different location with a filename token). In the previous demo, we included an image, <strong>company_logo.jpg</strong>. We want the image to be placed under an "img" folder, but we can't use a token to tell Newfiles where to put the image; we can't write <token>filename:l:img:.</token> inside the image file because it's obviously NOT text-based. We need a different way to tell Newfiles where to put <strong>company_logo.jpg</strong>.</p>
+        <h3>How to generate the <em>_filenames.xml</em> special file</h3>
         <p>Newfiles allows you to control the placement of even non-text-based files in your projects by using the special <strong><em>_filenames.xml</em></strong> file. You don't have to write <strong>_filenames.xml</strong> yourself. Instead it's easier to create it automatically, via the <cmd>filenames</cmd> command. Let's try it:</p>
         <img slide="true" slides="3" src="img/17_1.gif" alt="Generate _filenames.xml for a template" />
         <p>The <cmd>filenames</cmd> command is similar to the <cmd>use</cmd> command in that a template index must be specified after the command. In the previous example, I typed <cmd>filenames 0</cmd> to select my "StandardWeb" template at index number 0.</p>
@@ -455,6 +456,7 @@ I SAID IT IS RED!</code>
         	<li><strong>Create/update _filenames.xml</strong>: The <strong>_filenames.xml</strong> file is created or updated. Newfiles will make sure each of your template file names are represented inside <strong>_filenames.xml</strong>. If a file name is represented inside <strong>_filenames.xml</strong>, which is no longer in your template, then Newfiles will remove the name from <strong>_filenames.xml</strong>. Newfiles will make sure that _filenames.xml is up-to-date so you don't have to.</li>
             <li><strong>List a template's filenames</strong>: A list of filename definitions (defined in either _filenames.xml OR by filename tokens) will be displayed in your command console. This makes the <cmd>filenames</cmd> command useful for checking filename definitions for each file inside a template.</li>
         </ol>
+        <h3>How to use _filenames.xml</h3>
         <p>What's the purpose of <strong>_filenames.xml</strong> inside of a template? You may be able to guess; the purpose of <strong>_filenames.xml</strong> is to provide an alternate way to control file names and paths (besides using a filename token). You are allowed to control text-based file names and paths with <strong>_filenames.xml</strong>, but it's the only way to control non-text-based file names and paths... since you can't write tokens into a file that's not text-based.</p>
         <p>For example, in my "StandardWeb" template, I can make sure <strong>company_logo.jpg</strong> is placed under a "img" project folder, by modifying the <strong>_filenames.xml</strong> file:</p>
         <code file="templates/StandardWeb/_filenames.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
@@ -471,6 +473,7 @@ I SAID IT IS RED!</code>
         <p>Alright. After you add the filename defintion for the <strong>company_logo.jpg</strong> file <em>(line 3)</em>, let's see what happens when building another project. <em>If you have been paying close attention, you may guess that company_logo.jpg will be placed in the wrong path again</em>:</p>
         <img slide="true" slides="1" src="img/18_1.gif" alt="Use _filenames.xml to place an image" />
         <p>Although we were successful in placing the "company_logo.jpg" file under an "img" folder, we failed to put this "img" folder under the correct project folder. In this case, the project folder was "FilenamesXmlTest"; we defined this folder name, in the command line console, while using our "StandardWeb" template.</p>
+        <h3>How to use tokens inside _filenames.xml</h3>
         <p>How can we change our template so that "company_logo.jpg" will have the correct folder path, "<strong><u>project folder</u></strong>/img/company_logo.jpg"? You probably guessed that we must be able to use tokens, such as <token>var:n:project folder =&gt; [folder]</token> inside <strong>_filenames.xml</strong>. Yes:</p>
         <code file="templates/StandardWeb/_filenames.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
             <htm>filenames</htm>
