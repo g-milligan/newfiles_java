@@ -524,8 +524,42 @@ I SAID IT IS RED!</code>
         </cmd>
         <p><strong>Important note</strong>, three of the four input values helped determine some folder locations, ie: <cmd>"module prefix"</cmd>, <cmd>"module name"</cmd>, and <cmd>"code pool"</cmd>. These three values help distinguish the unique placement of my project files within the file-system. Therefore, Newfiles will know where to find all of this project's files as long as it knows these three key values:</p>
         <img slide="true" slides="1" src="img/21_1.gif" alt="MageStarterKit's key input values" />
-        <p>It's important to note these three key input values, and <em>WHY</em> they are key; Newfiles needs to know these values in order to determine which files to include into the export...</p>
+        <p>It's important to note these three key input values, and <em>WHY</em> they are key; Newfiles needs to know these values in order to determine which files to include into the export.</p>
+        <p><strong>Reminder: How are the key values defined in the template?</strong></p>
+        <p>Remember, I can see a list of filename definitions with the <cmd>nf filenames {index}</cmd> console command, eg: <cmd>nf filenames 0</cmd>. When I enter this command, I see the following filename definitions inside "MageStarterKit". Notice the token aliases in these definitions. <alias>[codepool]</alias>, <alias>[Prefix]</alias>, and <alias>[Module]</alias>, respectively represent or key token values, <em>"code pool"</em>, <em>"module prefix"</em>, and <em>"module name"</em>:</p>
+        <p><token>filename:l:app/code/[codepool]/[Prefix]/[Module]/Block/Adminhtml/System/Config/Fieldset:"Hint"</token> <br />
+        <token>filename:c:app/code/[codepool]/[Prefix]/[Module]/Block:"SampleBlock"</token> <br />
+        <token>filename:c:app/code/[codepool]/[Prefix]/[Module]/controllers/Adminhtml:"IndexController"</token> <br />
+        <token>filename:c:app/code/[codepool]/[Prefix]/[Module]/controllers:"IndexController"</token> <br />
+        <token>filename:l:app/code/[codepool]/[Prefix]/[Module]/etc:"adminhtml"</token> <br />
+        <token>filename:l:app/code/[codepool]/[Prefix]/[Module]/etc:"config"</token> <br />
+        <token>filename:l:app/code/[codepool]/[Prefix]/[Module]/etc:"system"</token> <br />
+        <token>filename:c:app/code/[codepool]/[Prefix]/[Module]/Helper:"Data"</token> <br />
+        <token>filename:c:app/code/[codepool]/[Prefix]/[Module]/Helper:"SampleHelper"</token> <br />
+        <token>filename:c:app/code/[codepool]/[Prefix]/[Module]/Model:"SampleModel"</token> <br />
+        <token>filename:c:app/code/[codepool]/[Prefix]/[Module]/Model/System/Config/Source:"Example"</token> <br />
+        <token>filename:l:app/design/adminhtml/default/default/layout/:"[module]"</token> <br />
+        <token>filename:l:app/design/adminhtml/default/default/template/[module]/system/config/fieldset:"hint"</token> <br />
+        <token>filename:l:app/design/frontend/default/default/layout/:"[module]"</token> <br />
+        <token>filename:l:app/design/frontend/default/default/template/[module]:"example"</token> <br />
+        <token>filename:l:app/etc/modules/:"[Prefix]_[Module]"</token> <br />
+        <token>filename:l:app/locale/en_US:"[Prefix]_[Module]"</token> <br />
+        <token>filename:l:skin/adminhtml/default/default/[module]:. --&gt; _filenames.xml</token></p>
+        <p>As you already know, each filename definition tells one "MageStarterKit" file where to go when a project is created. There are 18 definitions; one definition per "MageStarterKit" file. You should already be familiar with <em>where</em> these definitions could be written in the "MageStarterKit" template.</p>
+        <p><strong>Important note</strong>: Newfiles will NOT know to export project files that do NOT have a filename definition somewhere in the template. For example, if you create a project then add additional project files (outside of the template definitions) then these additional project files will NOT be exported.</p>
         <h3>Export demonstration</h3>
+        <p>The Magento module, "MyExtension", from the previous examples will be exported for this demonstration:</p>
+        <img slide="true" slides="5" src="img/22_1.gif" alt="Exporting a MageStarterKit Project" />
+        <h3>Try your own export</h3>
+        <p>If you need more practice, choose one of the example templates, like "StandardWeb", "VarTokenExamples", or any other template that you've crerated. Try exporting this template.</p>
+        <h3>Checkpoint -- What you learned:</h3>
+        <ul>
+        	<li>Let's say you are ready to re-distribute your finished project to other environments. For what <em>type of project</em> would the Newfiles export feature be useful?</li>
+            <li>What's the difference between a project that has "scattered" files versus one that does not? Basically, what does "scattered" mean in this context?</li>
+            <li>We discussed Magento extensions as being "scattered". Can you think of another non-Magento type of project that could be considered "scattered"?</li>
+            <li>Consider a project with one file. The tokens in this file are <token>filename:l:[folder]:.</token>, <token>var:n:project folder=&gt;[folder]</token>, and <token>var:c:project name=&gt;[Project]</token>. Which token value(s) will you have to enter when you export a project that was made from this template? Explain why.</li>
+            <li>Consider a project that was based off a Newfiles template. Let's say you create a new project file, but you do NOT modify the Newfiles template. When you export the project, will the new file be included in the export? Why not?</li>
+        </ul>
     </section>
 </body>
 </html>
