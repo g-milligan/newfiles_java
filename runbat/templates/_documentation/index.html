@@ -499,10 +499,30 @@ I SAID IT IS RED!</code>
    	</section>
     <section>
     	<h2>Exporting projects</h2>
-        <h3>Extracting and packaging a project's collection of files</h3>
+        <h3>What is exporting and when is it useful?</h3>
         <p>Imagine you've created a project whose files are meshed into the file-system of a larger application. For example, your project is a Magento extension.</p>
         <p>Magento is an ecommerce platform that has a fairly expansive collection of files that are distributed under different directories throughout its file system tree. Although all of your project's files SHOULD be packaged together, they are instead spread out in various places within the Magento file structure. Now that you are done developing and testing your new extension, you are ready to package your extension so that you can distribute it to other Magento sites. In order to do this, you have to sift through the Magento tree structure and copy all of your project's files into a single directory. Newfiles provides an export feature to help make this task easier.</p>
-        <p>Let's create a similar scenario in order to demonstrate the Newfiles export feature:</p>
+        <h3>An example of a "scattered" project structure</h3>
+        <p>To summarize, the types of projects that benefit from the export feature have the following characteristic:</p>
+        <ul>
+        	<li><strong>The project files are scattered</strong>; the project is only functional when its files are distributed throughout multiple folders in a larger system. In this case, exporting will automatically locate your scattered project files and arrange them for you into a <em>single package folder</em>, for re-distribution.</li>
+        </ul>
+        <p>What will a <em>"scattered"</em> project look like? Here is one such <u>example of a <em>"scattered"</em> structure</u>, based off of Magento v1.X's style of organization... this example features a Magento extension made by "MyCompany", called "MyExtension". The project files are highlighted with an arrow:</p>
+		<img slide="true" slides="1" src="img/20_1.gif" alt="Scattered project files" />
+        <p>In this example, you can see that your project files are distributed across multiple locations. This example doesn't even show <em>ALL</em> locations. If you wanted to package this project, for re-distribution, you could search for each one and copy it into a new folder.</p>
+        <p>Newfiles doesn't want you to waste time doing such tedious tasks.</p>
+        <h3>How does Newfiles know which files to export?</h3>
+        <p>The scattered project from the previous example was created from a template that I have called "MageStarterKit" <em>(created by my friend and co-worker, Dan Hakimzadeh)</em>. When I created my "MageStarterKit" <em>project</em>, I used the following values:</p>
+        <cmd>
+        	1/4) Enter --&gt; "module prefix" &gt;&gt; MyCompany <br />
+        	2/4) Enter --&gt; "module name" &gt;&gt; MyExtension <br />
+        	3/4) Enter --&gt; "code pool" &gt;&gt; community <br />
+        	4/4) Enter --&gt; "extension version" &gt;&gt; 0.1.0 <br />
+        </cmd>
+        <p><strong>Important note</strong>, three of the four input values helped determine some folder locations, ie: <cmd>"module prefix"</cmd>, <cmd>"module name"</cmd>, and <cmd>"code pool"</cmd>. These three values help distinguish the unique placement of my project files within the file-system. Therefore, Newfiles will know where to find all of this project's files as long as it knows these three key values:</p>
+        <img slide="true" slides="1" src="img/21_1.gif" alt="MageStarterKit's key input values" />
+        <p>It's important to note these three key input values, and <em>WHY</em> they are key; Newfiles needs to know these values in order to determine which files to include into the export...</p>
+        <h3>Export demonstration</h3>
     </section>
 </body>
 </html>
