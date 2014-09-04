@@ -5,6 +5,11 @@ jQuery(document).ready(function(){
 		'win':{'title':'Windows'}, 
 		'mac':{'title':'Mac'}
 	};
+	//if local storage is available
+	var pandowerx_pref_os;
+	if(window.localStorage){
+		pandowerx_pref_os=window.localStorage.getItem('pandowerx_pref_os');
+	}
 	var osWraps=jQuery('.os');
 	if(osWraps.length>0){
 		//for each operating system wrap
@@ -51,21 +56,55 @@ jQuery(document).ready(function(){
 						//show the selected option's content
 						osOptionWraps.removeClass('active');
 						osOptionWrap.addClass('active');
+						//if local storage is available
+						if(window.localStorage){
+							//if the selected tab is not the option saved in local storage...
+							var pref=window.localStorage.getItem('pandowerx_pref_os');
+							if(jQuery(this).attr('name')!=pref){
+								//selection is NOT already saved as preference
+								tabsUl.children('li.save-pref:last').removeClass('saved');
+							}else{
+								//selection is already saved as preference
+								tabsUl.children('li.save-pref:last').addClass('saved');
+							}
+						}
 					}
 				});
 			});
-			tabsUl.children('li:last').addClass('last');
-			//if there's more than one tab
-			if(tabsUl.children('li').length>0){
-				//if localStorage is available
-				if(window.localStorage){
-					//create the save preference button
-					tabsUl.append('<li class="save-pref">set preference</li>');
-					var saveLi=tabsUl.children('li.save-pref:last');
-					//save click event
-					saveLi.click(function(e){
-						
-					});
+			//if there were any tabs created
+			if(tabsUl!=undefined){
+				tabsUl.children('li:last').addClass('last');
+				//if there's more than one tab
+				if(tabsUl.children('li').length>0){
+					//if localStorage is available
+					if(window.localStorage){
+						//create the save preference button
+						tabsUl.append('<li class="save-pref">set preference</li>');
+						var saveLi=tabsUl.children('li.save-pref:last');
+						//set preference click event
+						saveLi.click(function(e){
+							//get the os key for the preferred os
+							var activeLi=tabsUl.children('li.active:first');
+							var activeOsName=activeLi.attr('name');
+							//save this preference in local storage
+							window.localStorage.setItem('pandowerx_pref_os',activeOsName.trim());
+							//for each os wrap on the page
+							osWraps.each(function(w){
+								//set the preference for this os wrap
+								var osUl=jQuery(this).children('.tabs:first');
+								osUl.children('li[name="'+activeOsName+'"]:first').click();
+							});
+							saveLi.addClass('saved');
+						});
+						//restore the preferred operating system selection for this os wrap
+						if(pandowerx_pref_os!=undefined){
+							if(typeof pandowerx_pref_os=='string'){
+								pandowerx_pref_os=pandowerx_pref_os.trim();
+								//auto-click the pref os
+								tabsUl.children('li[name="'+pandowerx_pref_os+'"]:first').click();
+							}
+						}
+					}
 				}
 			}
 		});
