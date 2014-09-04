@@ -1,4 +1,75 @@
 jQuery(document).ready(function(){
+	//CREATE ALL OF THE TOGGLE OS SECTIONS
+	//====================================
+	var osKeys={
+		'win':{'title':'Windows'}, 
+		'mac':{'title':'Mac'}
+	};
+	var osWraps=jQuery('.os');
+	if(osWraps.length>0){
+		//for each operating system wrap
+		osWraps.each(function(w){
+			var osWrap=jQuery(this);
+			var tabsUl;
+			//for each operating system option
+			var osOptionWraps=osWraps.children('[name]');
+			osOptionWraps.each(function(o){
+				//get the operating system name
+				var osOptionWrap=jQuery(this);
+				var optionName=osOptionWrap.attr('name');
+				//get os values for this optionName key
+				var osTitle=optionName;
+				if(osKeys.hasOwnProperty(optionName)){
+					if(osKeys[optionName].hasOwnProperty('title')){
+						osTitle=osKeys[optionName].title;
+					}
+				}
+				//if the tabs ul hasn't already been created
+				var isFirstTab=false;
+				if(tabsUl==undefined){
+					//the first os content should be active
+					osOptionWrap.addClass('active');
+					//create the tabs ul
+					osWrap.prepend('<ul class="tabs"></ul>');
+					tabsUl=osWrap.children('ul.tabs:first');
+					//disable selection
+					tabsUl.attr('unselectable','on').css('user-select','none').on('selectstart',false);
+					//is first tab
+					isFirstTab=true;
+				}
+				//add the tab option
+				tabsUl.append('<li name="'+optionName+'">'+osTitle+'</li>');
+				var tabLi=tabsUl.children('li[name="'+optionName+'"]:last');
+				if(isFirstTab){tabLi.addClass('first').addClass('active');}
+				//set the tab's click event
+				tabLi.click(function(e){
+					//if NOT already active
+					if(!jQuery(this).hasClass('active')){
+						//set the active tab's class
+						tabsUl.children('li').removeClass('active');
+						jQuery(this).addClass('active');
+						//show the selected option's content
+						osOptionWraps.removeClass('active');
+						osOptionWrap.addClass('active');
+					}
+				});
+			});
+			tabsUl.children('li:last').addClass('last');
+			//if there's more than one tab
+			if(tabsUl.children('li').length>0){
+				//if localStorage is available
+				if(window.localStorage){
+					//create the save preference button
+					tabsUl.append('<li class="save-pref">set preference</li>');
+					var saveLi=tabsUl.children('li.save-pref:last');
+					//save click event
+					saveLi.click(function(e){
+						
+					});
+				}
+			}
+		});
+	}
 	//CREATE ALL OF THE CODE SECTIONS
 	//===============================
 	//for each <code> element

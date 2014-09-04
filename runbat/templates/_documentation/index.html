@@ -508,6 +508,7 @@ I SAID IT IS RED!</code>
         <h3>What is exporting and when is it useful?</h3>
         <p>Imagine you've created a project whose files are meshed into the file-system of a larger application. For example, your project is a Magento extension.</p>
         <p>Magento is an ecommerce platform that has a fairly expansive collection of files that are distributed under different directories throughout its file system tree. Although all of your project's files SHOULD be packaged together, they are instead spread out in various places within the Magento file structure. Now that you are done developing and testing your new extension, you are ready to package your extension so that you can distribute it to other Magento sites. In order to do this, you have to sift through the Magento tree structure and copy all of your project's files into a single directory. Newfiles provides an export feature to help make this task easier.</p>
+        <p>Note: <em>Don't worry if you don't know or don't care about Magento. We are using this platform in our examples because it's folder system organization makes it an ideal candidate for the Newfiles export feature.</em></p>
         <h3>An example of a "scattered" project structure</h3>
         <p>To summarize, the types of projects that benefit from the export feature have the following characteristic:</p>
         <ul>
@@ -515,7 +516,7 @@ I SAID IT IS RED!</code>
         </ul>
         <p>What will a <em>"scattered"</em> project look like? Here is one such <u>example of a <em>"scattered"</em> structure</u>, based off of Magento v1.X's style of organization... this example features a Magento extension made by "MyCompany", called "MyExtension". The project files are highlighted with an arrow:</p>
 		<img slide="true" slides="1" src="img/20_1.gif" alt="Scattered project files" />
-        <p>In this example, you can see that your project files are distributed across multiple locations. This example doesn't even show <em>ALL</em> locations. If you wanted to package this project, for re-distribution, you could search for each one and copy it into a new folder.</p>
+        <p>In this example, you can see that your project files are distributed across multiple locations. This example doesn't even show <em>ALL</em> locations; to show all of the files the screenshot would have to be ridiculously long. If you wanted to package this project, for re-distribution, you could search for each one and copy it into a new folder.</p>
         <p>Newfiles doesn't want you to waste time doing such tedious tasks.</p>
         <h3>How does Newfiles know which files to export?</h3>
         <p>The scattered project from the previous example was created from a template that I have called "MageStarterKit" <em>(created by my friend and co-worker, Dan Hakimzadeh)</em>. When I created my "MageStarterKit" <em>project</em>, I used the following values:</p>
