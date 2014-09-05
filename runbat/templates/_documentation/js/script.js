@@ -15,6 +15,7 @@ jQuery(document).ready(function(){
 		//for each operating system wrap
 		osWraps.each(function(w){
 			var osWrap=jQuery(this);
+			osWrap.after('<div style="clear:both;"></div>');
 			var tabsUl;
 			//for each operating system option
 			var osOptionWraps=osWrap.children('[name]');
@@ -56,17 +57,17 @@ jQuery(document).ready(function(){
 						//show the selected option's content
 						osOptionWraps.removeClass('active');
 						osOptionWrap.addClass('active');
-						//if local storage is available
-						if(window.localStorage){
-							//if the selected tab is not the option saved in local storage...
-							var pref=window.localStorage.getItem('pandowerx_pref_os');
-							if(jQuery(this).attr('name')!=pref){
-								//selection is NOT already saved as preference
-								tabsUl.children('li.save-pref:last').removeClass('saved');
-							}else{
-								//selection is already saved as preference
-								tabsUl.children('li.save-pref:last').addClass('saved');
-							}
+					}
+					//if local storage is available
+					if(window.localStorage){
+						//if the selected tab is not the option saved in local storage...
+						var pref=window.localStorage.getItem('pandowerx_pref_os');
+						if(jQuery(this).attr('name')!=pref){
+							//selection is NOT already saved as preference
+							tabsUl.children('li.save-pref:last').removeClass('saved');
+						}else{
+							//selection is already saved as preference
+							tabsUl.children('li.save-pref:last').addClass('saved');
 						}
 					}
 				});

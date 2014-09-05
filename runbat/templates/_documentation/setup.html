@@ -36,11 +36,11 @@
             	<p>Open up a command prompt. In <em>Windows</em>, you would type <cmd>cmd</cmd> into the start menu, for example. This would cause the cmd.exe program to open up your command prompt window. If you don't know how to open the command prompt, you can <a href="http://lmgtfy.com/?q=How+do+I+open+a+windows+command+prompt%3F" target="_blank">search for directions online</a>.</p>
                 <p>Once the command prompt is open, type the following: <cmd>java -version</cmd>. This asks your computer what version of Java (if any) it has:</p>
                 <img slide="true" slides="1" src="img/setup/win/1_1.gif" alt="Checking installed JDK version" />
-                <p>As you can see my console told me I have <cmd>java version "1.7.0_17"</cmd>. Yay! I meet the minimum requirements so I can move on to step 3 instead of having to download the required minimum version. If you aren't as lucky, just follow the next steps to get the SDK.</p>
             </div>
         	<div name="mac">
             </div>
         </div>
+        <p>As you can see my console told me I have <cmd>java version "1.7.0_17"</cmd>. Yay! I meet the minimum requirements so I can move on to step 3 instead of having to download the required minimum version. If you aren't as lucky, just follow the next steps to get the SDK.</p>
         <a name="jdk-download"></a>
         <h3>How to download the minimum JDK version</h3>
         <p>You can find <em>additional instructions</em>, published by Oracle, for installing the SDK:</p>
@@ -48,17 +48,25 @@
         	<li><a href="http://docs.oracle.com/javase/7/docs/webnotes/install/windows/jdk-installation-windows.html" target="_blank">Java SDK Installation instructions (Windows)</a></li>
             <li><a href="http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html" target="_blank">Java SDK Installation instructions (Mac)</a></li>
         </ul>
+        <h4>Download</h4>
         <p>Download the JDK from Oracle's website <em>(Oracle currently owns the Java platform, which is free to download)</em>.</p>
         <ul><li>Click here to access the <a target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download page for the Java SDK</a></li></ul>
         <img slide="true" slides="2" src="img/setup/1_1.gif" alt="Download the Java SDK" />
         <p>Should you choose the <em>32 or 64 bit version</em>? Make sure you choose the one that matches the type of computer you are using. It's important to download the correct SDK version. Note: <em>x86</em> is for <em>32-bit systems</em>.</p>
-        <p>After you download the SDK, you will need to walk through the installation process on your computer:</p>
+        <h4>Install</h4>
+        <p>After you download the SDK, you will need to walk through the <strong>installation process</strong> on your computer.</p>
+            <p>Here are screenshots for the installation process <em>(I like to visually confirm that I'm on the right track when I'm following a walk through, so I've afforded you this opportunity)</em>...</p>
+    <p>Don't worry if your installation isn't <em>exactly</em> the same as mine. These screenshots are only a <em>rough guide</em> to help you know you're on the right track:</p>
         <div class="os">
         	<div name="win">
+            	<p>Installation on <u>64-bit Windows</u> <em>(as it was at the time of this writing)</em>... it's still cool if you have a 32-bit (x86) system instead:</p>
+            	<img slide="true" slides="7" src="img/setup/win/2_1.gif" alt="Install the Java SDK" />
             </div>
         	<div name="mac">
             </div>
         </div>
+        <p>Once you've finished the installation, <a href="#jdk-check">check your Java SDK version again</a>... if you see a working Java version then congratulations! Time to move to the next step.</p>
+        <p>However, if you still don't see the minimum version appear when you use <cmd>java -version</cmd>, then something's wrong and you need to fix it before you can proceed <em>(Refer back to Oracle's installation instructions... that link was <a href="#jdk-download">provided earlier</a>)</em>.</p>
         <p>Side note: <em>If you are interested in learning more about the Java language, there is a decent amount of information written on the <a href="http://en.wikipedia.org/wiki/Java_(programming_language)" target="_blank">Java language's Wikipedia page</a></em>.</p>
         <a name="newfiles-download"></a>
         <h2>3. Download Newfiles's Files</h2>
