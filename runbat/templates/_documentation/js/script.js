@@ -17,7 +17,7 @@ jQuery(document).ready(function(){
 			var osWrap=jQuery(this);
 			var tabsUl;
 			//for each operating system option
-			var osOptionWraps=osWraps.children('[name]');
+			var osOptionWraps=osWrap.children('[name]');
 			osOptionWraps.each(function(o){
 				//get the operating system name
 				var osOptionWrap=jQuery(this);
