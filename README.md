@@ -1,4 +1,4 @@
-Newfiles is a command-line tool to help build new projects from existing templates, instead of from scratch.
+Newfiles is a light-weight command-line tool to help build new projects from existing templates, instead of from scratch.
 
 You can create templates for virtually any type of project. 
 Newfiles is completely platform agnostic; it's not geared towards any one type of code Nor any one type of platform. 
