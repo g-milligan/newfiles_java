@@ -1,0 +1,7 @@
+@echo off
+REM java -jar "C:\newfiles\dist\newfiles.jar" 	=> run the application
+REM "C:\newfiles\templates" 					=> tell the application where the templates are stored
+REM %cd% 										=> pass the current directory to the jar program
+REM %~n0 										=> pass the file path (of this .bat file) to the console program
+REM %* 											=> pass any additional arguments to the jar program
+java -jar "C:\newfiles\dist\newfiles.jar" "C:\newfiles\templates" %cd% %~n0 %*
