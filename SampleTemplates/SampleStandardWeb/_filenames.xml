@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<filenames>
+   <!--
+    <<var:n:project folder=>[folder]>>
+   -->
+   <filename for="company_logo.jpg">n:[folder]/img:.</filename>
+   <filename for="index.html"></filename>
+   <filename for="jquery.min.js"></filename>
+   <filename for="script.js"></filename>
+   <filename for="styles.css"></filename>
+</filenames>
