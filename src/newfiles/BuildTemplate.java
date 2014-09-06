@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package newfiles;
 
 import java.awt.Desktop;
@@ -38,8 +34,32 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
- *
- * @author gmilligan
+All rights reserved
+Copyright (C) 2014 by Gregg Tyler Milligan II
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
+------------------------------------------------------------------------------
+
+Newfiles is a command-line tool to help build new projects from existing 
+templates, instead of from scratch. You can create templates for 
+virtually any type of project. Newfiles is completely platform agnostic; 
+it's not geared towards any one type of code Nor any one type of platform. 
+You are only limited by your imagination, when it comes to creating templates. 
+
+For more information / documentation, please visit <http://pandowerx.com>
+Or email <pandowerx@gmail.com>
+------------------------------------------------------------------------------
  */
 public class BuildTemplate {
     //fields 
@@ -69,6 +89,7 @@ public class BuildTemplate {
     private static final String mNonTextFileContent="|_--nOT@tXTfiLE..=!_|~~JUB123eZ55_-CoO__|"; //unique text content to use as a non-text file content placeholder
     private static final String mAppResDir="res"; //root folder name of resources packaged inside the .jar app
     private static final String mAppResXmlDir="xml";
+    private static final String mAppLicensePath=mAppResDir+"/license/pandowerx.newfiles.LICENSE.txt";
     private final static String mFilenamesXml = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined
     //constructor
     public BuildTemplate(String targetDir, String batchFileName, String templatesRoot){
@@ -363,6 +384,13 @@ public class BuildTemplate {
     private String getFilenamesXmlStr() {
         //use / instead of File.separator because this is an internal resource path
         return getResStr(mAppResDir + "/" + mAppResXmlDir + "/" + mFilenamesXml);
+    }
+    //get the license document's string contents 
+    public String getLicenseDocContents(){
+        String licenseStr=getResStr(mAppLicensePath);
+        licenseStr=licenseStr.trim();
+        licenseStr="\n\n"+licenseStr+"\n\n";
+        return licenseStr;
     }
     //gets a string from an internal resource stream
     private String getResStr(String resPath){
