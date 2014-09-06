@@ -23,7 +23,7 @@
     <a name="os"></a>
         <h2>1. Operating Systems</h2>
         <p>Newfiles is designed to work on both <strong><u>Windows</u></strong> and <strong><u>Mac</u></strong> computers. Have one of these? You're good to go.</p>
-        <p><strong>A note to Linux users</strong>: You may still be able to look at these setup instructions and figure out how to get it running. But, I've never personally tried Newfiles on Linux.</p>
+        <p><strong>A note to Linux users</strong>: I've never personally tried Newfiles on Linux, but I'm sure if you are a Linux user, you'll probably have the skills to get this simple Java program running.</p>
         <a name="jdk"></a>
         <h2>2. Required JDK Version</h2>
         <p>Newfiles is programmed in <a href="https://www.oracle.com/java/index.html" target="_blank">Java</a> and requires a minimum Java Development Kit (JDK) version. You can download the JDK for free from the internet (of course).</p>
@@ -45,8 +45,8 @@
         <h3>How to download the minimum JDK version</h3>
         <p>You can find <em>additional instructions</em>, published by Oracle, for installing the SDK:</p>
         <ul>
-        	<li><a href="http://docs.oracle.com/javase/7/docs/webnotes/install/windows/jdk-installation-windows.html" target="_blank">Java SDK Installation instructions (Windows)</a></li>
-            <li><a href="http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html" target="_blank">Java SDK Installation instructions (Mac)</a></li>
+        	<li><em>(optional)</em> <a href="http://docs.oracle.com/javase/7/docs/webnotes/install/windows/jdk-installation-windows.html" target="_blank">Java SDK Installation instructions (Windows)</a></li>
+            <li><em>(optional)</em> <a href="http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html" target="_blank">Java SDK Installation instructions (Mac)</a></li>
         </ul>
         <h4>Download</h4>
         <p>Download the JDK from Oracle's website <em>(Oracle currently owns the Java platform, which is free to download)</em>.</p>
@@ -72,19 +72,35 @@
         <h2>3. Download Newfiles's Files</h2>
         <p>There are two ways to download Newfiles's files...</p>
         <ol>
-        	<li>Via GIT repository <em>(if you already know, love, and use GIT)</em></li>
+        	<li>Via Git repository <em>(if you already know, love, and use Git)</em></li>
             <li>Go to the online repository and manually download the files <em>(the easy... beginner way)</em></li>
         </ol>
-        <p>If you choose to learn <a target="_blank" href="http://git-scm.com/">GIT</a>, it will make it easier to get newer copies whenever Newfiles is updated.</p>
-        <p>Knowing GIT is an essential skill to any type of project that requires code management. Code management is pretty important, man. I highly recommend learning how to use GIT, if you don't already. But I won't force you to use GIT. The choice is yours; I can't stop you from making poor decisions. But anyway, let's continue...</p>
-        <a name="newfiles-download-git"></a>
-        <h3>Use GIT to download Newfiles <em>(for the pro's)</em></h3>
-        <h4>New to GIT?</h4>
-        ***
-        <h4>Know GIT already?</h4>
+        <p>If you choose to learn <a target="_blank" href="http://Git-scm.com/">Git</a>, it will make it easier to get newer copies whenever Newfiles is updated.</p>
+        <p>Knowing Git is an essential skill to any type of project that requires code management. Code management is pretty important, man. I highly recommend learning how to use Git, if you don't already. But I won't force you to use Git. The choice is yours; I can't stop you from making poor decisions. But anyway, let's continue...</p>
+        <a name="newfiles-download-Git"></a>
+        <h3>Use Git to download Newfiles <em>(for the pro's)</em></h3>
+        <h4>New to Git?</h4>
+        <p><em><strong>What is Git?</strong></em> It's an application that lets you type console commands, like <cmd>git pull origin master</cmd> or <cmd>git push origin master</cmd> in order to <em>move files between your computer and external computers</em>. Websites like <a target="_blank" href="https://Github.com/">Github.com</a> and <a target="_blank" href="https://bitbucket.org/">bitbucket.org</a> host a backup of the files that you push to their servers. Any location that holds your files is called a <strong>repository</strong>. So... let's say you take a baseball bat to your computer. Your files are still safe on the external repository. When you get a new computer you can just <cmd>git pull origin master</cmd> from the external repository to get a copy of your files onto your new local machine.</p>
+        <p>The <em>real</em> power of Git, however, comes from its ability to manage and merge file changes coming from more than one developer. For example, if you and your friend are developing a sweet game mod at the same time; editing the same files at the same time. When you <cmd>git push origin develop</cmd> Git will detect the conflict and help you decide how to merge the conflicting files. Or Git may be able to automatically merge edits from both you and your buddy.</p>
+        <p>Right now, you don't have to know about these details... although it wouldn't hurt for you to <a target="_blank" href="http://Git-scm.com/doc">read more about Git</a> when you have time; knowing about Git is probably useful for you, considering you are here learning about Newfiles.</p>
+        <p><em><strong>What do I do now? Git to the point:</strong></em></p>
+        <div class="os">
+        	<div name="win">
+            	<p>On Windows, you can run Git commands in a special console application called <strong>GitBash</strong>. You <em>cannot</em> just run Git commands in the normal <strong>cmd</strong> prompt. But downloading GitBash is quick, easy and free to install.</p>
+                <p>You can find the download link on the Git website or just click the link here: <a target="_blank" href="http://git-scm.com/download/win">GitBash download (starts immediately on click)</a>.</p>
+                <p>Walk through the installation process. When you are done, you should be able to open the application and write <cmd>git version</cmd> to see a response:</p>
+                <img slide="true" slides="1" src="img/setup/win/3_1.gif" alt="GitBash!" />
+                <p>It's ok if you don't have the same version of Git <em>(since your version is from the future while I'm currently typing this in the past)</em>... as long as you see any version at all.</p>
+            </div>
+        	<div name="mac">
+            </div>
+        </div>
+        <p>Now that you <em>"know"</em> Git, proceed to the next step proudly.</p>
+        <h4>Know Git already?</h4>
         ***
         <a name="newfiles-download-manual"></a>
         <h3>Manually download Newfiles <em>(for those who don't like personal growth)</em></h3>
+        <p>So you have chosen the blue pill. That's alright. At least you are trying out Newfiles. Maybe one day, you can ease into Git, as well. Baby steps right?</p>
         ***
         <a name="config"></a>
         <h2>4. Configure the .bat File</h2>
