@@ -1,0 +1,11 @@
+#exclude files
+manifest.mf
+build.xml
+*.bat
+README.TXT
+
+#exclude directories
+/nbproject
+/build
+/templates
+/documentation
