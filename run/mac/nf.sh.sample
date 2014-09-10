@@ -1,9 +1,9 @@
-# java -jar "/Users/Name/Desktop/newfiles/dist/newfiles.jar" 	=> run the application
-# "/Users/Name/Desktop/newfiles/templates" 						=> tell the application where the templates are stored
+# java -jar "/Users/Name/newfiles/dist/newfiles.jar" 	=> run the application
+# "/Users/Name/newfiles/templates" 						=> tell the application where the templates are stored
 # $(pwd) 														=> pass the current directory to the jar program
 # "dirname $0"													=> pass the file path (of this .sh file) to the console program
 # "$@" 															=> pass any additional arguments to the jar program
 
 #!/bin/bash
 
-java -jar "/Users/Name/Desktop/newfiles/dist/newfiles.jar" "/Users/Name/Desktop/newfiles/templates" $(pwd) "dirname $0" "$@"
+java -jar "/Users/Name/newfiles/dist/newfiles.jar" "/Users/Name/newfiles/templates" $(pwd) "dirname $0" "$@"
