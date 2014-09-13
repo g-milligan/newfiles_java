@@ -54,7 +54,8 @@ public class Newfiles {
         "templates", //4: open the root templates directory file-system window
         "export", //5: export a project's template files, eg: "nf export 3"
         "filenames", //6: create/update the xml document used to define the template's filenames/paths
-        "license" //7: view the license agreement
+        "license", //7: view the license agreement
+        "edit" //8: edit an existing project, built with a template, eg: "nf edit 3"
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
@@ -66,7 +67,8 @@ public class Newfiles {
         "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\"",
         "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\"",
         "create/update an xml doc, used to define the template's filenames/paths, eg: \"{nf} "+mCommands[6]+" 3\"",
-        "view the license for this Newfiles application, eg: \"{nf} "+mCommands[7]+"\""
+        "view the license for this Newfiles application, eg: \"{nf} "+mCommands[7]+"\"",
+        "edit existing project values, built with a template, eg: \"{nf} "+mCommands[8]+" 3\""
     };
     private static int mUseTemplateIndex; //the integer number of the current template being used
     private final static int mNumArgsFromBatch=3; //the number of arguments that get passed to this app automatically
@@ -98,6 +100,23 @@ public class Newfiles {
                 break;
             case 7: //7: view the license for this Newfiles application
                 System.out.print(mBuild.getLicenseDocContents());
+                break;
+            case 8: //8: edit an existing project, built with a template, eg: "nf edit 3"
+                //***
+                System.out.print(" enter test >> ");
+                String line = "{no}";
+                try{
+                    //accept next input from user
+                    BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
+                    line = bufferRead.readLine();
+                }
+                catch(IOException e) {
+                    e.printStackTrace();
+                }
+                //***
+                StrMgr mgr = new StrMgr();
+                String test = mgr.getChunk(line, "{", "}");
+                System.out.println("\n\n output >> " + test + "\n\n");
                 break;
             default:
                 //invalid command (int code)
