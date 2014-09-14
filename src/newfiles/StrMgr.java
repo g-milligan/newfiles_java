@@ -4,6 +4,8 @@
  */
 package newfiles;
 
+import java.util.ArrayList;
+
 /**
 All rights reserved
 Copyright (C) 2014 by Gregg Tyler Milligan II
@@ -60,61 +62,71 @@ public class StrMgr {
         //================================================
         //if confirmed both start and end tags are valid
         if(proceed){
-            /*
-             * What's going in in the following code? Consider the following example:
-             * 
-             * > str = "blah blah stuff... { this is a {sentence that} I shall parse} some more blahs"
-             * > startTag = "{"
-             * > endTag = "}"
-             * > returnWrapTags = true
-             * 
-             * The intended result will be:
-             * 
-             * > retStr = "{ this is a {sentence that} I shall parse}"
-             * 
-             * follow along...
-             */
-            //while the startTag is still inside the blob
             int startTagCount = 0; int endTagCount = 0; boolean onward = true;
+            //remove startTag AND left of startTag
+            str=str.substring(str.indexOf(startTag) + startTag.length());
+            startTagCount++;
+            if(returnWrapTags){
+                //add startTag
+                retStr+=startTag;
+            }
+            //while...
             while(onward){
-                //if startTag still exists
+                //if startTag exists
                 if(str.contains(startTag)){
-                    //remove any string BEFORE AND INCLUDING the startTag
-                    //1 > str = " this is a {sentence that} I shall parse} some more blahs"
-                    str=str.substring(str.indexOf(startTag) + startTag.length());
-                    startTagCount++;
-                    //add the start tag to the retStr IF the wrap tags should be returned OR this is NOT the start of the return string
-                    if(returnWrapTags || retStr.length() > 0){
-                        //1 > retStr = "{"
-                        retStr += startTag;
-                    }
-                }
-                //if there is an end tag
-                if(endTag.length() > 0 && str.contains(endTag)){
-                    //if no more startTag in blob OR startTag AFTER the next endTag
-                    if(!str.contains(startTag) || str.indexOf(startTag) > str.indexOf(endTag)){
-                        //2 > retStr = "{ this is a {" + "sentence that}"
-                        //3 > retStr = "{ this is a {sentence that}" + " I shall parse}"
-                        retStr += str.substring(0, str.indexOf(endTag) + endTag.length());
-                        //2 > str = " I shall parse} some more blahs"
-                        //3 > str = " some more blahs"
-                        str=str.substring(str.indexOf(endTag) + endTag.length());
-                        endTagCount++;
+                    //if endTag exists
+                    if(str.contains(endTag)){
+                        //if startTag BEFORE endTag
+                        if(str.indexOf(startTag)<str.indexOf(endTag)){
+                            //add startTag AND left of startTag
+                            retStr+=str.substring(0, str.indexOf(startTag) + startTag.length());
+                            //remove startTag AND left of startTag
+                            str=str.substring(str.indexOf(startTag) + startTag.length());
+                            startTagCount++;
+                        }else{
+                            //endTag BEFORE startTag...
+                            
+                            //add endTag AND left of endTag
+                            retStr+=str.substring(0, str.indexOf(endTag) + endTag.length());
+                            //remove endTag AND left of endTag
+                            str=str.substring(str.indexOf(endTag) + endTag.length());
+                            endTagCount++;
+                        }
                     }else{
-                        //startTag BEFORE endTag... 
-                        
-                        //1 > retStr = "{" + " this is a {"
-                        retStr += str.substring(0, str.indexOf(startTag) + startTag.length());
-                        //1 > str = "sentence that} I shall parse} some more blahs"
-                        str=str.substring(str.indexOf(startTag) + startTag.length());
-                        startTagCount++;
+                        //startTag, but no endTag...
+
+                        //if too few endTags
+                        if(endTagCount<startTagCount){
+                            onward = false;
+                        }else{
+                            //add startTag AND left of startTag
+                            retStr+=str.substring(0, str.indexOf(startTag) + startTag.length());
+                            //remove startTag AND left of startTag
+                            str=str.substring(str.indexOf(startTag) + startTag.length());
+                            startTagCount++;
+                        }
                     }
                 }else{
-                    //no more endTag...
+                    //no startTag...
                     
-                    //just call it a day
-                    onward = false;
+                    //if endTag exists
+                    if(str.contains(endTag)){
+                        //if too few startTags
+                        if(startTagCount<endTagCount){
+                            onward = false;
+                        }else{
+                            //add endTag AND left of endTag
+                            retStr+=str.substring(0, str.indexOf(endTag) + endTag.length());
+                            //remove endTag AND left of endTag
+                            str=str.substring(str.indexOf(endTag) + endTag.length());
+                            endTagCount++;
+                        }
+                    }else{
+                        //no more startTag nor endTag
+                        onward=false;
+                    }
                 }
+                //DO THE NUMBER OF START/END TAGS MATCH?
                 //if number startTags = endTags (parsed count)
                 if(startTagCount==endTagCount){
                     //got the string chunk!
@@ -133,5 +145,27 @@ public class StrMgr {
             }
         }
         return retStr;
+    }
+    //get an array of "chunks" inside the string
+    public ArrayList<String> getChunks(String str, String startTag, String endTag){
+        ArrayList<String> retStrs = new ArrayList<String>();
+        //if the blob even contains the startTag
+        if(str.contains(startTag)){
+            //while there is even one chunk inside the string
+            String oneChunk = ""; boolean firstTry = true;
+            while(firstTry || oneChunk.length() > 0){
+                firstTry = false;
+                //if there is a chunk left in the array
+                oneChunk = getChunk(str, startTag, endTag);
+                
+                if(oneChunk.length() > 0){
+                    //add the chunk to the array
+                    retStrs.add(oneChunk);
+                    //remove this chunk from the string
+                    str=str.substring(str.indexOf(oneChunk) + oneChunk.length());
+                }
+            }
+        }
+        return retStrs;
     }
 }

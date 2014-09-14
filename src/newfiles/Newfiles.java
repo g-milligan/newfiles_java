@@ -115,8 +115,11 @@ public class Newfiles {
                 }
                 //***
                 StrMgr mgr = new StrMgr();
-                String test = mgr.getChunk(line, "{", "}");
-                System.out.println("\n\n output >> " + test + "\n\n");
+                ArrayList<String> test = mgr.getChunks(line, "{", "}");
+                //System.out.println(" helldsafo? " + test.size());
+                for(int t=0; t<test.size();t++){
+                    System.out.println(test.get(t) + "\n---------------------------\n");
+                }
                 break;
             default:
                 //invalid command (int code)

@@ -68,6 +68,7 @@ public class BuildTemplate {
     private static HashMap<String, String> mFilenameXmlOverwriteLookup; //HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
     private static HashMap<String, HashMap<String, String>> mFileAliasesLookup; //HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>
     private static ArrayList<String> mUniqueTokenNames; //ArrayList<[tokenName]> each token name only appears once
+    private static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
     private static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
     private static HashMap<String, String> mChangedFileNames; //HashMap<[filePath], [changedFileName]>
     private static HashMap<String, String> mChangedFileDirs; //HashMap<[filePath], [changedFileDirectories]>
@@ -615,6 +616,49 @@ public class BuildTemplate {
                 casing = casing.trim(); casing = casing.toLowerCase();
                 returnStr = casing;
                 break;
+            case "options":
+                returnStr = "";
+                //recursively get type
+                String tokType = getTokenPart("type", tokenParts);
+                //if this type is a "var" (only var types can have options)
+                if (tokType.equals("var")){
+                    //if there are more than 3 parts
+                    if(tokenParts.length > 3) {
+                        //var options are always third part, eg: <<var:casing:options:name=>alias>>
+                        String optsStr=tokenParts[2];
+                        //recursively get the casing for this token
+                        String tcase = getTokenPart("casing", tokenParts);
+                        //split up the options into an array
+                        String[] optsArray = optsStr.split("\\|");
+                        //for each option
+                        ArrayList<String> uniqueOpts = new ArrayList<String>();
+                        for(int a=0;a<optsArray.length;a++){
+                            //if this option is NOT blank
+                            String opt=optsArray[a];
+                            if(opt.length()>0){
+                                //if trimming this option will not make it blank
+                                if(opt.trim().length()>0){
+                                    //trim the option
+                                    opt=opt.trim();
+                                }
+                                //apply the casing to the options
+                                opt = getAppliedCasing(tcase, opt);
+                                //if this option is unique within the list
+                                if(!uniqueOpts.contains(opt)){
+                                    //list this option as no longer being unique
+                                    uniqueOpts.add(opt);
+                                    //if not the first item
+                                    if(returnStr.length()>0){
+                                        returnStr += "|"; //separator
+                                    }
+                                    //add this option to the return string
+                                    returnStr+=opt;
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
             case "dir":
                 //if there are more than 3 token parts
                 if (tokenParts.length>3){
@@ -770,7 +814,10 @@ public class BuildTemplate {
                 your something
                 your hi
 
-        5) mFilenameXmlOverwriteLookup
+        5) mUniqueTokenNameOptions
+            List all of the possible input values (if there are restrictions) for a unique token name
+
+        6) mFilenameXmlOverwriteLookup
             HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
 
             Gets the filename defined in _filenames.xml... throughout the code, 
@@ -811,10 +858,16 @@ public class BuildTemplate {
         }else{
             mUniqueTokenNames.clear();
         }
+        if(mUniqueTokenNameOptions==null){
+            //5) HashMap<[tokenName], ArrayList<[possible-input-value-options]>> where each token name only appears once
+            mUniqueTokenNameOptions=new HashMap<String, ArrayList<String>>();
+        }else{
+            mUniqueTokenNameOptions.clear();
+        }
         if(mFilenameXmlOverwriteLookup==null){
             mFilenameXmlOverwriteLookup=new HashMap<String, String>();
         }else{
-            //5) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
+            //6) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
             mFilenameXmlOverwriteLookup.clear();
         }
         if(mTokenInputValues==null){
@@ -933,6 +986,28 @@ public class BuildTemplate {
                                     mFileAliasesLookup.get(tAliasPath).put(tAlias, tokens.get(t));
                                 }
                             }
+                            //STORE THE TOKEN VALUE OPTIONS FOR THIS UNIQUE TOKEN NAME
+                            //========================================================
+                            //if there are defined input value options for this token
+                            String tOptionsStr = getTokenPart("options", tokens.get(t));
+                            if(tOptionsStr.length()>0){
+                                //if this token name doesn't already have any associated options
+                                if(!mUniqueTokenNameOptions.containsKey(tName)){
+                                    //create the token name as a key in this HashMap
+                                    ArrayList<String> options = new ArrayList<String>();
+                                    mUniqueTokenNameOptions.put(tName, options);
+                                }
+                                //for each option
+                                String[] tOptionsArray = tOptionsStr.split("\\|");
+                                for(int a=0;a<tOptionsArray.length;a++){
+                                    //if this option isn't already associated with this token name
+                                    String opt=tOptionsArray[a];
+                                    if(!mUniqueTokenNameOptions.get(tName).contains(opt)){
+                                        //add the association between this token name and value option
+                                        mUniqueTokenNameOptions.get(tName).add(opt);
+                                    }
+                                }
+                            }
                             //STORE ALL OF UNIQUE TOKEN NAMES FOR ALL FILES
                             //=============================================   
                             //if this is not a blank token
@@ -954,9 +1029,28 @@ public class BuildTemplate {
         return atLeastOneToken;
     }
     //prompt the user for the next input
-    public String getInput(String inputLabel){
-        //prompt for next command
-        System.out.print(" " + inputLabel + " >> ");
+    public String getInput(String inputLabel){return getInput(inputLabel, null);}
+    public String getInput(String inputLabel, ArrayList<String> inputOptions){
+         //if the options aren't null
+        boolean hasOptions = false;
+        if(inputOptions!=null){
+            //if there are any option items
+            if(inputOptions.size()>0){
+                hasOptions=true;
+                System.out.print("\n \tChoose option # ");
+                System.out.println("\n");
+                //for each option
+                for(int i=0;i<inputOptions.size();i++){
+                    System.out.println(" \t" + i + "  \"" + inputOptions.get(i) + "\"");
+                }
+                System.out.print("\n " + inputLabel + " >> ");
+            }
+        }
+        //no options (any value)
+        if(!hasOptions){
+            //prompt for next command
+            System.out.print(" " + inputLabel + " >> ");
+        }
         String line = "";
         try{
             //accept next input from user
@@ -966,6 +1060,45 @@ public class BuildTemplate {
         }
         catch(IOException e) {
             e.printStackTrace();
+        }
+        //if input is based on options...
+        if(hasOptions){
+            //if no input was given
+            if(line.length()<1){line="0";}
+            int lineInt=-1;
+            String errMsg = "";
+            try{
+                lineInt=lineInt=Integer.parseInt(line);
+            }catch(NumberFormatException e){
+                errMsg="\""+line+"\" is not a number. Try again...";
+            }
+            //if valid number
+            if(errMsg.length()<1){
+                //if number greater than -1
+                if(lineInt>-1){
+                    //if number less than the number of items
+                    if(lineInt<inputOptions.size()){
+                        //set the chosen option
+                        line=inputOptions.get(lineInt);
+                    }else{
+                        //number too high
+                        errMsg="\""+line+"\" is too high. Try again...";
+                    }
+                }else{
+                    //number less than 0
+                    errMsg="\""+line+"\" is too low. Try again...";
+                }
+            }
+            //if number too high or low
+            if(errMsg.length()>0){
+                //print error message
+                System.out.print("\n " + errMsg + " \n");
+                //recursive try again
+                line = getInput(inputLabel, inputOptions);
+            }else{
+                //print the valid selected value
+                System.out.println(" \t--> \"" + line + "\" \n");
+            }
         }
         return line;
     }
@@ -1000,8 +1133,22 @@ public class BuildTemplate {
             String input="";
             //if NOT entered all of the values
             if(i<uniqueTokenNames.size()){
-                //get user input
-                input=getInput("" + (i+1) + "/" + uniqueTokenNames.size() + ") Enter --> \"" +uniqueTokenNames.get(i) + "\"");
+                //if this token requires specific value options
+                ArrayList<String> inputOptions = new ArrayList<String>();
+                if(mUniqueTokenNameOptions.containsKey(uniqueTokenNames.get(i))){
+                    //get the allowed options
+                    inputOptions = mUniqueTokenNameOptions.get(uniqueTokenNames.get(i));
+                }
+                //if the user is allowed to enter any value
+                if(inputOptions.size()<1){
+                    //get user input
+                    input=getInput("" + (i+1) + "/" + uniqueTokenNames.size() + ") Enter --> \"" +uniqueTokenNames.get(i) + "\"");
+                }else{
+                    //there are specific option values that are required
+                    
+                    //get user input
+                    input=getInput("" + (i+1) + "/" + uniqueTokenNames.size() + ") Select --> \"" +uniqueTokenNames.get(i) + "\"", inputOptions);
+                }
             }else{
                 //entered all of the values
                 System.out.println("");
@@ -1239,49 +1386,54 @@ public class BuildTemplate {
             if (!tokenName.equals(".") && tokenName.indexOf("\"") != 0 && tokenName.indexOf("'") != 0){
                 //get the token value... the value is formatted based on the different token parts, eg: casing
                 tokenValue = mTokenInputValues.get(tokenName);
-                //get the first letter of the casing 
-                String firstCharCasing = casing.trim().toLowerCase();
-                firstCharCasing = firstCharCasing.substring(0, 1);
-                //default casing
-                casing = "normal";
-                //standardized what casing is assigned based on the first letter 
-                //(for code-readability... no other reason)
-                switch (firstCharCasing){
-                    case "u":
-                        casing = "uppercase";
-                        break;
-                    case "l":
-                        casing = "lowercase";
-                        break;
-                    case "c":
-                        casing = "capitalize";
-                        break;
-                    default:
-                        break;
-                }
-                //format depending on casing
-                switch (casing){
-                    case "uppercase":
-                        tokenValue = tokenValue.toUpperCase();
-                        break;
-                    case "lowercase":
-                        tokenValue = tokenValue.toLowerCase();
-                        break;
-                    case "capitalize":
-                        String firstChar = tokenValue.substring(0, 1);
-                        String theRest = tokenValue.substring(1);
-                        firstChar = firstChar.toUpperCase();
-                        tokenValue = firstChar + theRest;
-                        break;
-                    case "normal":
-                        //yep... do nothing. Leave as is
-                        break;
-                    default:
-                        break;
-                }
+                //apply the casing formatting
+                tokenValue = getAppliedCasing(casing, tokenValue);
             }
         }
         return tokenValue;
+    }
+    private String getAppliedCasing(String casing, String strVal){
+        //get the first letter of the casing 
+        String firstCharCasing = casing.trim().toLowerCase();
+        firstCharCasing = firstCharCasing.substring(0, 1);
+        //default casing
+        casing = "normal";
+        //standardized what casing is assigned based on the first letter 
+        //(for code-readability... no other reason)
+        switch (firstCharCasing){
+            case "u":
+                casing = "uppercase";
+                break;
+            case "l":
+                casing = "lowercase";
+                break;
+            case "c":
+                casing = "capitalize";
+                break;
+            default:
+                break;
+        }
+        //format depending on casing
+        switch (casing){
+            case "uppercase":
+                strVal = strVal.toUpperCase();
+                break;
+            case "lowercase":
+                strVal = strVal.toLowerCase();
+                break;
+            case "capitalize":
+                String firstChar = strVal.substring(0, 1);
+                String theRest = strVal.substring(1);
+                firstChar = firstChar.toUpperCase();
+                strVal = firstChar + theRest;
+                break;
+            case "normal":
+                //yep... do nothing. Leave as is
+                break;
+            default:
+                break;
+        }
+        return strVal;
     }
     //replace the aliases inside fileContent with their associated value (if the alias is inside fileContent)
     private String getReplacedAliases(String fileContent, HashMap<String, String> aliasValueLookup)
