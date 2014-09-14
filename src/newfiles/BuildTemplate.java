@@ -1032,10 +1032,15 @@ public class BuildTemplate {
                                 //add the unique token name, if not already in the list
                                 mUniqueListTokenNames.add(cName); 
                             }
+                            
+                            
                             //create a placeholder
                             String placeholder=mStartToken+"chunk-placeholder"+mTokenSeparator+c+mEndToken;
                             //add the chunk/placeholder to the list
                             mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).put(placeholder, chunk); 
+                            //*** recursively gather nested template data... replace mTokenChunkPlaceholders with a new class object designed based on careful planning on how the data needs to be retrieved
+                            
+                            
                             //remove this chunk from the file content
                             contents=contents.replace(chunk, placeholder);
                         }
