@@ -69,6 +69,7 @@ public class BuildTemplate {
     private static HashMap<String, HashMap<String, String>> mFileAliasesLookup; //HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>
     private static HashMap<String, HashMap<String, String>> mTokenChunkPlaceholders; //HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
     private static ArrayList<String> mUniqueTokenNames; //ArrayList<[tokenName]> each token name only appears once
+    private static ArrayList<String> mUniqueListTokenNames; //ArrayList<[tokenName]> each <<list>> token name only appears once
     private static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
     private static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
     private static HashMap<String, String> mChangedFileNames; //HashMap<[filePath], [changedFileName]>
@@ -924,6 +925,11 @@ public class BuildTemplate {
         }else{
             mUniqueTokenNames.clear();
         }
+        if(mUniqueListTokenNames==null){
+            mUniqueListTokenNames=new ArrayList<String>();
+        }else{
+            mUniqueListTokenNames.clear();
+        }
         if(mUniqueTokenNameOptions==null){
             //6) HashMap<[tokenName], ArrayList<[possible-input-value-options]>> where each token name only appears once
             mUniqueTokenNameOptions=new HashMap<String, ArrayList<String>>();
@@ -1006,6 +1012,8 @@ public class BuildTemplate {
                     ArrayList<String> tokenChunks=getTokenChunksFromContent(contents);
                     //if there were any token "chunks"
                     if(tokenChunks.size()>0){ 
+                        //init the list of token definitions for this file
+                        ArrayList<String> chunkTokenStrs = new ArrayList<String>();
                         //init the chunk list for this file --> HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
                         HashMap<String, String> placeholderChunks = new HashMap<String, String>();
                         mTokenChunkPlaceholders.put(mIncludeFiles.get(f).getPath(), placeholderChunks);
@@ -1013,13 +1021,26 @@ public class BuildTemplate {
                         for(int c=0;c<tokenChunks.size();c++){
                             //get the chunk
                             String chunk=tokenChunks.get(c);
+                            //get just the token part of the chunk
+                            String chunkTokenStr=getTokenHeadFromChunk(chunk);
+                            //add the token definition to the list
+                            chunkTokenStrs.add(chunkTokenStr);
+                            //get the token-chunk's name-key
+                            String cName=getTokenPart("name", chunkTokenStr);
+                            //if this token name isn't already in the list
+                            if (!mUniqueListTokenNames.contains(cName)){
+                                //add the unique token name, if not already in the list
+                                mUniqueListTokenNames.add(cName); 
+                            }
                             //create a placeholder
                             String placeholder=mStartToken+"chunk-placeholder"+mTokenSeparator+c+mEndToken;
                             //add the chunk/placeholder to the list
-                            mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).put(placeholder, chunk);
+                            mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).put(placeholder, chunk); 
                             //remove this chunk from the file content
                             contents=contents.replace(chunk, placeholder);
                         }
+                        //add the list of token definitions to this file-path key
+                        mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), chunkTokenStrs);
                     }
                 }
                 //GET A LIST OF TOKENS THAT ARE INSIDE THIS FILE 
@@ -1051,13 +1072,16 @@ public class BuildTemplate {
                 //==============================
                 //store the file path and original content
                 mFileContentLookup.put(mIncludeFiles.get(f).getPath(), contents);
-                //store the file path and tokens
-                mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), tokens);
                 //if there is at least one token for this file 
                 if(tokens.size()>0){
                     atLeastOneToken = true;
                     //for each token in this file
                     for(int t=0;t<tokens.size();t++){
+                        //if this file already has a key for its token-list
+                        if(mFileTokensLookup.containsKey(mIncludeFiles.get(f).getPath())){
+                            //add the token-definition to the list
+                            mFileTokensLookup.get(mIncludeFiles.get(f).getPath()).add(tokens.get(t));
+                        }
                         //get the token name
                         String tName = getTokenPart("name", tokens.get(t));
                         //if the name is NOT blank
@@ -1116,34 +1140,21 @@ public class BuildTemplate {
                                 if (tName.indexOf("\"") != 0 && tName.indexOf("'") != 0){
                                     //if this token name is not already included in the list
                                     if (!mUniqueTokenNames.contains(tName)){
-                                        //add the unique token name, if not already in the list
-                                        mUniqueTokenNames.add(tName);
+                                        //if this name key is also NOT being used by a <<list>> token type
+                                        if(!mUniqueListTokenNames.contains(tName)){
+                                            //add the unique token name, if not already in the list
+                                            mUniqueTokenNames.add(tName);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-                //if there are any token chunks to handle for this file
-                if(mTokenChunkPlaceholders.containsKey(mIncludeFiles.get(f).getPath())){
-                    //SET THE UNIQUE TOKEN NAMES FOR THE TOKEN-CHUNKS (IF ANY)
-                    //========================================================
-                    //for each chunk in this file
-                    for (String placeholder : mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).keySet()) {
-                        //get the chunk
-                        String chunk=mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).get(placeholder);
-                        //get just the token part of the chunk
-                        String chunkTokenStr=getTokenHeadFromChunk(chunk);
-                        //add this token head string to the list of file token definitions
-                        mFileTokensLookup.get(mIncludeFiles.get(f).getPath()).add(chunkTokenStr);
-                        //get the token-chunk's name-key
-                        String cName=getTokenPart("name", chunkTokenStr);
-                        //if this token name isn't already in the list
-                        if (!mUniqueTokenNames.contains(cName)){
-                            //add the unique token name, if not already in the list
-                            mUniqueTokenNames.add(cName);
-                        }
-                    }
+                //if this file's token-definitions are NOT already listed (because there were no token chunks, eg: <<list>>)
+                if(!mFileTokensLookup.containsKey(mIncludeFiles.get(f).getPath())){
+                    //store the file path and tokens
+                    mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), tokens);
                 }
             }
         }
@@ -1224,7 +1235,7 @@ public class BuildTemplate {
         return line;
     }
     //get the input from the user for all of the template tokens
-    private void getAllTokenInput(ArrayList<String> uniqueTokenNames, int startIndex, boolean isBack){
+    private void getAllTokenInput(ArrayList<String> uniqueTokenNames, int startIndex, int count, boolean isBack){
         /*ASSIGN REAL USER VALUES TO EACH UNIQUE TOKEN NAME
             1) mTokenInputValues
             load a HashMap: HashMap<[tokenName], [userInput]>
@@ -1255,7 +1266,7 @@ public class BuildTemplate {
             //if NOT entered all of the values
             if(i<uniqueTokenNames.size()){
                 //if this token requires specific value options
-                ArrayList<String> inputOptions = new ArrayList<String>(); //*** handle the input entry for list tokens
+                ArrayList<String> inputOptions = new ArrayList<String>();
                 if(mUniqueTokenNameOptions.containsKey(uniqueTokenNames.get(i))){
                     //get the allowed options
                     inputOptions = mUniqueTokenNameOptions.get(uniqueTokenNames.get(i));
@@ -1263,12 +1274,12 @@ public class BuildTemplate {
                 //if the user is allowed to enter any value
                 if(inputOptions.size()<1){
                     //get user input
-                    input=getInput("" + (i+1) + "/" + uniqueTokenNames.size() + ") Enter --> \"" +uniqueTokenNames.get(i) + "\"");
+                    input=getInput("" + (i+1) + "/" + count + ") Enter --> \"" +uniqueTokenNames.get(i) + "\"");
                 }else{
                     //there are specific option values that are required
                     
                     //get user input
-                    input=getInput("" + (i+1) + "/" + uniqueTokenNames.size() + ") Select --> \"" +uniqueTokenNames.get(i) + "\"", inputOptions);
+                    input=getInput("" + (i+1) + "/" + count + ") Select --> \"" +uniqueTokenNames.get(i) + "\"", inputOptions);
                 }
             }else{
                 //entered all of the values
@@ -1291,7 +1302,7 @@ public class BuildTemplate {
                     }
                 }
                 //recursive move back
-                getAllTokenInput(uniqueTokenNames,i-1,true);
+                getAllTokenInput(uniqueTokenNames,i-1,count,true);
                 break;
             }else{
                 //if NO already saved all input values
@@ -1433,17 +1444,17 @@ public class BuildTemplate {
             }
             System.out.println("");
             //get all of the token input values from the user
-            getAllTokenInput(inFileNameTokens,0,false);System.out.println("");
+            getAllTokenInput(inFileNameTokens,0,inFileNameTokens.size(),false);System.out.println("");
         }
         return inFileNameTokens;
     }
     //accept user input for each of the unique tokens
     private void userInputForTokens(boolean atLeastOneToken){
         //if there is at least one token
-        if(mUniqueTokenNames.size()>0){
+        if(mUniqueTokenNames.size()+mUniqueListTokenNames.size()>0){
             //if more than one token value to input
-            if(mUniqueTokenNames.size()>1){
-                System.out.println(" "+mUniqueTokenNames.size()+" unique token values to input: ");
+            if(mUniqueTokenNames.size()+mUniqueListTokenNames.size()>1){
+                System.out.println(" "+(mUniqueTokenNames.size()+mUniqueListTokenNames.size())+" unique token values to input: ");
             }else{
                //only one token value to input 
                System.out.println(" only ONE token value to input: ");
@@ -1457,6 +1468,15 @@ public class BuildTemplate {
                 }
                 //print the token name
                 System.out.print("\""+mUniqueTokenNames.get(v)+"\"");
+            }
+            //for each <<list>> token value to input
+            for(int v=0;v<mUniqueListTokenNames.size();v++){
+                //if NOT the first unique token name
+                if(v!=0||mUniqueTokenNames.size()>0){
+                    System.out.print(", ");
+                }
+                //print the token name
+                System.out.print("LIST(\""+mUniqueListTokenNames.get(v)+"\")");
             }
             System.out.println("\n");
             //get the list tokens/continue choice 
@@ -1477,7 +1497,10 @@ public class BuildTemplate {
                 }
             }
             //get all of the token input values from the user
-            getAllTokenInput(mUniqueTokenNames,0,false);System.out.println("");
+            int count=mUniqueTokenNames.size()+mUniqueListTokenNames.size();
+            getAllTokenInput(mUniqueTokenNames,0,count,false);System.out.println("");
+            //get all of the <<list>> token type values
+            //*** mUniqueListTokenNames
         }else{
             //no token values to input
             System.out.println(" ZERO unique token values to input: ");
