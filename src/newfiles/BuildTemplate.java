@@ -620,7 +620,28 @@ public class BuildTemplate {
         }
         return tokens;
     }
+    private String getTokenHeadFromChunk(String tokenStr){
+        //CLIP OFF THE LARGE TOKEN CHUNK, IF THIS IS A TOKEN CHUNK
+        //========================================================
+        //if the token string could be a chunk, eg: <<list>> ... :list>>
+        if(tokenStr.contains(mEndToken)){
+            //remove the token part (up to and including the first >>)
+            String chunk = tokenStr.substring(tokenStr.indexOf(mEndToken)+mEndToken.length());
+            chunk=chunk.trim();
+            //if the remaining chunk still ends with >>
+            if(chunk.lastIndexOf(mEndToken)==chunk.length()-mEndToken.length()){
+                //remove the chunk part of the token
+                tokenStr=tokenStr.substring(0, tokenStr.indexOf(mEndToken)+mEndToken.length());
+            }
+        }
+        return tokenStr;
+    }
     private String getTokenPart(String partKey, String tokenStr){
+        //CLIP OFF THE LARGE TOKEN CHUNK, IF THIS IS A TOKEN CHUNK
+        //========================================================
+        tokenStr=getTokenHeadFromChunk(tokenStr);
+        //SPLIT THE TOKEN VALUES INTO A PARAMETER ARRAY
+        //=============================================
         //get the token parts, eg: <<type:casing:name>>
         String[] tokenParts=tokenStr.split(mTokenSeparator);
         return getTokenPart(partKey, tokenParts);
@@ -632,10 +653,10 @@ public class BuildTemplate {
             case "type":
                 //type is always first part
                 String type = tokenParts[0];
-                //if token name contains >>
-                if (type.contains(mStartToken)) {
+                //if token name contains <<
+                if (type.indexOf(mStartToken)==0) {
                     //remove starting <<
-                    type = type.substring(mEndToken.length());
+                    type = type.substring(mStartToken.length());
                 }
                 //always trim and lowercase token type
                 type = type.trim(); type = type.toLowerCase();
@@ -979,26 +1000,29 @@ public class BuildTemplate {
                 contents = contents.replace("\\"+mEndToken, mEndEscToken);
                 //GET A LIST OF TOKENS (THAT CAN CONTAIN NESTED TOKENS) THAT ARE INSIDE THIS FILE
                 //===============================================================================
-                //get all of the tokens, eg: <<list>> which may contain nested content. tokenChunks will contain the complete token-chunks
-                ArrayList<String> tokenChunks=getTokenChunksFromContent(contents);
-                //if there were any token "chunks"
-                if(tokenChunks.size()>0){
-                    //init the chunk list for this file --> HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
-                    HashMap<String, String> placeholderChunks = new HashMap<String, String>();
-                    mTokenChunkPlaceholders.put(mIncludeFiles.get(f).getPath(), placeholderChunks);
-                    //for each token chunk
-                    for(int c=0;c<tokenChunks.size();c++){
-                        //get the chunk
-                        String chunk=tokenChunks.get(c);
-                        //create a placeholder
-                        String placeholder=mStartToken+"chunk"+mTokenSeparator+c+mEndToken;
-                        //add the chunk/placeholder to the list
-                        mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).put(placeholder, chunk);
-                        //remove this chunk from the file content
-                        contents=contents.replace(chunk, placeholder);
+                //if this is NOT _filenames.xml
+                if(mIncludeFiles.get(f).getName().indexOf("_")!=0){
+                    //get all of the tokens, eg: <<list>> which may contain nested content. tokenChunks will contain the complete token-chunks
+                    ArrayList<String> tokenChunks=getTokenChunksFromContent(contents);
+                    //if there were any token "chunks"
+                    if(tokenChunks.size()>0){ 
+                        //init the chunk list for this file --> HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
+                        HashMap<String, String> placeholderChunks = new HashMap<String, String>();
+                        mTokenChunkPlaceholders.put(mIncludeFiles.get(f).getPath(), placeholderChunks);
+                        //for each token chunk
+                        for(int c=0;c<tokenChunks.size();c++){
+                            //get the chunk
+                            String chunk=tokenChunks.get(c);
+                            //create a placeholder
+                            String placeholder=mStartToken+"chunk-placeholder"+mTokenSeparator+c+mEndToken;
+                            //add the chunk/placeholder to the list
+                            mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).put(placeholder, chunk);
+                            //remove this chunk from the file content
+                            contents=contents.replace(chunk, placeholder);
+                        }
                     }
                 }
-                //GET A LIST OF TOKENS THAT ARE INSIDE THIS FILE *** add token chunks to tokens? 
+                //GET A LIST OF TOKENS THAT ARE INSIDE THIS FILE 
                 //==============================================
                 //store an array of tokens for this file
                 ArrayList<String> tokens=getTokensFromContent(contents);
@@ -1029,7 +1053,7 @@ public class BuildTemplate {
                 mFileContentLookup.put(mIncludeFiles.get(f).getPath(), contents);
                 //store the file path and tokens
                 mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), tokens);
-                //if there is at least one token for this file *** 
+                //if there is at least one token for this file 
                 if(tokens.size()>0){
                     atLeastOneToken = true;
                     //for each token in this file
@@ -1097,6 +1121,27 @@ public class BuildTemplate {
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                //if there are any token chunks to handle for this file
+                if(mTokenChunkPlaceholders.containsKey(mIncludeFiles.get(f).getPath())){
+                    //SET THE UNIQUE TOKEN NAMES FOR THE TOKEN-CHUNKS (IF ANY)
+                    //========================================================
+                    //for each chunk in this file
+                    for (String placeholder : mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).keySet()) {
+                        //get the chunk
+                        String chunk=mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).get(placeholder);
+                        //get just the token part of the chunk
+                        String chunkTokenStr=getTokenHeadFromChunk(chunk);
+                        //add this token head string to the list of file token definitions
+                        mFileTokensLookup.get(mIncludeFiles.get(f).getPath()).add(chunkTokenStr);
+                        //get the token-chunk's name-key
+                        String cName=getTokenPart("name", chunkTokenStr);
+                        //if this token name isn't already in the list
+                        if (!mUniqueTokenNames.contains(cName)){
+                            //add the unique token name, if not already in the list
+                            mUniqueTokenNames.add(cName);
                         }
                     }
                 }
@@ -1210,7 +1255,7 @@ public class BuildTemplate {
             //if NOT entered all of the values
             if(i<uniqueTokenNames.size()){
                 //if this token requires specific value options
-                ArrayList<String> inputOptions = new ArrayList<String>();
+                ArrayList<String> inputOptions = new ArrayList<String>(); //*** handle the input entry for list tokens
                 if(mUniqueTokenNameOptions.containsKey(uniqueTokenNames.get(i))){
                     //get the allowed options
                     inputOptions = mUniqueTokenNameOptions.get(uniqueTokenNames.get(i));
