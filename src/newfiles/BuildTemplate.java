@@ -67,6 +67,7 @@ public class BuildTemplate {
     private static HashMap<String, ArrayList<String>> mFileTokensLookup; //HashMap<[filePath], ArrayList<[tokenItemText]>>
     private static HashMap<String, String> mFilenameXmlOverwriteLookup; //HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
     private static HashMap<String, HashMap<String, String>> mFileAliasesLookup; //HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>
+    private static HashMap<String, HashMap<String, String>> mTokenChunkPlaceholders; //HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
     private static ArrayList<String> mUniqueTokenNames; //ArrayList<[tokenName]> each token name only appears once
     private static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
     private static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
@@ -92,8 +93,13 @@ public class BuildTemplate {
     private static final String mAppResXmlDir="xml";
     private static final String mAppLicensePath=mAppResDir+"/license/pandowerx.newfiles.LICENSE.txt";
     private final static String mFilenamesXml = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined
+    
+    //objects
+    private static StrMgr mStrMgr;
+    
     //constructor
     public BuildTemplate(String targetDir, String batchFileName, String templatesRoot){
+        mStrMgr=new StrMgr();
         mIncludeFiles=null;
         mTargetDir=targetDir;
         mBatchFileName=batchFileName;
@@ -541,6 +547,32 @@ public class BuildTemplate {
         }
         return success;
     }
+    //get all of the tokens, eg: <<list>> which may contain nested content. Returns full token-chunks
+    private ArrayList<String> getTokenChunksFromContent(String contents){
+        ArrayList<String> chunks = new ArrayList<String>();
+        //what are the different possible token type starting strings?
+        ArrayList<String> tokenStartTags = new ArrayList<String>();
+        tokenStartTags.add("list");
+        //if the file content contains the start tag
+        if(contents.contains(mStartToken)){
+            //for each token type, which may contain nested content
+            for(int t=0;t<tokenStartTags.size();t++){
+                //get the token type that's being searched out
+                String type=tokenStartTags.get(t);
+                //get a list of chunks for this type
+                ArrayList<String> typeChunks = mStrMgr.getChunks(contents, mStartToken+type+mTokenSeparator, mTokenSeparator+type+mEndToken);
+                //if there are any chunks for this type
+                if(typeChunks.size()>0){
+                    //for each chunk of this type
+                    for(int c=0;c<typeChunks.size();c++){
+                        //add the chunk to the total list of chunks (all chunks in this file)
+                        chunks.add(typeChunks.get(c));
+                    }
+                }
+            }
+        }
+        return chunks;
+    }
     //return an array list of tokens found in string content (appended to the tokens)
     private ArrayList<String> getTokensFromContent(String contents){
         ArrayList<String> tokens = new ArrayList<String>();
@@ -804,8 +836,15 @@ public class BuildTemplate {
                                     <<var:l:your name => [name]>> --> _filenames.xml
                             [test]
                                     <<var:l:your test => [test]>> --> _filenames.xml
-
-        4) mUniqueTokenNames
+                                    
+        4) mTokenChunkPlaceholders
+            HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
+        
+            Some token types can contain nested content (eg: "list" tokens, "opt" tokens) which may or may not be output to the project
+            mTokenChunkPlaceholders will contain the placeholder key for this content and the original chunk string that will be 
+            used IF the content is printed in the project file
+            
+        5) mUniqueTokenNames
             load an ArrayList; ArrayList<[tokenName]> where each token name only appears once.
             Token names come from any template file PLUS _filenames.xml.
 
@@ -814,10 +853,10 @@ public class BuildTemplate {
                 your something
                 your hi
 
-        5) mUniqueTokenNameOptions
+        6) mUniqueTokenNameOptions
             List all of the possible input values (if there are restrictions) for a unique token name
 
-        6) mFilenameXmlOverwriteLookup
+        7) mFilenameXmlOverwriteLookup
             HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
 
             Gets the filename defined in _filenames.xml... throughout the code, 
@@ -852,14 +891,20 @@ public class BuildTemplate {
         }else{
             mFileAliasesLookup.clear();
         }
+        if(mTokenChunkPlaceholders==null){
+            //4) HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
+            mTokenChunkPlaceholders=new HashMap<String, HashMap<String, String>>();
+        }else{
+            mTokenChunkPlaceholders.clear();
+        }
         if(mUniqueTokenNames==null){
-            //4) load an ArrayList; ArrayList<[tokenName]> where each token name only appears once
+            //5) load an ArrayList; ArrayList<[tokenName]> where each token name only appears once
             mUniqueTokenNames=new ArrayList<String>();
         }else{
             mUniqueTokenNames.clear();
         }
         if(mUniqueTokenNameOptions==null){
-            //5) HashMap<[tokenName], ArrayList<[possible-input-value-options]>> where each token name only appears once
+            //6) HashMap<[tokenName], ArrayList<[possible-input-value-options]>> where each token name only appears once
             mUniqueTokenNameOptions=new HashMap<String, ArrayList<String>>();
         }else{
             mUniqueTokenNameOptions.clear();
@@ -867,7 +912,7 @@ public class BuildTemplate {
         if(mFilenameXmlOverwriteLookup==null){
             mFilenameXmlOverwriteLookup=new HashMap<String, String>();
         }else{
-            //6) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
+            //7) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
             mFilenameXmlOverwriteLookup.clear();
         }
         if(mTokenInputValues==null){
@@ -901,6 +946,8 @@ public class BuildTemplate {
                 //escape tokens, as needed
                 filenamesContent = filenamesContent.replace("\\"+mStartToken, mStartEscToken);
                 filenamesContent = filenamesContent.replace("\\"+mEndToken, mEndEscToken);
+                //STORE <filename> TOKEN DEFINITIONS THAT CAME FROM _filenames.xml
+                //================================================================
                 //get the tokens used inside _filenames.xml
                 filenameTokens=getTokensFromContent(filenamesContent);
             }
@@ -908,8 +955,8 @@ public class BuildTemplate {
         //for each file
         boolean atLeastOneToken = false;
         for(int f=0;f<mIncludeFiles.size();f++){
-            //STORE ORIGINAL FILE CONTENTS AND GET AN ARRAY OF TOKENS FOR THIS FILE
-            //=====================================================================
+            //READ THIS TEMPLATE FILE TO GET ITS CONTENTS
+            //===========================================
             String contents="";
             //get the file content
             contents=readFile(mIncludeFiles.get(f).getPath());
@@ -927,15 +974,40 @@ public class BuildTemplate {
                         overwriteFilename=filenameXmlStr;
                     }
                 }
-                //escape certain string contents
+                //escape certain string contents 
                 contents = contents.replace("\\"+mStartToken, mStartEscToken);
                 contents = contents.replace("\\"+mEndToken, mEndEscToken);
+                //GET A LIST OF TOKENS (THAT CAN CONTAIN NESTED TOKENS) THAT ARE INSIDE THIS FILE
+                //===============================================================================
+                //get all of the tokens, eg: <<list>> which may contain nested content. tokenChunks will contain the complete token-chunks
+                ArrayList<String> tokenChunks=getTokenChunksFromContent(contents);
+                //if there were any token "chunks"
+                if(tokenChunks.size()>0){
+                    //init the chunk list for this file --> HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
+                    HashMap<String, String> placeholderChunks = new HashMap<String, String>();
+                    mTokenChunkPlaceholders.put(mIncludeFiles.get(f).getPath(), placeholderChunks);
+                    //for each token chunk
+                    for(int c=0;c<tokenChunks.size();c++){
+                        //get the chunk
+                        String chunk=tokenChunks.get(c);
+                        //create a placeholder
+                        String placeholder=mStartToken+"chunk"+mTokenSeparator+c+mEndToken;
+                        //add the chunk/placeholder to the list
+                        mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).put(placeholder, chunk);
+                        //remove this chunk from the file content
+                        contents=contents.replace(chunk, placeholder);
+                    }
+                }
+                //GET A LIST OF TOKENS THAT ARE INSIDE THIS FILE *** add token chunks to tokens? 
+                //==============================================
                 //store an array of tokens for this file
                 ArrayList<String> tokens=getTokensFromContent(contents);
                 //if there is a filename defined in _filenames.xml
                 if(overwriteFilename.length()>0){
                     //if _filenames.xml contains any tokens (eg, <<var:l:name>>)
                     if(filenameTokens.size()>0){
+                        //ADD TO THE tokens LIST... ADD TOKENS DEFINED INSIDE _filenames.xml (IF ANY)
+                        //===========================================================================
                         //for each token inside _filenames.xml
                         for(int t=0;t<filenameTokens.size();t++){
                             String tStr=filenameTokens.get(t);
@@ -943,17 +1015,21 @@ public class BuildTemplate {
                             tokens.add(tStr+" " + mTokenSourceSeparator + " " + mFilenamesXml);
                         }
                     }
+                    //ADD TO THE tokens LIST... ADD THE <filename> DEFINITION FROM _filenames.xml (IF EXISTS)
+                    //=======================================================================================
                     //add the <filename> xml node token
                     overwriteFilename+=" " + mTokenSourceSeparator + " " + mFilenamesXml;
                     tokens.add(overwriteFilename);
                     //add to the list of files that have a filename xml overwrite
                     mFilenameXmlOverwriteLookup.put(mIncludeFiles.get(f).getPath(), overwriteFilename);
                 }
+                //STORE THE CONTENTS OF ONE FILE
+                //==============================
                 //store the file path and original content
                 mFileContentLookup.put(mIncludeFiles.get(f).getPath(), contents);
                 //store the file path and tokens
                 mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), tokens);
-                //if there is at least one token for this file
+                //if there is at least one token for this file *** 
                 if(tokens.size()>0){
                     atLeastOneToken = true;
                     //for each token in this file
@@ -986,7 +1062,7 @@ public class BuildTemplate {
                                     mFileAliasesLookup.get(tAliasPath).put(tAlias, tokens.get(t));
                                 }
                             }
-                            //STORE THE TOKEN VALUE OPTIONS FOR THIS UNIQUE TOKEN NAME
+                            //STORE THE TOKEN VALUE "OPTIONS" FOR THIS UNIQUE TOKEN NAME
                             //========================================================
                             //if there are defined input value options for this token
                             String tOptionsStr = getTokenPart("options", tokens.get(t));

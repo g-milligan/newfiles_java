@@ -157,7 +157,6 @@ public class StrMgr {
                 firstTry = false;
                 //if there is a chunk left in the array
                 oneChunk = getChunk(str, startTag, endTag);
-                
                 if(oneChunk.length() > 0){
                     //add the chunk to the array
                     retStrs.add(oneChunk);
