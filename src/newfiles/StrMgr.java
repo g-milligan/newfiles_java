@@ -35,6 +35,20 @@ Or email <pandowerx@gmail.com>
 ------------------------------------------------------------------------------
  */
 public class StrMgr {
+    //constants
+    public static final String mStartToken="<<";
+    public static final String mEndToken=">>";
+    public static final String mTokenSeparator=":";
+    public static final String mTokenSourceSeparator="-->";
+    public static final String mAliasSetter="=>";
+    public static final String mStartEscToken="|_-+StrtToKen..=!_|";
+    public static final String mEndEscToken="|_--eNdToKen..=!_|";
+    public static final String mNonTextFileContent="|_--nOT@tXTfiLE..=!_|~~JUB123eZ55_-CoO__|"; //unique text content to use as a non-text file content placeholder
+    public static final String mAppResDir="res"; //root folder name of resources packaged inside the .jar app
+    public static final String mAppResXmlDir="xml";
+    public static final String mAppLicensePath=mAppResDir+"/license/pandowerx.newfiles.LICENSE.txt";
+    public final static String mFilenamesXml = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined
+    
     //accepts a string blob and returns a sub-string that begins and ends with a beginning and ending sub-string
     //even if there are NESTED start and end tags within the return string, this function will determine the correct return sub-string
     public String getChunk(String str, String startTag, String endTag){ return getChunk(str, startTag, endTag, true); }

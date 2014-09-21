@@ -44,13 +44,16 @@ public class Newfiles {
     private static String mBatchFileName; //the name of the batch file... also the key command to run this app, eg: "nf"
     private static ArrayList<String> mTemplateList; //list of folder paths for each template
     private static BuildTemplate mBuild; //the object class used to build out a template
+    private static TemplateData mData;
+    
+    private static FileMgr mFileMgr;
     //list of commands (the commands can change, but their index position should NOT change)
     private static final String[] mCommands = 
     {
         "ls", //0: show a list of available templates, ie: "nf ls"
         "use", //1: use a template based on its number (starts input process), eg: "nf use 3"
         "help", //2: show help for available commands, eg: "nf" or "nf help" or "nf help ls"
-        "end", //3: stop entering commands for newfiles.jar... exit app, eg: "nf end"
+        "end", //3: (or "exit") stop entering commands for newfiles.jar... exit app, eg: "nf end"
         "templates", //4: open the root templates directory file-system window
         "export", //5: export a project's template files, eg: "nf export 3"
         "filenames", //6: create/update the xml document used to define the template's filenames/paths
@@ -63,7 +66,7 @@ public class Newfiles {
         "show a list of available templates, ie: \"{nf} "+mCommands[0]+"\"",
         "use a template based on its number (starts input process), eg: \"{nf} "+mCommands[1]+" 3\"",
         "show help for available commands, eg: \"{nf} "+mCommands[2]+"\"",
-        "exit app, eg: \"{nf} "+mCommands[3]+"\"",
+        "(or \"exit\") exits app, eg: \"{nf} "+mCommands[3]+"\"",
         "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\"",
         "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\"",
         "create/update an xml doc, used to define the template's filenames/paths, eg: \"{nf} "+mCommands[6]+" 3\"",
@@ -90,7 +93,7 @@ public class Newfiles {
                 isEnd=true;
                 break;
             case 4: //4: open the root templates directory file-system window
-                mBuild.openDirWindow(mTemplatesRoot);
+                mFileMgr.openDirWindow(mTemplatesRoot);
                 break;
             case 5: //5: export a project's template files, eg: "nf export 3"
                 export(args);
@@ -99,7 +102,7 @@ public class Newfiles {
                 filenames(args);
                 break;
             case 7: //7: view the license for this Newfiles application
-                System.out.print(mBuild.getLicenseDocContents());
+                System.out.print(mFileMgr.getLicenseDocContents());
                 break;
             case 8: //8: edit an existing project, built with a template, eg: "nf edit 3"
                 //***
@@ -262,7 +265,7 @@ public class Newfiles {
                                 String line = mBuild.getInput("View \""+exportDirFile.getName()+"\" in a file-system window? y/n");
                                 //ifthe user wants to open the export directory
                                 if(line.trim().toLowerCase().indexOf("y")==0){
-                                    mBuild.openDirWindow(exportDirFile.getParent());
+                                    mFileMgr.openDirWindow(exportDirFile.getParent());
                                 }
                             }
                         }
@@ -337,7 +340,7 @@ public class Newfiles {
                         //show template header
                         System.out.println("\n FILENAMES: \n");
                         //create or update the filenames xml
-                        mBuild.createUpdateFilenamesXml(mTemplateList.get(tIndex)); 
+                        mData.createUpdateFilenamesXml(mTemplateList.get(tIndex)); 
                         //reset the use template index
                         mUseTemplateIndex=-1;
                     }else{
@@ -554,7 +557,7 @@ public class Newfiles {
                 if(subFiles[f].getName().indexOf("_")!=0){
                     //if this file is NOT text based, eg: it's an image
                     String notTxtBased="";
-                    if(!mBuild.isTextBasedFile(subFiles[f])){
+                    if(!mFileMgr.isTextBasedFile(subFiles[f])){
                         notTxtBased=" --> non-text";
                     }
                     //print the file item
@@ -754,6 +757,8 @@ public class Newfiles {
             mBatchFileName = batchFile.getName();
             mUseTemplateIndex=-1;
             mBuild = new BuildTemplate(mTargetDir, mBatchFileName, mTemplatesRoot); //object used to build the given template files
+            mFileMgr = new FileMgr();
+            mData = new TemplateData();
             //start the app
             start(args);
         }else{
@@ -794,6 +799,8 @@ public class Newfiles {
         int doWhatInt=-1; cmdStr=cmdStr.toLowerCase();
         //if command is NOT blank
         if(!cmdStr.trim().equals("")){
+            //if the command is "exit"
+            if(cmdStr.trim().equals("exit")){cmdStr="end";}
             //for each command
             for (int i=0;i<mCommands.length;i++){
                 //if this is the current command
@@ -802,7 +809,7 @@ public class Newfiles {
                     doWhatInt=i;
                     break;
                 }
-            }
+            } 
         }else{
             //command is blank...
             
