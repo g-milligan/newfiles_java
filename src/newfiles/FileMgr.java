@@ -116,6 +116,24 @@ public class FileMgr {
         }
         return isTxt;
     }
+    //determine if the file or folder should be ignored:
+    //1) if it's hidden in the file-system
+    //2) if it begins with "_"
+    public static boolean isIgnoredFileOrFolder(File forf){
+        boolean isIgnored = false;
+        //if the name begins with "_"
+        if(forf.getName().indexOf("_")==0){
+            //should be ignored
+            isIgnored = true;
+        }else{
+            //if the file should be hidden 
+            if(forf.isHidden()){
+                //should be ignored
+                isIgnored = true;
+            }
+        }
+        return isIgnored;
+    }
     //copy a non-text OR normal text file to some location
     public static boolean copyFileTo(File source, File dest) {
         boolean success=false;

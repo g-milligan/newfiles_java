@@ -95,7 +95,7 @@ public class TemplateData {
         //GET A LIST OF TOKENS (THAT CAN CONTAIN NESTED TOKENS) THAT ARE INSIDE THIS FILE
         //===============================================================================
         //if this is NOT _filenames.xml
-        if(mIncludeFiles.get(f).getName().indexOf("_")!=0){
+        if(!mFileMgr.isIgnoredFileOrFolder(mIncludeFiles.get(f))){
             //get all of the tokens, eg: <<list>> which may contain nested content. tokenChunks will contain the complete token-chunks
             ArrayList<String> tokenChunks=getTokenChunksFromContent(contents);
             //if there were any token "chunks"
@@ -910,7 +910,7 @@ public class TemplateData {
             int fileIndex=0; 
             for(int f=0;f<subFiles.length;f++){
                 //if file is NOT commented out
-                if(subFiles[f].getName().indexOf("_")!=0){
+                if(!mFileMgr.isIgnoredFileOrFolder(subFiles[f])){
                     System.out.println(" "+subFiles[f].getName() + "\n");
                     //start the output messages (one for token filename and the other for xml filename)
                     String filenameTokenMsg=""; int numFilenameXmlTokens=0;int numFilenameTokens=0;

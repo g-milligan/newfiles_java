@@ -676,7 +676,7 @@ public class BuildTemplate {
         for (String filePath : mData.mFileContentLookup.keySet()) {
             String fileName = "";File templateFile=new File(filePath);
             //if this file doesn't start with _, eg: _filenames.xml
-            if(templateFile.getName().indexOf("_")!=0){
+            if(!mFileMgr.isIgnoredFileOrFolder(templateFile)){
                 //if changing the file name
                 if (mData.mChangedFileNames.containsKey(filePath)){
                     //get just the file extension

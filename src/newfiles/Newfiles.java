@@ -57,8 +57,7 @@ public class Newfiles {
         "templates", //4: open the root templates directory file-system window
         "export", //5: export a project's template files, eg: "nf export 3"
         "filenames", //6: create/update the xml document used to define the template's filenames/paths
-        "license", //7: view the license agreement
-        "edit" //8: edit an existing project, built with a template, eg: "nf edit 3"
+        "license" //7: view the license agreement
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
@@ -70,8 +69,7 @@ public class Newfiles {
         "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\"",
         "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\"",
         "create/update an xml doc, used to define the template's filenames/paths, eg: \"{nf} "+mCommands[6]+" 3\"",
-        "view the license for this Newfiles application, eg: \"{nf} "+mCommands[7]+"\"",
-        "edit existing project values, built with a template, eg: \"{nf} "+mCommands[8]+" 3\""
+        "view the license for this Newfiles application, eg: \"{nf} "+mCommands[7]+"\""
     };
     private static int mUseTemplateIndex; //the integer number of the current template being used
     private final static int mNumArgsFromBatch=3; //the number of arguments that get passed to this app automatically
@@ -103,26 +101,6 @@ public class Newfiles {
                 break;
             case 7: //7: view the license for this Newfiles application
                 System.out.print(mFileMgr.getLicenseDocContents());
-                break;
-            case 8: //8: edit an existing project, built with a template, eg: "nf edit 3"
-                //***
-                System.out.print(" enter test >> ");
-                String line = "{no}";
-                try{
-                    //accept next input from user
-                    BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
-                    line = bufferRead.readLine();
-                }
-                catch(IOException e) {
-                    e.printStackTrace();
-                }
-                //***
-                StrMgr mgr = new StrMgr();
-                ArrayList<String> test = mgr.getChunks(line, "{", "}");
-                //System.out.println(" helldsafo? " + test.size());
-                for(int t=0; t<test.size();t++){
-                    System.out.println(test.get(t) + "\n---------------------------\n");
-                }
                 break;
             default:
                 //invalid command (int code)
@@ -248,7 +226,7 @@ public class Newfiles {
                         //loop through each File[] files and include the appropriate files into includeFiles
                         for(int f=0;f<files.length;f++){
                             //if the file does NOT start with "_"
-                            if(files[f].getName().indexOf("_")!=0){
+                            if(!mFileMgr.isIgnoredFileOrFolder(files[f])){
                                 includeFiles.add(files[f]);
                             }
                         }
@@ -470,7 +448,7 @@ public class Newfiles {
                         String includedFileNames="";int fIndex=0;
                         for(int f=0;f<files.length;f++){
                             //if the file does NOT start with "_"
-                            if(files[f].getName().indexOf("_")!=0){
+                            if(!mFileMgr.isIgnoredFileOrFolder(files[f])){
                                 //if including all files
                                 if(fileIndexList.size()<1){
                                     includeFiles.add(files[f]);
@@ -554,7 +532,7 @@ public class Newfiles {
             //if not a directory
             if(!subFiles[f].isDirectory()){
                 //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
-                if(subFiles[f].getName().indexOf("_")!=0){
+                if(!mFileMgr.isIgnoredFileOrFolder(subFiles[f])){
                     //if this file is NOT text based, eg: it's an image
                     String notTxtBased="";
                     if(!mFileMgr.isTextBasedFile(subFiles[f])){
@@ -628,7 +606,7 @@ public class Newfiles {
     //add a directory to the template list IF it contains at least one file
     private static void maybeAddDirToTemplateList(File dir){
         //if the directory does NOT start with _ (you can disable a template sub-directory by adding _ before its name)
-        if(dir.getName().indexOf("_")!=0){
+        if(!mFileMgr.isIgnoredFileOrFolder(dir)){
             boolean dirHasFile=false;
             ArrayList<String> templateFiles = new ArrayList<String>();
             //for each direct child under dir
@@ -643,7 +621,7 @@ public class Newfiles {
 
                     //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
                     //but a file called _template.xml is a special config file for the template
-                    if(subFiles[f].getName().indexOf("_")!=0){
+                    if(!mFileMgr.isIgnoredFileOrFolder(subFiles[f])){
                         //since dir contains at least one file, it should be added to mTemplateList
                         dirHasFile=true;
                         //add this file to the list of files under this directory
@@ -801,6 +779,10 @@ public class Newfiles {
         if(!cmdStr.trim().equals("")){
             //if the command is "exit"
             if(cmdStr.trim().equals("exit")){cmdStr="end";}
+            else{
+                //if the command is "quit"
+                if(cmdStr.trim().equals("quit")){cmdStr="end";}
+            }
             //for each command
             for (int i=0;i<mCommands.length;i++){
                 //if this is the current command
