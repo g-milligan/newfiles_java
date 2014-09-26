@@ -3,6 +3,7 @@ manifest.mf
 build.xml
 *.bat
 *.sh
+nf
 README.TXT
 
 #exclude directories
