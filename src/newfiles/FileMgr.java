@@ -129,7 +129,7 @@ public class FileMgr {
         if(forf.getName().indexOf("_")==0){
             //should be ignored
             isIgnored = true;
-        }else{
+    }else{
             //if the name is not blank
             if(forf.getName().length() > 0){
                 //if this file actually exists
