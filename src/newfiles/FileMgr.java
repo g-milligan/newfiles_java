@@ -119,6 +119,10 @@ public class FileMgr {
     //determine if the file or folder should be ignored:
     //1) if it's hidden in the file-system
     //2) if it begins with "_"
+    public static boolean isIgnoredFileOrFolder(String forfPath){
+        File forf = new File(forfPath);
+        return isIgnoredFileOrFolder(forf);
+    }
     public static boolean isIgnoredFileOrFolder(File forf){
         boolean isIgnored = false;
         //if the name begins with "_"
@@ -126,10 +130,16 @@ public class FileMgr {
             //should be ignored
             isIgnored = true;
         }else{
-            //if the file should be hidden 
-            if(forf.isHidden()){
-                //should be ignored
-                isIgnored = true;
+            //if the name is not blank
+            if(forf.getName().length() > 0){
+                //if this file actually exists
+                if(forf.exists()){
+                    //if the file should be hidden 
+                    if(forf.isHidden()){
+                        //should be ignored
+                        isIgnored = true;
+                    }
+                }
             }
         }
         return isIgnored;

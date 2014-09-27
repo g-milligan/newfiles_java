@@ -43,16 +43,15 @@ Or email <pandowerx@gmail.com>
  */
 public class TemplateData {
     //fields 
-    
-    //*** public static HashMap<String, Content> mFileContent; //HashMap<[filePath], [contentData]>
-    
     public static HashMap<String, String> mFileContentLookup; //HashMap<[filePath], [fileContent]>
     public static HashMap<String, ArrayList<String>> mFileTokensLookup; //HashMap<[filePath], ArrayList<[tokenItemText]>>
     public static HashMap<String, String> mFilenameXmlOverwriteLookup; //HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
     public static HashMap<String, HashMap<String, String>> mFileAliasesLookup; //HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>
-    public static HashMap<String, HashMap<String, String>> mTokenChunkPlaceholders; //HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
     public static ArrayList<String> mUniqueTokenNames; //ArrayList<[tokenName]> each token name only appears once
+    
     public static ArrayList<String> mUniqueListTokenNames; //ArrayList<[tokenName]> each <<list>> token name only appears once
+    public static HashMap<String, HashMap<String, ArrayList<TemplateChunk>>> mTemplateChunks; //HashMap<[tokenName], HashMap<[filePath], ArrayList<TemplateChunk>>>
+
     public static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
     public static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
     public static HashMap<String, String> mChangedFileNames; //HashMap<[filePath], [changedFileName]>
@@ -63,6 +62,7 @@ public class TemplateData {
     //objects
     private static StrMgr mStrMgr;
     private static FileMgr mFileMgr;
+    
     //constructor
     public TemplateData(){
         mStrMgr=new StrMgr();
@@ -74,15 +74,15 @@ public class TemplateData {
         mIncludeFiles=includeFiles;
         mUseTemplatePath=useTemplatePath;
     }
-    //load the template content for one nested section or one file ***
-    public boolean loadContentData(String contents, int f, File fNamesXmlFile, HashMap<String, String> filenamesFromXml, ArrayList<String> filenameTokens){
+    //load the template content for one nested section or one file
+    public boolean loadContentData(String filePath, String contents, File fNamesXmlFile, HashMap<String, String> filenamesFromXml, ArrayList<String> filenameTokens){
         boolean atLeastOneToken = false;
         //if this file has a <filename> in the _filenames.xml file
         String overwriteFilename="";
-        if(filenamesFromXml.containsKey(mIncludeFiles.get(f).getPath())){
+        if(filenamesFromXml.containsKey(filePath)){
             //get the filename token string from inside the <filename> xml element 
             //(this string is formatted just like a normal token, eg: <<filename:l:path:name>>)
-            String filenameXmlStr=filenamesFromXml.get(mIncludeFiles.get(f).getPath());
+            String filenameXmlStr=filenamesFromXml.get(filePath);
             //if the filename token string is NOT blank
             if(filenameXmlStr.length()>0){
                 //any filename token in this file will be overwritten by the filename definition in _filenames.xml
@@ -95,45 +95,55 @@ public class TemplateData {
         //GET A LIST OF TOKENS (THAT CAN CONTAIN NESTED TOKENS) THAT ARE INSIDE THIS FILE
         //===============================================================================
         //if this is NOT _filenames.xml
-        if(!mFileMgr.isIgnoredFileOrFolder(mIncludeFiles.get(f))){
+        if(!mFileMgr.isIgnoredFileOrFolder(filePath)){
             //get all of the tokens, eg: <<list>> which may contain nested content. tokenChunks will contain the complete token-chunks
             ArrayList<String> tokenChunks=getTokenChunksFromContent(contents);
             //if there were any token "chunks"
             if(tokenChunks.size()>0){ 
                 //init the list of token definitions for this file
                 ArrayList<String> chunkTokenStrs = new ArrayList<String>();
-                //init the chunk list for this file --> HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
-                HashMap<String, String> placeholderChunks = new HashMap<String, String>();
-                mTokenChunkPlaceholders.put(mIncludeFiles.get(f).getPath(), placeholderChunks);
                 //for each token chunk
                 for(int c=0;c<tokenChunks.size();c++){
                     //get the chunk
-                    String chunk=tokenChunks.get(c);
-                    //get just the token part of the chunk
-                    String chunkTokenStr=getTokenHeadFromChunk(chunk);
-                    //add the token definition to the list
-                    chunkTokenStrs.add(chunkTokenStr);
-                    //get the token-chunk's name-key
-                    String cName=getTokenPart("name", chunkTokenStr);
-                    //if this token name isn't already in the list
-                    if (!mUniqueListTokenNames.contains(cName)){
-                        //add the unique token name, if not already in the list
-                        mUniqueListTokenNames.add(cName); 
+                    String chunkContents=tokenChunks.get(c);
+                    //load the template chunk data (including recursively getting nested chunks inside this chunk)
+                    TemplateChunk chunkObj=new TemplateChunk(this, filePath, c + "", chunkContents);
+                    //get the token values
+                    String cName=chunkObj.getTokenName();
+                    String cType=chunkObj.getTokenType();
+                    //ADD TO mTemplateChunks
+                    //if this chunk name isn't already in the hash map
+                    if(!mTemplateChunks.containsKey(cName)){
+                        //init this chunk's token name
+                        HashMap<String, ArrayList<TemplateChunk>> fileChunks = new HashMap<String, ArrayList<TemplateChunk>>();
+                        mTemplateChunks.put(cName, fileChunks);
                     }
-
-
-                    //create a placeholder
-                    String placeholder=mStrMgr.mStartToken+"chunk-placeholder"+mStrMgr.mTokenSeparator+c+mStrMgr.mEndToken;
-                    //add the chunk/placeholder to the list
-                    mTokenChunkPlaceholders.get(mIncludeFiles.get(f).getPath()).put(placeholder, chunk); 
-                    //*** recursively gather nested template data... replace mTokenChunkPlaceholders with a new class object designed based on careful planning on how the data needs to be retrieved
-
-
-                    //remove this chunk from the file content
-                    contents=contents.replace(chunk, placeholder);
+                    //if this chunk's file path isn't already the hash map
+                    if(!mTemplateChunks.get(cName).containsKey(filePath)){
+                        //init this chunk's file path for this token name
+                        ArrayList<TemplateChunk> fileChunks = new ArrayList<TemplateChunk>();
+                        mTemplateChunks.get(cName).put(filePath, fileChunks);
+                    }
+                    //add this chunk object to mTemplateChunks
+                    mTemplateChunks.get(cName).get(filePath).add(chunkObj);
+                    //ADD TO UNIQUE TOKEN NAMES
+                    //add the token definition, for this chunk, to the list of token definitions
+                    chunkTokenStrs.add(chunkObj.getTokenStr());
+                    //depending on the token type
+                    switch(cType){
+                        case "list": 
+                            //if this token name isn't already in the list
+                            if (!mUniqueListTokenNames.contains(cName)){
+                                //add the unique token name, if not already in the list
+                                mUniqueListTokenNames.add(cName); 
+                            }
+                            break;
+                    }
+                    //replace the nested chunk with a placeholder
+                    contents=contents.replace(chunkObj.getContent(), chunkObj.getPlaceholder());
                 }
                 //add the list of token definitions to this file-path key
-                mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), chunkTokenStrs);
+                mFileTokensLookup.put(filePath, chunkTokenStrs);
             }
         }
         //GET A LIST OF TOKENS THAT ARE INSIDE THIS FILE 
@@ -159,21 +169,21 @@ public class TemplateData {
             overwriteFilename+=" " + mStrMgr.mTokenSourceSeparator + " " + mStrMgr.mFilenamesXml;
             tokens.add(overwriteFilename);
             //add to the list of files that have a filename xml overwrite
-            mFilenameXmlOverwriteLookup.put(mIncludeFiles.get(f).getPath(), overwriteFilename);
+            mFilenameXmlOverwriteLookup.put(filePath, overwriteFilename);
         }
         //STORE THE CONTENTS OF ONE FILE
         //==============================
         //store the file path and original content
-        mFileContentLookup.put(mIncludeFiles.get(f).getPath(), contents);
+        mFileContentLookup.put(filePath, contents);
         //if there is at least one token for this file 
         if(tokens.size()>0){
             atLeastOneToken = true;
             //for each token in this file
             for(int t=0;t<tokens.size();t++){
                 //if this file already has a key for its token-list
-                if(mFileTokensLookup.containsKey(mIncludeFiles.get(f).getPath())){
+                if(mFileTokensLookup.containsKey(filePath)){
                     //add the token-definition to the list
-                    mFileTokensLookup.get(mIncludeFiles.get(f).getPath()).add(tokens.get(t));
+                    mFileTokensLookup.get(filePath).add(tokens.get(t));
                 }
                 //get the token name
                 String tName = getTokenPart("name", tokens.get(t));
@@ -184,7 +194,7 @@ public class TemplateData {
                     //if this token has an alias
                     String tAlias = getTokenPart("alias", tokens.get(t));
                     if(tAlias.length()>0){
-                        String tAliasPath=mIncludeFiles.get(f).getPath();
+                        String tAliasPath=filePath;
                         //is this alias coming from _filenames.xml?
                         String tAliasSource = getTokenPart("source", tokens.get(t));
                         if(tAliasSource.equals(mStrMgr.mFilenamesXml)){
@@ -245,9 +255,9 @@ public class TemplateData {
             }
         }
         //if this file's token-definitions are NOT already listed (because there were no token chunks, eg: <<list>>)
-        if(!mFileTokensLookup.containsKey(mIncludeFiles.get(f).getPath())){
+        if(!mFileTokensLookup.containsKey(filePath)){
             //store the file path and tokens
-            mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), tokens);
+            mFileTokensLookup.put(filePath, tokens);
         }
         return atLeastOneToken;
     }
@@ -292,13 +302,6 @@ public class TemplateData {
                                     <<var:l:your name => [name]>> --> _filenames.xml
                             [test]
                                     <<var:l:your test => [test]>> --> _filenames.xml
-                                    
-        4) mTokenChunkPlaceholders
-            HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
-        
-            Some token types can contain nested content (eg: "list" tokens, "opt" tokens) which may or may not be output to the project
-            mTokenChunkPlaceholders will contain the placeholder key for this content and the original chunk string that will be 
-            used IF the content is printed in the project file
             
         5) mUniqueTokenNames
             load an ArrayList; ArrayList<[tokenName]> where each token name only appears once.
@@ -347,14 +350,8 @@ public class TemplateData {
         }else{
             mFileAliasesLookup.clear();
         }
-        if(mTokenChunkPlaceholders==null){
-            //4) HashMap<[filePath], HashMap<[uniquePlaceholder], [tokenChunkStr]>>
-            mTokenChunkPlaceholders=new HashMap<String, HashMap<String, String>>();
-        }else{
-            mTokenChunkPlaceholders.clear();
-        }
         if(mUniqueTokenNames==null){
-            //5) load an ArrayList; ArrayList<[tokenName]> where each token name only appears once
+            //4) load an ArrayList; ArrayList<[tokenName]> where each token name only appears once
             mUniqueTokenNames=new ArrayList<String>();
         }else{
             mUniqueTokenNames.clear();
@@ -364,8 +361,13 @@ public class TemplateData {
         }else{
             mUniqueListTokenNames.clear();
         }
+        if(mTemplateChunks==null){
+            mTemplateChunks=new HashMap<String, HashMap<String, ArrayList<TemplateChunk>>>();
+        }else{
+            mTemplateChunks.clear();
+        }
         if(mUniqueTokenNameOptions==null){
-            //6) HashMap<[tokenName], ArrayList<[possible-input-value-options]>> where each token name only appears once
+            //5) HashMap<[tokenName], ArrayList<[possible-input-value-options]>> where each token name only appears once
             mUniqueTokenNameOptions=new HashMap<String, ArrayList<String>>();
         }else{
             mUniqueTokenNameOptions.clear();
@@ -373,7 +375,7 @@ public class TemplateData {
         if(mFilenameXmlOverwriteLookup==null){
             mFilenameXmlOverwriteLookup=new HashMap<String, String>();
         }else{
-            //7) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
+            //6) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
             mFilenameXmlOverwriteLookup.clear();
         }
         if(mTokenInputValues==null){
@@ -424,13 +426,13 @@ public class TemplateData {
             //if file read was successful
             if(contents!=null){
                 //load the data for this file
-                atLeastOneToken = loadContentData(contents, f, fNamesXmlFile, filenamesFromXml, filenameTokens);
+                atLeastOneToken = loadContentData(mIncludeFiles.get(f).getPath(), contents, fNamesXmlFile, filenamesFromXml, filenameTokens);
             }
         }
         return atLeastOneToken;
     }
     //get all of the tokens, eg: <<list>> which may contain nested content. Returns full token-chunks
-    private ArrayList<String> getTokenChunksFromContent(String contents){
+    public ArrayList<String> getTokenChunksFromContent(String contents){
         ArrayList<String> chunks = new ArrayList<String>();
         //what are the different possible token type starting strings?
         ArrayList<String> tokenStartTags = new ArrayList<String>();
@@ -456,7 +458,7 @@ public class TemplateData {
         return chunks;
     }
     //return an array list of tokens found in string content (appended to the tokens)
-    private ArrayList<String> getTokensFromContent(String contents){
+    public ArrayList<String> getTokensFromContent(String contents){
         ArrayList<String> tokens = new ArrayList<String>();
         //what are the different possible token type starting strings?
         ArrayList<String> tokenStartTags = new ArrayList<String>();
@@ -502,7 +504,7 @@ public class TemplateData {
         }
         return tokens;
     }
-    private String getTokenHeadFromChunk(String tokenStr){
+    public String getTokenHeadFromChunk(String tokenStr){
         //CLIP OFF THE LARGE TOKEN CHUNK, IF THIS IS A TOKEN CHUNK
         //========================================================
         //if the token string could be a chunk, eg: <<list>> ... :list>>

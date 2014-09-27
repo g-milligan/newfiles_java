@@ -177,6 +177,10 @@ public class BuildTemplate {
         }
         return line;
     }
+    private void getAllNestedTokenChunksInput(ArrayList<TemplateChunk> templateChunks){
+        //***
+        //*** mUniqueListTokenNames
+    }
     //get the input from the user for all of the template tokens
     private void getAllTokenInput(ArrayList<String> uniqueTokenNames, int startIndex, int count, boolean isBack){
         /*ASSIGN REAL USER VALUES TO EACH UNIQUE TOKEN NAME
@@ -395,6 +399,8 @@ public class BuildTemplate {
     private void userInputForTokens(boolean atLeastOneToken){
         //if there is at least one token
         if(mData.mUniqueTokenNames.size()+mData.mUniqueListTokenNames.size()>0){
+            //DISPLAY THE LIST OF NON-NESTED, UNIQUE, TOKEN NAMES
+            //===================================================
             //if more than one token value to input
             if(mData.mUniqueTokenNames.size()+mData.mUniqueListTokenNames.size()>1){
                 System.out.println(" "+(mData.mUniqueTokenNames.size()+mData.mUniqueListTokenNames.size())+" unique token values to input: ");
@@ -422,6 +428,8 @@ public class BuildTemplate {
                 System.out.print("LIST(\""+mData.mUniqueListTokenNames.get(v)+"\")");
             }
             System.out.println("\n");
+            //DISPLAY LIST OF TOKENS? (FOR TEMPLATE-CODE DEBUGGING)
+            //====================================================
             //get the list tokens/continue choice 
             String lsOrContinue=getInput("\"ls\"=list files/tokens, [enter]=continue");
             //if the user chose to view the file / token listing
@@ -435,15 +443,55 @@ public class BuildTemplate {
                     //for each token in this file
                     for(int t=0;t<fileTokens.size();t++){
                         //print the token text
-                        System.out.println(" \t"+fileTokens.get(t).trim());
+                        String tokenStr=fileTokens.get(t).trim();
+                        System.out.println("   "+tokenStr);
+                        //if this is a list token
+                        String tokenType=mData.getTokenPart("type", tokenStr);
+                        if(tokenType.equals("list")){
+                            //if this list token is in mTemplateChunks
+                            String tokenName=mData.getTokenPart("name", tokenStr);
+                            if(mData.mTemplateChunks.containsKey(tokenName)){
+                                //if this list token name is in this file
+                                if(mData.mTemplateChunks.get(tokenName).containsKey(path)){
+                                    //for each token (with this name, in this file)
+                                    int numNestedTokens = 0;
+                                    for(int c=0;c<mData.mTemplateChunks.get(tokenName).get(path).size();c++){
+                                        TemplateChunk chunkObj=mData.mTemplateChunks.get(tokenName).get(path).get(c);
+                                        numNestedTokens+=chunkObj.mTokens.size();
+                                    }
+                                    //print the number of nested token 
+                                    System.out.println("      --> contains ("+numNestedTokens+") nested token(s)");
+                                }
+                            }
+                        }
                     }
                 }
             }
+            //HANDLE TOKEN INPUT (THAT CANNOT CONTAIN NESTED TOKEN INPUT)
+            //===========================================================
             //get all of the token input values from the user
             int count=mData.mUniqueTokenNames.size()+mData.mUniqueListTokenNames.size();
             getAllTokenInput(mData.mUniqueTokenNames,0,count,false);System.out.println("");
-            //get all of the <<list>> token type values
-            //*** mUniqueListTokenNames
+            //HANDLE THE LIST TOKENS INPUT
+            //============================
+            //if there are any list tokens 
+            if(mData.mUniqueListTokenNames.size()>0){
+                //for each unique list name
+                for(int l=0;l<mData.mUniqueListTokenNames.size();l++){
+                    //if this list token is in the chunks data
+                    String tName=mData.mUniqueListTokenNames.get(l);
+                    if(mData.mTemplateChunks.containsKey(tName)){
+                        //for each file where this same list appears ***
+                        for (String filePath : mData.mTemplateChunks.get(tName).keySet()) {
+                            //get all of the template chunks, with this name, in this file
+                            ArrayList<TemplateChunk> templateChunks = mData.mTemplateChunks.get(tName).get(filePath);
+                            //***
+                            //get all of the <<list>> token type values
+                            //+++getAllNestedTokenChunksInput(templateChunks);
+                        }
+                    }
+                }
+            }
         }else{
             //no token values to input
             System.out.println(" ZERO unique token values to input: ");
