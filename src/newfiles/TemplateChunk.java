@@ -95,6 +95,17 @@ public class TemplateChunk {
         mChunk=mContent;
         mChunk=mChunk.substring(mTokenStr.length()); //remove the starting mTokenStr
         mChunk=mChunk.substring(0, mChunk.lastIndexOf(mStrMgr.mTokenSeparator+mTokenType+mStrMgr.mEndToken)); //remove the ending mEndToken
+        //INIT THE NESTED LISTS OF THE PARENT TemplateData OBJECT
+        //========================================================
+        if(tdata.mNestedFileTokensLookup==null){tdata.mNestedFileTokensLookup=new HashMap<String, HashMap<String, ArrayList<String>>>();}
+        if(!tdata.mNestedFileTokensLookup.containsKey(mNestKey)){
+            HashMap<String, ArrayList<String>> nestedFileTokens = new HashMap<String, ArrayList<String>>();
+            tdata.mNestedFileTokensLookup.put(mNestKey, nestedFileTokens);
+        }
+        if(!tdata.mNestedFileTokensLookup.get(mNestKey).containsKey(mFilePath)){
+            ArrayList<String> nestedTokens = new ArrayList<String>();
+            tdata.mNestedFileTokensLookup.get(mNestKey).put(mFilePath, nestedTokens);
+        }
         //GET NESTED TEMPLATE CHUNKS
         //==========================
         //if there are any nested token "chunks"
@@ -140,6 +151,8 @@ public class TemplateChunk {
                         if(!tdata.mNestedUniqueListTokenNames.get(mNestKey).contains(cName)){
                            tdata.mNestedUniqueListTokenNames.get(mNestKey).add(cName);
                         }
+                        //now add this tokenStr to the file token lookup 
+                        tdata.mNestedFileTokensLookup.get(mNestKey).get(mFilePath).add(chunkObj.getTokenStr());
                         break;
                 }
             }
@@ -187,6 +200,8 @@ public class TemplateChunk {
                             if(!tdata.mNestedUniqueTokenNames.get(mNestKey).contains(tName)){
                                tdata.mNestedUniqueTokenNames.get(mNestKey).add(tName);
                             }
+                            //now add this tokenStr to the file token lookup 
+                            tdata.mNestedFileTokensLookup.get(mNestKey).get(mFilePath).add(tokenStr);
                         }else{
                             //this is a filename token...
 

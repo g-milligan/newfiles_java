@@ -54,7 +54,7 @@ public class TemplateData {
     //nested list fields
     public static HashMap<String, ArrayList<String>> mNestedUniqueTokenNames; //HashMap<[nestedKey], ArrayList<[tokenName]>> each token name only appears once
     public static HashMap<String, ArrayList<String>> mNestedUniqueListTokenNames; //HashMap<[nestedKey], ArrayList<[tokenName]>> each <<list>> token name only appears once
-    public static HashMap<String, HashMap<String, ArrayList<String>>> mNestedFileTokensLookup; //*** HashMap<[nestedKey], HashMap<[filePath], ArrayList<[tokenItemText]>>>
+    public static HashMap<String, HashMap<String, ArrayList<String>>> mNestedFileTokensLookup; //HashMap<[nestedKey], HashMap<[filePath], ArrayList<[tokenItemText]>>>
     
     public static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
     public static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
