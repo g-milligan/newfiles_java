@@ -129,6 +129,17 @@ public class TemplateChunk {
                             //add the unique token name, if not already in the list
                             mUniqueListTokenNames.add(cName); 
                         }
+                        //INIT THE NESTED LISTS OF THE PARENT TemplateData OBJECT
+                        //========================================================
+                        if(tdata.mNestedUniqueListTokenNames==null){tdata.mNestedUniqueListTokenNames=new HashMap<String, ArrayList<String>>();}
+                        if(!tdata.mNestedUniqueListTokenNames.containsKey(mNestKey)){
+                            ArrayList<String> nestedUniqueTokens = new ArrayList<String>();
+                            tdata.mNestedUniqueListTokenNames.put(mNestKey, nestedUniqueTokens);
+                        }
+                        //if this token name isn't already added to this nested key
+                        if(!tdata.mNestedUniqueListTokenNames.get(mNestKey).contains(cName)){
+                           tdata.mNestedUniqueListTokenNames.get(mNestKey).add(cName);
+                        }
                         break;
                 }
             }
@@ -165,6 +176,17 @@ public class TemplateChunk {
                             }
                             //add this token definition to the list
                             mTokens.add(tokenStr);
+                            //INIT THE NESTED LISTS OF THE PARENT TemplateData OBJECT
+                            //========================================================
+                            if(tdata.mNestedUniqueTokenNames==null){tdata.mNestedUniqueTokenNames=new HashMap<String, ArrayList<String>>();}
+                            if(!tdata.mNestedUniqueTokenNames.containsKey(mNestKey)){
+                                ArrayList<String> nestedUniqueTokens = new ArrayList<String>();
+                                tdata.mNestedUniqueTokenNames.put(mNestKey, nestedUniqueTokens);
+                            }
+                            //if this token name isn't already added to this nested key
+                            if(!tdata.mNestedUniqueTokenNames.get(mNestKey).contains(tName)){
+                               tdata.mNestedUniqueTokenNames.get(mNestKey).add(tName);
+                            }
                         }else{
                             //this is a filename token...
 

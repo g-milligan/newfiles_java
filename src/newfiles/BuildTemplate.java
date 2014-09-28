@@ -236,20 +236,45 @@ public class BuildTemplate {
                             //for each list token
                             int inputNum = i + 1;
                             for(int ls=0;ls<uniqueListTokenNames.size();ls++){
-                                System.out.println(" " + (inputNum+ls) + "/" + count + ") List --> \"" +uniqueListTokenNames.get(ls) + "\"");
-                                
-                                //for each nested token inside this list ***
-                                input=getInput("\"" + stopTxt + "\" to end list, OR, [enter] for next item.");input=input.trim();
-                                //if the user did not elect to quit this list
-                                if(!input.equals(stopTxt)){
-                                    //*** recursive call to:
-                                    //*** userInputForTokens(atLeastOneToken, nestedKey, nestedLevel+1, uniqueTokenNames, uniqueListTokenNames, fileTokensLookup)
+                                //if any tokens were put into the nested list
+                                if(mData.mNestedUniqueTokenNames!=null){
+                                    //get the nested key
+                                    String nestedKey=nestedParentKey;
+                                    if(nestedKey.length()>0){nestedKey+=mStrMgr.mAliasSetter;}
+                                    nestedKey+=uniqueListTokenNames.get(ls);
+                                    //if there is data for this nested key (there should be or else something is wrong)
+                                    if(mData.mNestedUniqueTokenNames.containsKey(nestedKey)){
+                                        //*** nestedFileTokensLookup
+                                        //get the nested token lists, under this parent list token
+                                        ArrayList<String> nestedUniqueTokenNames=mData.mNestedUniqueTokenNames.get(nestedKey);
+                                        ArrayList<String> nestedUniqueListTokenNames=null;
+                                        if(mData.mNestedUniqueListTokenNames!=null){
+                                            if(mData.mNestedUniqueListTokenNames.containsKey(nestedKey)){
+                                                nestedUniqueListTokenNames=mData.mNestedUniqueListTokenNames.get(nestedKey);
+                                            }
+                                        }
+                                        //introduce this list token's input
+                                        System.out.println(" " + (inputNum+ls) + "/" + count + ") List --> \"" +uniqueListTokenNames.get(ls) + "\"");
+
+                                        //for each nested token inside this list ***
+                                        input=getInput("\"" + stopTxt + "\" to end list, OR, [enter] for next item.");input=input.trim();
+                                        //if the user did not elect to quit this list
+                                        if(!input.equals(stopTxt)){
+                                            //*** recursive call to:
+                                            //*** userInputForTokens(atLeastOneToken, nestedKey, nestedLevel+1, nestedUniqueTokenNames, nestedUniqueListTokenNames, nestedFileTokensLookup)
+                                        }else{
+                                            //end the list
+                                            System.out.println(" \t--> End \"" +uniqueListTokenNames.get(ls) + "\" list");
+                                            break;
+                                        }
+                                    }
                                 }else{
-                                    //end the list
-                                    System.out.println(" \t--> End \"" +uniqueListTokenNames.get(ls) + "\" list");
-                                    break;
+                                    //the template contains a list that doesn't have any nested tokens...
+                                    
+                                    System.out.println(" " + (inputNum+ls) + "/" + count + ") List --> \"" +uniqueListTokenNames.get(ls) + "\"");
+                                    input=getInput("Repeat this sub-section, how many times?");
+                                    //***
                                 }
-                                
                             }
                         }
                     }

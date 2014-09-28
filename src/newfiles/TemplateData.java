@@ -42,16 +42,20 @@ Or email <pandowerx@gmail.com>
 ------------------------------------------------------------------------------
  */
 public class TemplateData {
-    //fields 
+    //list fields 
     public static HashMap<String, String> mFileContentLookup; //HashMap<[filePath], [fileContent]>
     public static HashMap<String, ArrayList<String>> mFileTokensLookup; //HashMap<[filePath], ArrayList<[tokenItemText]>>
     public static HashMap<String, String> mFilenameXmlOverwriteLookup; //HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
     public static HashMap<String, HashMap<String, String>> mFileAliasesLookup; //HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>
     public static ArrayList<String> mUniqueTokenNames; //ArrayList<[tokenName]> each token name only appears once
-    
+    //chunk list fields
     public static ArrayList<String> mUniqueListTokenNames; //ArrayList<[tokenName]> each <<list>> token name only appears once
     public static HashMap<String, HashMap<String, ArrayList<TemplateChunk>>> mTemplateChunks; //HashMap<[tokenName], HashMap<[filePath], ArrayList<TemplateChunk>>>
-
+    //nested list fields
+    public static HashMap<String, ArrayList<String>> mNestedUniqueTokenNames; //HashMap<[nestedKey], ArrayList<[tokenName]>> each token name only appears once
+    public static HashMap<String, ArrayList<String>> mNestedUniqueListTokenNames; //HashMap<[nestedKey], ArrayList<[tokenName]>> each <<list>> token name only appears once
+    public static HashMap<String, HashMap<String, ArrayList<String>>> mNestedFileTokensLookup; //*** HashMap<[nestedKey], HashMap<[filePath], ArrayList<[tokenItemText]>>>
+    
     public static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
     public static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
     public static HashMap<String, String> mChangedFileNames; //HashMap<[filePath], [changedFileName]>
