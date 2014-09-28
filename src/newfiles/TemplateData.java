@@ -393,6 +393,8 @@ public class TemplateData {
         }else{
             mChangedFileDirs.clear();
         }
+        //GET TOKEN DATA FROM _filenames.xml SPECIAL FILE
+        //===============================================
         //get the _filenames.xml file (if it exists)
         HashMap<String, String> filenamesFromXml = new HashMap<String, String>();
         File fNamesXmlFile=getXmlFilenamesFile();
@@ -415,6 +417,8 @@ public class TemplateData {
                 filenameTokens=getTokensFromContent(filenamesContent);
             }
         }
+        //LOOP THROUGH EACH FILE
+        //======================
         //for each file
         boolean atLeastOneToken = false;
         for(int f=0;f<mIncludeFiles.size();f++){
@@ -427,6 +431,25 @@ public class TemplateData {
             if(contents!=null){
                 //load the data for this file
                 atLeastOneToken = loadContentData(mIncludeFiles.get(f).getPath(), contents, fNamesXmlFile, filenamesFromXml, filenameTokens);
+            }
+        }
+        //ASSEMBLE HIERARCHY OF NESTED LIST TOKENS AND SUB-TOKENS
+        //=======================================================
+        //if there are any list tokens 
+        if(mUniqueListTokenNames.size()>0){
+            //for each unique list name
+            for(int l=0;l<mUniqueListTokenNames.size();l++){
+                //if this list token is in the chunks data
+                String tName=mUniqueListTokenNames.get(l);
+                if(mTemplateChunks.containsKey(tName)){
+
+                    //for each file where this same list appears ***
+                    for (String fPath : mTemplateChunks.get(tName).keySet()) {
+                        //get all of the template chunks, with this name, in this file
+                        ArrayList<TemplateChunk> templateChunks = mTemplateChunks.get(tName).get(fPath);
+                        //***
+                    }
+                }
             }
         }
         return atLeastOneToken;
