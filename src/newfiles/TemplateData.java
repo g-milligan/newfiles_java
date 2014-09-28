@@ -74,7 +74,7 @@ public class TemplateData {
         mIncludeFiles=includeFiles;
         mUseTemplatePath=useTemplatePath;
     }
-    //load the template content for one nested section or one file
+    //load the template content for one nested section inside one file
     public boolean loadContentData(String filePath, String contents, File fNamesXmlFile, HashMap<String, String> filenamesFromXml, ArrayList<String> filenameTokens){
         boolean atLeastOneToken = false;
         //if this file has a <filename> in the _filenames.xml file
@@ -107,7 +107,7 @@ public class TemplateData {
                     //get the chunk
                     String chunkContents=tokenChunks.get(c);
                     //load the template chunk data (including recursively getting nested chunks inside this chunk)
-                    TemplateChunk chunkObj=new TemplateChunk(this, filePath, c + "", chunkContents);
+                    TemplateChunk chunkObj=new TemplateChunk(this, "", filePath, c + "", chunkContents);
                     //get the token values
                     String cName=chunkObj.getTokenName();
                     String cType=chunkObj.getTokenType();
@@ -431,25 +431,6 @@ public class TemplateData {
             if(contents!=null){
                 //load the data for this file
                 atLeastOneToken = loadContentData(mIncludeFiles.get(f).getPath(), contents, fNamesXmlFile, filenamesFromXml, filenameTokens);
-            }
-        }
-        //ASSEMBLE HIERARCHY OF NESTED LIST TOKENS AND SUB-TOKENS
-        //=======================================================
-        //if there are any list tokens 
-        if(mUniqueListTokenNames.size()>0){
-            //for each unique list name
-            for(int l=0;l<mUniqueListTokenNames.size();l++){
-                //if this list token is in the chunks data
-                String tName=mUniqueListTokenNames.get(l);
-                if(mTemplateChunks.containsKey(tName)){
-
-                    //for each file where this same list appears ***
-                    for (String fPath : mTemplateChunks.get(tName).keySet()) {
-                        //get all of the template chunks, with this name, in this file
-                        ArrayList<TemplateChunk> templateChunks = mTemplateChunks.get(tName).get(fPath);
-                        //***
-                    }
-                }
             }
         }
         return atLeastOneToken;

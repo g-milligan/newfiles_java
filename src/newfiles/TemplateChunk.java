@@ -37,13 +37,15 @@ Or email <pandowerx@gmail.com>
  */
 public class TemplateChunk {
     //list fields 
-    public ArrayList<TemplateChunk> mTemplateChunks; //the nested template chunks (inside this template chunk)
+    public HashMap<String, ArrayList<TemplateChunk>> mNestedTemplateChunks; //HashMap<[nestedListTokenName], ArrayList<TemplateChunk>>... the nested template chunks (inside this template chunk)
     public ArrayList<String> mUniqueListTokenNames;
     public ArrayList<String> mUniqueTokenNames;
     public HashMap<String, String> mAliasesLookup; //HashMap<[tokenAlias], [tokenStr]>
     public ArrayList<String> mTokens; //ArrayList<[tokenStr]>
     //fields 
     private String mIndex;
+    private int mNestLevel; //how many chunk tokens parent this token?
+    private String mNestKey;
     private String mFilePath;
     private String mContent; //the full content, eg: "<<list:my token>> ... inner chunk ... :list>>"
     private String mChunk; //the full content MINUS the start and close tags, eg: "... inner chunk ..."
@@ -56,6 +58,7 @@ public class TemplateChunk {
     private StrMgr mStrMgr;
     //get property methods
     public String getIndex(){return mIndex;}
+    public int getNestLevel(){return mNestLevel;}
     public String getContent(){return mContent;}
     public String getFilePath(){return mFilePath;}
     public String getChunk(){return mChunk;}
@@ -64,7 +67,7 @@ public class TemplateChunk {
     public String getTokenType(){return mTokenType;}
     public String getPlaceholder(){return mStrMgr.mStartToken+"placeholder"+mStrMgr.mTokenSeparator+mTokenType+mStrMgr.mTokenSeparator+mIndex+mStrMgr.mEndToken;}
     //constructor
-    public TemplateChunk(TemplateData tdata, String filePath, String index, String contents){
+    public TemplateChunk(TemplateData tdata, String parentNestKey, String filePath, String index, String contents){
         //init objects
         mTemplateData=tdata; //init object with useful methods
         mStrMgr=new StrMgr();
@@ -72,17 +75,22 @@ public class TemplateChunk {
         mUniqueListTokenNames=new ArrayList<String>();
         mUniqueTokenNames=new ArrayList<String>();
         mAliasesLookup=new HashMap<String, String>();
-        mTemplateChunks=new ArrayList<TemplateChunk>();
+        mNestedTemplateChunks=new HashMap<String, ArrayList<TemplateChunk>>();
         mTokens=new ArrayList<String>();
         //start processing values
         mFilePath=filePath;
         mIndex=index;
+        mNestLevel=mIndex.split("_").length;
         mContent=contents;
         mTokenStr=mTemplateData.getTokenHeadFromChunk(mContent);
         //set token parts
         mTokenParts=mTokenStr.split(mStrMgr.mTokenSeparator);
         mTokenName=mTemplateData.getTokenPart("name", mTokenParts);
         mTokenType=mTemplateData.getTokenPart("type", mTokenParts);
+        //nested key
+        mNestKey=parentNestKey;
+        if(mNestKey.length()>0){mNestKey+=mStrMgr.mAliasSetter;}
+        mNestKey+=mTokenName;
         //get the mChunk
         mChunk=mContent;
         mChunk=mChunk.substring(mTokenStr.length()); //remove the starting mTokenStr
@@ -96,16 +104,24 @@ public class TemplateChunk {
             for(int c=0;c<tokenChunks.size();c++){
                 //get the chunk
                 String chunkContents=tokenChunks.get(c);
-                //recursively add to the list of nested template chunks
-                TemplateChunk chunkObj=new TemplateChunk(mTemplateData, mFilePath, mIndex + "_" + c, chunkContents);
-                mTemplateChunks.add(chunkObj);
+                //load the nested template chunk object
+                TemplateChunk chunkObj=new TemplateChunk(mTemplateData, mNestKey, mFilePath, mIndex + "_" + c, chunkContents);
+                //get some key values from the chunk
+                String cType=chunkObj.getTokenType();
+                String cName=chunkObj.getTokenName();
+                //if this nested list name is not already listed
+                if(!mNestedTemplateChunks.containsKey(cName)){
+                    //init the chunk at this listed key
+                    ArrayList<TemplateChunk> nestedChunksList = new ArrayList<TemplateChunk>();
+                    mNestedTemplateChunks.put(cName, nestedChunksList);
+                }
+                //add this chunk to the key position
+                mNestedTemplateChunks.get(cName).add(chunkObj);
                 //replace the nested chunk with a placeholder
                 mChunk=mChunk.replace(chunkObj.getContent(), chunkObj.getPlaceholder());
                 //add this token definition to the list
                 mTokens.add(chunkObj.getTokenStr());
                 //depending on the token type
-                String cType=chunkObj.getTokenType();
-                String cName=chunkObj.getTokenName();
                 switch(cType){
                     case "list": 
                         //if this token name isn't already in the list
