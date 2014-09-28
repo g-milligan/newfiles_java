@@ -51,13 +51,13 @@ public class TemplateData {
     //chunk list fields
     public static ArrayList<String> mUniqueListTokenNames; //ArrayList<[tokenName]> each <<list>> token name only appears once
     public static HashMap<String, HashMap<String, ArrayList<TemplateChunk>>> mTemplateChunks; //HashMap<[tokenName], HashMap<[filePath], ArrayList<TemplateChunk>>>
-    //nested list fields
+    //nested list fields... not [nestedKey] values are in the form: "token name=>nested token name=>another nested name"
     public static HashMap<String, ArrayList<String>> mNestedUniqueTokenNames; //HashMap<[nestedKey], ArrayList<[tokenName]>> each token name only appears once
     public static HashMap<String, ArrayList<String>> mNestedUniqueListTokenNames; //HashMap<[nestedKey], ArrayList<[tokenName]>> each <<list>> token name only appears once
     public static HashMap<String, HashMap<String, ArrayList<String>>> mNestedFileTokensLookup; //HashMap<[nestedKey], HashMap<[filePath], ArrayList<[tokenItemText]>>>
     
     public static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
-    public static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
+    public static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]> [tokenName] will be the nested key for nested token values
     public static HashMap<String, String> mChangedFileNames; //HashMap<[filePath], [changedFileName]>
     public static HashMap<String, String> mChangedFileDirs; //HashMap<[filePath], [changedFileDirectories]>
     

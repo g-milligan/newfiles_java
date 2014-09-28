@@ -312,14 +312,16 @@ public class BuildTemplate {
                 if(i<count){
                     //if NOT already saved all input values (for NON-list tokens)
                     if(i<uniqueTokenNames.size()){
+                        //if this token key is nested under a parent token
+                        String tokenInputKey=uniqueTokenNames.get(i);
+                        if(nestedParentKey.length()>0){
+                            //this token input key should reflect the nestedKey hierarchy
+                            tokenInputKey=nestedParentKey+mStrMgr.mAliasSetter+tokenInputKey;
+                        }
                         //add this input value to the list
-                        mData.mTokenInputValues.put(uniqueTokenNames.get(i), input);
+                        mData.mTokenInputValues.put(tokenInputKey, input);
                         //record the last token name to be assigned a value
-                        lastTokenName=uniqueTokenNames.get(i);
-                    }else{
-                        //this is input for a list token...
-
-                        //***
+                        lastTokenName=tokenInputKey;
                     }
                 }
             }
