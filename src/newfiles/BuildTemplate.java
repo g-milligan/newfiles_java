@@ -198,10 +198,12 @@ public class BuildTemplate {
         for(int n=0;n<nestedLevel;n++){
            nestedPrefix+=".."; 
         }
-        String backTxt="<<";
-        String stopTxt=">>";
+        String backTxt=mStrMgr.mStartToken; //<<
+        String stopTxt=mStrMgr.mEndToken; //>>
         //if NOT moved back
         if(!isBack){
+            //START DIRECTIONS
+            //================
             //display direction on how to move back
             System.out.println("\n "+nestedPrefix+"--------------------");
             System.out.println(" "+nestedPrefix+"DEFINE VALUES: "+nestedParentKey);
@@ -215,6 +217,8 @@ public class BuildTemplate {
             if(i<count){
                 //if this is one of the NON-list-token values
                 if(i<uniqueTokenNames.size()){
+                    //ACCEPT ONE USER INPUT VALUE
+                    //=======================
                     //if this token requires specific value options
                     ArrayList<String> inputOptions = new ArrayList<String>();
                     if(mData.mUniqueTokenNameOptions.containsKey(uniqueTokenNames.get(i))){
@@ -237,6 +241,8 @@ public class BuildTemplate {
                     //if there are any list token names
                     if(uniqueListTokenNames!=null){
                         if(uniqueListTokenNames.size()>0){
+                            //HANDLE THE LIST TOKENS
+                            //======================
                             //for each list token
                             int inputNum = i + 1;
                             for(int ls=0;ls<uniqueListTokenNames.size();ls++){
@@ -260,18 +266,19 @@ public class BuildTemplate {
                                         }else{nestedUniqueListTokenNames=new ArrayList<String>();}
                                         //introduce this list token's input
                                         System.out.println(" " + nestedPrefix + (inputNum+ls) + "/" + count + ") List --> \"" +uniqueListTokenNames.get(ls) + "\"");
-
-                                        //for each nested token inside this list ***
-                                        input=getInput("\"" + nestedPrefix + stopTxt + "\" to end list, OR, [enter] for next item.");input=input.trim();
+                                        //before this list starts... end or continue?
+                                        String continueOrStopList="\"" + nestedPrefix + stopTxt + "\" to end list, OR, [enter] to continue.";
+                                        input=getInput(continueOrStopList);input=input.trim();
                                         //if the user did not elect to quit this list
-                                        if(!input.equals(stopTxt)){
-                                            //recursive call to ask for this nested template section's token values ***
+                                        while(!input.equals(stopTxt)){
+                                            //recursive call to ask for this nested template section's token values
                                             userInputForTokens(true, nestedKey, nestedLevel+1, nestedUniqueTokenNames, nestedUniqueListTokenNames, nestedFileTokensLookup);
-                                        }else{
-                                            //end the list
-                                            System.out.println(" \t--> End \"" +uniqueListTokenNames.get(ls) + "\" list");
-                                            break;
+                                            //end or continue?
+                                            input=getInput(continueOrStopList);input=input.trim();
                                         }
+                                        //the list has ended
+                                        System.out.println(" \t--> End \"" +uniqueListTokenNames.get(ls) + "\" list");
+                                        break;
                                     }
                                 }else{
                                     //the template contains a list that doesn't have any nested tokens...
@@ -285,6 +292,8 @@ public class BuildTemplate {
                     }
                 }
             }else{
+                //ALL SET; BUILD PROJECT OR GO BACK?
+                //==================================
                 //entered all of the values
                 System.out.println("");
                 System.out.println(" Target root path --> " + mTargetDir+File.separator+"...");
@@ -292,6 +301,8 @@ public class BuildTemplate {
             }
             //if the input is the back text
             if(input.equals(backTxt)){
+                //ROLL BACK TO THE PREVIOUS INPUT VALUE (LIKE UNDO)
+                //=================================================
                 //print the back message
                 System.out.println("\n \tback... \n");
                 //make sure the index won't go below zero when backtracking
@@ -312,12 +323,26 @@ public class BuildTemplate {
                 if(i<count){
                     //if NOT already saved all input values (for NON-list tokens)
                     if(i<uniqueTokenNames.size()){
+                        //STORE THE INPUT VALUE FOR THIS TOKEN
+                        //====================================
                         //if this token key is nested under a parent token
+                        String itemIndex="";
                         String tokenInputKey=uniqueTokenNames.get(i);
                         if(nestedParentKey.length()>0){
+                            //nested tokens can have multiple values, so the input value key should end in an index number
+                            itemIndex=mStrMgr.mTokenSeparator + "0";
                             //this token input key should reflect the nestedKey hierarchy
                             tokenInputKey=nestedParentKey+mStrMgr.mAliasSetter+tokenInputKey;
                         }
+                        //while this tokenInputKey is already in the list (it will be in the list multiple times, for each token under a list parent token item)
+                        int itemIndexInt=0;
+                        while(mData.mTokenInputValues.containsKey(tokenInputKey + itemIndex)){
+                            //try a higher index value to see if this one is unique
+                            itemIndexInt++;
+                            itemIndex = mStrMgr.mTokenSeparator + itemIndexInt;
+                        }
+                        //add the index (if any) to the end of the tokenInputKey
+                        tokenInputKey+=itemIndex;
                         //add this input value to the list
                         mData.mTokenInputValues.put(tokenInputKey, input);
                         //record the last token name to be assigned a value
