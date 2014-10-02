@@ -73,7 +73,7 @@ public class BuildTemplate {
                 //1) look through all of the mIncludeFiles and load the content/token/alias hash lookups
                 boolean atLeastOneToken = mData.loadFilesData();
                 //2) accept user input for tokens
-                userInputForTokens(atLeastOneToken, "", 0, mData.mUniqueTokenNames, mData.mUniqueListTokenNames, mData.mFileTokensLookup);
+                userInputForTokens(atLeastOneToken, "", 0, 0, mData.mUniqueTokenNames, mData.mUniqueListTokenNames, mData.mFileTokensLookup);
                 //3) get the template files' contents with replaced tokens 
                 setTokenValues();
                 //4) write the template files
@@ -195,8 +195,8 @@ public class BuildTemplate {
                     howdy
          */
         String nestedPrefix="";
-        for(int n=0;n<nestedLevel;n++){
-           nestedPrefix+=".."; 
+        if(nestedLevel > 0){
+           nestedPrefix+="  ^"+nestedLevel+"/  "; 
         }
         String backTxt=mStrMgr.mStartToken; //<<
         String stopTxt=mStrMgr.mEndToken; //>>
@@ -206,8 +206,13 @@ public class BuildTemplate {
             //================
             //display direction on how to move back
             System.out.println("\n "+nestedPrefix+"--------------------");
-            System.out.println(" "+nestedPrefix+"DEFINE VALUES: "+nestedParentKey);
-            System.out.println(" "+nestedPrefix+"Type \""+backTxt+"\" to back-track... \n");
+            if(nestedLevel > 0){
+                System.out.println(" "+nestedPrefix+"DEFINE ONE ITEM: "+nestedParentKey);
+                System.out.println(" "+nestedPrefix+"Type \""+backTxt+"\" to back-track... \""+stopTxt+"\" to cancel current item / end list... \n");
+            }else{
+                System.out.println(" "+nestedPrefix+"DEFINE VALUES: ");
+                System.out.println(" "+nestedPrefix+"Type \""+backTxt+"\" to back-track... \n");
+            }
         }
         //for each input value to enter
         String lastTokenName=null;
@@ -266,15 +271,13 @@ public class BuildTemplate {
                                         }else{nestedUniqueListTokenNames=new ArrayList<String>();}
                                         //introduce this list token's input
                                         System.out.println(" " + nestedPrefix + (inputNum+ls) + "/" + count + ") List --> \"" +uniqueListTokenNames.get(ls) + "\"");
-                                        //before this list starts... end or continue?
-                                        String continueOrStopList="\"" + nestedPrefix + stopTxt + "\" to end list, OR, [enter] to continue.";
-                                        input=getInput(continueOrStopList);input=input.trim();
                                         //if the user did not elect to quit this list
-                                        while(!input.equals(stopTxt)){
+                                        boolean levelIsComplete = false;
+                                        int listItemIndex = 0;
+                                        while(!levelIsComplete){
                                             //recursive call to ask for this nested template section's token values
-                                            userInputForTokens(true, nestedKey, nestedLevel+1, nestedUniqueTokenNames, nestedUniqueListTokenNames, nestedFileTokensLookup);
-                                            //end or continue?
-                                            input=getInput(continueOrStopList);input=input.trim();
+                                            levelIsComplete = userInputForTokens(true, nestedKey, nestedLevel+1, listItemIndex, nestedUniqueTokenNames, nestedUniqueListTokenNames, nestedFileTokensLookup);
+                                            listItemIndex++;
                                         }
                                         //the list has ended
                                         System.out.println(" \t--> End \"" +uniqueListTokenNames.get(ls) + "\" list");
@@ -292,12 +295,15 @@ public class BuildTemplate {
                     }
                 }
             }else{
-                //ALL SET; BUILD PROJECT OR GO BACK?
-                //==================================
-                //entered all of the values
-                System.out.println("");
-                System.out.println(" Target root path --> " + mTargetDir+File.separator+"...");
-                input=getInput("Ok, got it. Hit [enter] to build");
+                //if not nested in a list
+                if(nestedLevel < 1){
+                    //ALL SET; BUILD PROJECT OR GO BACK?
+                    //==================================
+                    //entered all of the values
+                    System.out.println("");
+                    System.out.println(" Target root path --> " + mTargetDir+File.separator+"...");
+                    input=getInput("Ok, got it. Hit [enter] to build");
+                }
             }
             //if the input is the back text
             if(input.equals(backTxt)){
@@ -486,46 +492,57 @@ public class BuildTemplate {
         return inFileNameTokens;
     }
     //accept user input for each of the unique tokens (inside one nested level)
-    private void userInputForTokens(boolean atLeastOneToken, String nestedParentKey, int nestedLevel, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, HashMap<String, ArrayList<String>> fileTokensLookup){
+    private boolean userInputForTokens(boolean atLeastOneToken, String nestedParentKey, int nestedLevel, int listItemIndex, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, HashMap<String, ArrayList<String>> fileTokensLookup){
+        boolean levelIsComplete = true;
         //if there is at least one token
         if(uniqueTokenNames.size()+uniqueListTokenNames.size()>0){
-            String nestedPrefix="";
-            for(int n=0;n<nestedLevel;n++){
-               nestedPrefix+=".."; 
+            String nestedPrefix=""; String perItem="";
+            if(nestedLevel > 0){
+               nestedPrefix+="  ^"+nestedLevel+"/  "; 
+               perItem = " (per item)";
+               levelIsComplete = false;
             }
             //DISPLAY THE LIST OF NON-NESTED, UNIQUE, TOKEN NAMES
             //===================================================
-            //if more than one token value to input
-            if(uniqueTokenNames.size()+uniqueListTokenNames.size()>1){
-                System.out.println(" "+nestedPrefix+(uniqueTokenNames.size()+uniqueListTokenNames.size())+" unique token values to input: ");
-            }else{
-               //only one token value to input 
-               System.out.println(" "+nestedPrefix+"only ONE token value to input: ");
-            }
-            //for each token value to input
-            System.out.print(" "+nestedPrefix);
-            for(int v=0;v<uniqueTokenNames.size();v++){
-                //if NOT the first unique token name
-                if(v!=0){
-                    System.out.print(", ");
+            //if not Nth item in a list
+            if(listItemIndex==0){
+                //if more than one token value to input
+                if(uniqueTokenNames.size()+uniqueListTokenNames.size()>1){
+                    System.out.println(" "+nestedPrefix+(uniqueTokenNames.size()+uniqueListTokenNames.size())+" unique token values to input"+perItem+": ");
+                }else{
+                   //only one token value to input 
+                   System.out.println(" "+nestedPrefix+"only ONE token value to input"+perItem+": ");
                 }
-                //print the token name
-                System.out.print("\""+uniqueTokenNames.get(v)+"\"");
-            }
-            //for each <<list>> token value to input
-            for(int v=0;v<uniqueListTokenNames.size();v++){
-                //if NOT the first unique token name
-                if(v!=0||uniqueTokenNames.size()>0){
-                    System.out.print(", ");
+                //for each token value to input
+                System.out.print(" "+nestedPrefix);
+                for(int v=0;v<uniqueTokenNames.size();v++){
+                    //if NOT the first unique token name
+                    if(v!=0){
+                        System.out.print(", ");
+                    }
+                    //print the token name
+                    System.out.print("\""+uniqueTokenNames.get(v)+"\"");
                 }
-                //print the token name
-                System.out.print("LIST(\""+uniqueListTokenNames.get(v)+"\")");
+                //for each <<list>> token value to input
+                for(int v=0;v<uniqueListTokenNames.size();v++){
+                    //if NOT the first unique token name
+                    if(v!=0||uniqueTokenNames.size()>0){
+                        System.out.print(", ");
+                    }
+                    //print the token name
+                    System.out.print("LIST(\""+uniqueListTokenNames.get(v)+"\")");
+                }
             }
-            System.out.println("\n");
             //DISPLAY LIST OF TOKENS? (FOR TEMPLATE-CODE DEBUGGING)
             //====================================================
-            //get the list tokens/continue choice 
-            String lsOrContinue=getInput(nestedPrefix+"\"ls\"=list files/tokens, [enter]=continue");
+            String endListEntry = "";String lsOrContinue="";
+            if(nestedLevel>0){
+                endListEntry="\">>\"=cancel item/list-entry, ";
+            }else{
+                System.out.println("\n");
+                //get the list tokens/continue choice 
+                lsOrContinue=getInput(nestedPrefix+"\"ls\"=list files/tokens, "+endListEntry+"[enter]=continue");
+            }
             //if the user chose to view the file / token listing
             if(lsOrContinue.toLowerCase().equals("ls")){
                 //for each file (that contains at least one token)
@@ -570,6 +587,7 @@ public class BuildTemplate {
             //no token values to input
             System.out.println(" ZERO unique token values to input: ");
         }
+        return levelIsComplete;
     }
     //replace the aliases inside fileContent with their associated value (if the alias is inside fileContent)
     private String getReplacedAliases(String fileContent, HashMap<String, String> aliasValueLookup)
