@@ -178,7 +178,7 @@ public class BuildTemplate {
         return line;
     }
     //get the input from the user for all of the template tokens
-    private void getAllTokenInput(String nestedParentKey, int nestedLevel, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, int startIndex, int count, boolean isBack){
+    private void getAllTokenInput(String nestedParentKey, int nestedLevel, int listItemIndex, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, int startIndex, int count, boolean isBack){
         /*ASSIGN REAL USER VALUES TO EACH UNIQUE TOKEN NAME
             1) mTokenInputValues
             load a HashMap: HashMap<[tokenName], [userInput]>
@@ -207,7 +207,7 @@ public class BuildTemplate {
             //display direction on how to move back
             System.out.println("\n "+nestedPrefix+"--------------------");
             if(nestedLevel > 0){
-                System.out.println(" "+nestedPrefix+"DEFINE ONE ITEM: "+nestedParentKey);
+                System.out.println(" "+nestedPrefix+"DEFINE ONE ITEM: "+nestedParentKey+" (" + (listItemIndex + 1) + ")");
                 System.out.println(" "+nestedPrefix+"Type \""+backTxt+"\" to back-track... \""+stopTxt+"\" to cancel current item / end list... \n");
             }else{
                 System.out.println(" "+nestedPrefix+"DEFINE VALUES: ");
@@ -273,7 +273,6 @@ public class BuildTemplate {
                                         System.out.println(" " + nestedPrefix + (inputNum+ls) + "/" + count + ") List --> \"" +uniqueListTokenNames.get(ls) + "\"");
                                         //if the user did not elect to quit this list
                                         boolean levelIsComplete = false;
-                                        int listItemIndex = 0;
                                         while(!levelIsComplete){
                                             //recursive call to ask for this nested template section's token values
                                             levelIsComplete = userInputForTokens(true, nestedKey, nestedLevel+1, listItemIndex, nestedUniqueTokenNames, nestedUniqueListTokenNames, nestedFileTokensLookup);
@@ -322,7 +321,7 @@ public class BuildTemplate {
                     }
                 }
                 //recursive move back
-                getAllTokenInput(nestedParentKey, nestedLevel,uniqueTokenNames,uniqueListTokenNames,i-1,count,true);
+                getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i-1,count,true);
                 break;
             }else{
                 //if NOT already saved all input values
@@ -336,16 +335,9 @@ public class BuildTemplate {
                         String tokenInputKey=uniqueTokenNames.get(i);
                         if(nestedParentKey.length()>0){
                             //nested tokens can have multiple values, so the input value key should end in an index number
-                            itemIndex=mStrMgr.mTokenSeparator + "0";
+                            itemIndex=mStrMgr.mTokenSeparator + listItemIndex;
                             //this token input key should reflect the nestedKey hierarchy
                             tokenInputKey=nestedParentKey+mStrMgr.mAliasSetter+tokenInputKey;
-                        }
-                        //while this tokenInputKey is already in the list (it will be in the list multiple times, for each token under a list parent token item)
-                        int itemIndexInt=0;
-                        while(mData.mTokenInputValues.containsKey(tokenInputKey + itemIndex)){
-                            //try a higher index value to see if this one is unique
-                            itemIndexInt++;
-                            itemIndex = mStrMgr.mTokenSeparator + itemIndexInt;
                         }
                         //add the index (if any) to the end of the tokenInputKey
                         tokenInputKey+=itemIndex;
@@ -487,7 +479,7 @@ public class BuildTemplate {
             }
             System.out.println("");
             //get all of the token input values from the user
-            getAllTokenInput("",0,inFileNameTokens,null,0,inFileNameTokens.size(),false);System.out.println("");
+            getAllTokenInput("",0,0,inFileNameTokens,null,0,inFileNameTokens.size(),false);System.out.println("");
         }
         return inFileNameTokens;
     }
@@ -582,7 +574,7 @@ public class BuildTemplate {
             //===========================================================
             //get all of the token input values from the user
             int count=uniqueTokenNames.size()+uniqueListTokenNames.size();
-            getAllTokenInput(nestedParentKey,nestedLevel,uniqueTokenNames,uniqueListTokenNames,0,count,false);System.out.println("");
+            getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,0,count,false);System.out.println("");
         }else{
             //no token values to input
             System.out.println(" ZERO unique token values to input: ");
