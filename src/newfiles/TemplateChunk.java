@@ -289,12 +289,24 @@ public class TemplateChunk {
             //NOW THAT ALL OF THE VALUES AND VALUE-PLACEHOLDERS ARE MATCHED UP, 
             //AND ALL OF THE NESTED PLACEHOLDERS HAVE BEEN REPLACED BY REAL CONTENT...
             //========================================================================
+            String actualValue="";
             //for each list item (at this level)
             for (String itemIndexStr : oneLevelListValues.keySet()) {
                 //HashMap<[tokenStrOrAlias], [tokenValue]>
                 HashMap<String, String> itemVals=oneLevelListValues.get(itemIndexStr);
-                //***
+                String thisItemChunkStr=oneItemChunkStr;
+                //for each input-value inside this item
+                for(String tokenStrOrAlias : itemVals.keySet()){
+                    //get the value
+                    String theValue=itemVals.get(tokenStrOrAlias);
+                    //replace any token-alias or token-str with this value (as needed) for one list item
+                    thisItemChunkStr=thisItemChunkStr.replace(tokenStrOrAlias, theValue);
+                }
+                //one list item is complete... add it to the actualValue
+                actualValue+=thisItemChunkStr;
             }
+            //the template chunk is complete... replace the placeholder with the actual template text
+            fileContent=fileContent.replace(chunkPlaceholderStr, actualValue);
         }else{
             //no tokens inside this chunk...
             
