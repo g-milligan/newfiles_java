@@ -65,7 +65,7 @@ public class TemplateChunk {
     public String getTokenStr(){return mTokenStr;}
     public String getTokenName(){return mTokenName;}
     public String getTokenType(){return mTokenType;}
-    public String getPlaceholder(){return mStrMgr.mStartToken+"placeholder"+mStrMgr.mTokenSeparator+mTokenType+mStrMgr.mTokenSeparator+mIndex+mStrMgr.mEndToken;}
+    public String getPlaceholder(){return mStrMgr.mStartToken+mStrMgr.mPlaceholderChunkName+mStrMgr.mTokenSeparator+mTokenType+mStrMgr.mTokenSeparator+mIndex+mStrMgr.mEndToken;}
     //constructor
     public TemplateChunk(TemplateData tdata, String parentNestKey, String filePath, String index, String contents){
         //init objects

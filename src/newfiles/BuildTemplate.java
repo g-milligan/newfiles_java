@@ -762,7 +762,7 @@ public class BuildTemplate {
         
         //for each template file
         for (String filePath : mData.mFileTokensLookup.keySet()) {
-            //get key values related to this file
+            //get content in this file
             String fileContent=mData.mFileContentLookup.get(filePath);
             //if this file is NOT a non-text file, eg: an image
             ArrayList<String> tokens=mData.mFileTokensLookup.get(filePath);
@@ -775,6 +775,33 @@ public class BuildTemplate {
                     <<filename:n:my/path:"overwrite">> --> _filenames.xml
                     <<var:u:another thing => [yep]>>
              */
+            //REPLACE LIST-TOKEN CHUNK PLACEHOLDERS
+            //=====================================
+            //if this file's content contains a list chunk placeholder
+            if(fileContent.contains(mStrMgr.mStartToken+mStrMgr.mPlaceholderChunkName+mStrMgr.mTokenSeparator+"list")){
+                //if there are any list token chunks (there should be since the file contains a list placeholder)
+                if(mData.mUniqueListTokenNames.size()>0){
+                    //for each unique list token (at this first level)
+                    for(int lt=0;lt<mData.mUniqueListTokenNames.size();lt++){
+                        //if this list token is stored as a template chunk (it should be)
+                        String listTokenName=mData.mUniqueListTokenNames.get(lt);
+                        if(mData.mTemplateChunks.containsKey(listTokenName)){
+                            //if this list token name is used in THIS file
+                            if(mData.mTemplateChunks.get(listTokenName).containsKey(filePath)){
+                                //get the list of list tokens (inside this file)
+                                ArrayList<TemplateChunk> chunkObjs=mData.mTemplateChunks.get(listTokenName).get(filePath);
+                                //for each list token inside this file
+                                for(int c=0;c<chunkObjs.size();c++){
+                                    TemplateChunk chunkObj=chunkObjs.get(c);
+                                    //get the placeholder for this chunk (inside the fileContent)
+                                    String chunkPlaceholderStr=chunkObj.getPlaceholder();
+                                    //***
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             //GET FORMATTED VALUES FOR ALIASES AND REMOVE ALIAS DECLARATIONS FROM FILE CONTENTS
             //=================================================================================
             //if there are any aliased tokens in this file,
