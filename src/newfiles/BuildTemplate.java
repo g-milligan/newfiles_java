@@ -392,6 +392,22 @@ public class BuildTemplate {
                     if(!input.equals(backTxt)){
                         //stop the list item entry
                         listItemIndex=-1;
+                        //if this isn't the first input-value inside an item
+                        if(i!=0){
+                            //CANCEL A PARTIALLY COMPLETE LIST ITEM BY DELETING THE INCOMPLETE VALUE-SET
+                            //==========================================================================
+                            
+                            //for each input-value name inside this cancelled item
+                            for(int u=0;u<uniqueTokenNames.size();u++){
+                                //get this input-value's name
+                                String prevItemName = nestedParentKey + mStrMgr.mAliasSetter + uniqueTokenNames.get(u) + mStrMgr.mTokenSeparator + listItemIndex;
+                                //if this input-value was saved
+                                if(mData.mTokenInputValues.containsKey(prevItemName)){
+                                   //remove the saved value for the previous item (cancel this item)
+                                   mData.mTokenInputValues.remove(prevItemName); 
+                                }
+                            }
+                        }
                     }else{
                         //decided to go back...
 
