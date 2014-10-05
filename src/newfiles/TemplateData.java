@@ -709,14 +709,14 @@ public class TemplateData {
         return returnStr;
     }
     //formats the value based on token parameters and input value, eg: decides the casing to apply to the user input
-    public String getFormattedTokenValue(String[] tokenParts){return getFormattedTokenValue(tokenParts, null);}
+    public String getFormattedTokenValue(String[] tokenParts){return getFormattedTokenValue(tokenParts, new ArrayList<String>());}
     public String getFormattedTokenValue(String[] tokenParts, ArrayList<String> inFileNameTokens){
         String tokenValue = "";
         //get the token name
         String tokenName=getTokenPart("name", tokenParts);
-        //if inFileNameTokens is NOT null
+        //if inFileNameTokens is NOT empty
         boolean doGetVal=true;
-        if(inFileNameTokens!=null){
+        if(inFileNameTokens.size()>0){
             //if this token name SHOULD be ignored because it is NOT listed in inFileNameTokens
             if(!inFileNameTokens.contains(tokenName)){
                 doGetVal=false;
@@ -724,17 +724,24 @@ public class TemplateData {
         }
         //if this token name is NOT being ignored because it is NOT listed in inFileNameTokens
         if(doGetVal){
-            //get the token type
-            String type=getTokenPart("type", tokenParts);
-            //get the token casing
-            String casing=getTokenPart("casing", tokenParts);
-            //if not a blank tokenName, represented by a dot, . AND not a static value surrounded by "quotes"
-            if (!tokenName.equals(".") && tokenName.indexOf("\"") != 0 && tokenName.indexOf("'") != 0){
-                //get the token value... the value is formatted based on the different token parts, eg: casing
-                tokenValue = mTokenInputValues.get(tokenName);
-                //apply the casing formatting
-                tokenValue = getAppliedCasing(casing, tokenValue);
-            }
+            //get the token value
+            tokenValue=getFormattedTokenValue(tokenParts, tokenName);
+        }
+        return tokenValue;
+    }
+    //tokenNameInputKey could be a nested=>key:0, a normal token name, or a "static" value
+    public String getFormattedTokenValue(String[] tokenParts, String tokenNameInputKey){
+        String tokenValue = "";
+        //get the token type
+        String type=getTokenPart("type", tokenParts);
+        //get the token casing
+        String casing=getTokenPart("casing", tokenParts);
+        //if not a blank tokenName, represented by a dot, . AND not a static value surrounded by "quotes"
+        if (!tokenNameInputKey.equals(".") && tokenNameInputKey.indexOf("\"") != 0 && tokenNameInputKey.indexOf("'") != 0){
+            //get the token value... the value is formatted based on the different token parts, eg: casing
+            tokenValue = mTokenInputValues.get(tokenNameInputKey);
+            //apply the casing formatting
+            tokenValue = getAppliedCasing(casing, tokenValue);
         }
         return tokenValue;
     }

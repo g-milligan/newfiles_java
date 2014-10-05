@@ -790,12 +790,11 @@ public class BuildTemplate {
                             if(mData.mTemplateChunks.get(listTokenName).containsKey(filePath)){
                                 //get the list of list tokens (inside this file)
                                 ArrayList<TemplateChunk> chunkObjs=mData.mTemplateChunks.get(listTokenName).get(filePath);
-                                //for each list token inside this file
+                                //for each list list chunk inside this file
                                 for(int c=0;c<chunkObjs.size();c++){
+                                    //set the real token chunk that will replace the placeholder in the file content
                                     TemplateChunk chunkObj=chunkObjs.get(c);
-                                    //get the placeholder for this chunk (inside the fileContent)
-                                    String chunkPlaceholderStr=chunkObj.getPlaceholder();
-                                    //***
+                                    fileContent=chunkObj.setTokenValues(fileContent,mData);                                    
                                 }
                             }
                         }

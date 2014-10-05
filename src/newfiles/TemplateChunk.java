@@ -58,6 +58,7 @@ public class TemplateChunk {
     private StrMgr mStrMgr;
     //get property methods
     public String getIndex(){return mIndex;}
+    public String getNestKey(){return mNestKey;}
     public int getNestLevel(){return mNestLevel;}
     public String getContent(){return mContent;}
     public String getFilePath(){return mFilePath;}
@@ -217,5 +218,88 @@ public class TemplateChunk {
                 }
             }
         }
+    }
+    //replace TemplateChunk tokens with real values and return file content (td is the mData object)
+    public String setTokenValues(String fileContent, TemplateData td){
+        //get the placeholder for this chunk (inside the fileContent)... from THIS object
+        String chunkPlaceholderStr=getPlaceholder();
+        //get the token chunk to insert back into the file content... from THIS object
+        String oneItemChunkStr=getChunk();
+        //get the chunk's nested key... from THIS object
+        String nestedKey=getNestKey();
+        //if there are any tokens in this chunk
+        if(mTokens.size()>0){
+            //HashMap<[itemIndex], HashMap<[tokenStrOrAlias], [tokenValue]>>
+            HashMap<String, HashMap<String, String>> oneLevelListValues = new HashMap<String, HashMap<String, String>>();
+            //GET ALL OF THE LIST ITEM VALUES AND THEIR CORRESPONDING SUB-STRINGS TO REPLACE
+            //==============================================================================
+            //for each token inside this nested level... from THIS object
+            for (int n=0;n<mTokens.size();n++){
+                //get the name of this nested token
+                String tokenStr=mTokens.get(n);
+                String[] tokenParts=tokenStr.split(mStrMgr.mTokenSeparator);
+                String tokenType=td.getTokenPart("type", tokenParts);
+                //depending on token type
+                if(tokenType.equals("var")){
+                    String tokenName=td.getTokenPart("name", tokenParts);
+                    //based on the token name, get the key to retrieve the stored input value
+                    String tokenInputKey=nestedKey+mStrMgr.mAliasSetter+tokenName+mStrMgr.mTokenSeparator;
+                    //while there is a another input value for this token name (in this level)
+                    int inputValIndex=0;
+                    while(td.mTokenInputValues.containsKey(tokenInputKey+inputValIndex)){
+                        //get the formatted input value for this item-instance of the token
+                        String inputValue=td.getFormattedTokenValue(tokenParts,tokenInputKey+inputValIndex);
+                        //if this list item index is NOT already in the list
+                        if(!oneLevelListValues.containsKey(inputValIndex+"")){
+                            HashMap<String, String> nameValList = new HashMap<String, String>();
+                            oneLevelListValues.put(inputValIndex+"", nameValList);
+                        }
+                        //what string will be replaced by the inputValue?
+                        String replaceThisStr=tokenStr;
+                        //if this token has an alias
+                        String tokenAlias=td.getTokenPart("alias", tokenParts);
+                        if(tokenAlias.length()>0){
+                            //remove the token definition from the oneItemChunkStr
+                            oneItemChunkStr=oneItemChunkStr.replace(tokenStr, "");
+                            //target the alias for value replacement
+                            replaceThisStr=tokenAlias;
+                        }
+                        //add the key/value for this list item index
+                        oneLevelListValues.get(inputValIndex+"").put(replaceThisStr, inputValue);
+                        //next input value
+                        inputValIndex++;
+                    }
+                }
+            }
+            //RECURSIVE REPLACE ALL SUB-CHUNK PLACEHOLDERS WITH THE REAL TEXT IN oneItemChunkStr
+            //==================================================================================
+            //if there is another nested sub list inside this list's item chunks
+            if(oneItemChunkStr.contains(mStrMgr.mStartToken+mStrMgr.mPlaceholderChunkName+mStrMgr.mTokenSeparator+"list")){
+                //for each nested list's token name
+                for(String listTokenName : mNestedTemplateChunks.keySet()){
+                    //for each nested chunk (with this listTokenName)
+                    ArrayList<TemplateChunk> nestedChunkObjs=mNestedTemplateChunks.get(listTokenName);
+                    for(int nn=0;nn<nestedChunkObjs.size();nn++){
+                        //set the real token chunk that will replace the placeholder in oneItemChunkStr
+                        TemplateChunk nestedChunkObj=nestedChunkObjs.get(nn);
+                        oneItemChunkStr=nestedChunkObj.setTokenValues(oneItemChunkStr,td); 
+                    }
+                }
+            }
+            //NOW THAT ALL OF THE VALUES AND VALUE-PLACEHOLDERS ARE MATCHED UP, 
+            //AND ALL OF THE NESTED PLACEHOLDERS HAVE BEEN REPLACED BY REAL CONTENT...
+            //========================================================================
+            //for each list item (at this level)
+            for (String itemIndexStr : oneLevelListValues.keySet()) {
+                //HashMap<[tokenStrOrAlias], [tokenValue]>
+                HashMap<String, String> itemVals=oneLevelListValues.get(itemIndexStr);
+                //***
+            }
+        }else{
+            //no tokens inside this chunk...
+            
+            //*** just repeat this token chunk depending on user input item count
+        }
+        return fileContent;
     }
 }
