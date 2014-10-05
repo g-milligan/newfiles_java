@@ -709,17 +709,21 @@ public class TemplateData {
         return returnStr;
     }
     //formats the value based on token parameters and input value, eg: decides the casing to apply to the user input
-    public String getFormattedTokenValue(String[] tokenParts){return getFormattedTokenValue(tokenParts, new ArrayList<String>());}
+    public String getFormattedTokenValue(String[] tokenParts){
+        return getFormattedTokenValue(tokenParts, new ArrayList<String>());
+    }
     public String getFormattedTokenValue(String[] tokenParts, ArrayList<String> inFileNameTokens){
         String tokenValue = "";
         //get the token name
         String tokenName=getTokenPart("name", tokenParts);
         //if inFileNameTokens is NOT empty
         boolean doGetVal=true;
-        if(inFileNameTokens.size()>0){
-            //if this token name SHOULD be ignored because it is NOT listed in inFileNameTokens
-            if(!inFileNameTokens.contains(tokenName)){
-                doGetVal=false;
+        if(inFileNameTokens!=null){
+            if(inFileNameTokens.size()>0){
+                //if this token name SHOULD be ignored because it is NOT listed in inFileNameTokens
+                if(!inFileNameTokens.contains(tokenName)){
+                    doGetVal=false;
+                }
             }
         }
         //if this token name is NOT being ignored because it is NOT listed in inFileNameTokens
