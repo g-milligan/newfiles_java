@@ -650,23 +650,6 @@ public class BuildTemplate {
                         System.out.println("   "+nestedPrefix+tokenStr);
                         //if this is a list token
                         String tokenType=mData.getTokenPart("type", tokenStr);
-                        if(tokenType.equals("list")){
-                            //if this list token is in mTemplateChunks
-                            String tokenName=mData.getTokenPart("name", tokenStr);
-                            if(mData.mTemplateChunks.containsKey(tokenName)){
-                                //if this list token name is in this file
-                                if(mData.mTemplateChunks.get(tokenName).containsKey(path)){
-                                    //for each token (with this name, in this file)
-                                    int numNestedTokens = 0;
-                                    for(int c=0;c<mData.mTemplateChunks.get(tokenName).get(path).size();c++){
-                                        TemplateChunk chunkObj=mData.mTemplateChunks.get(tokenName).get(path).get(c);
-                                        numNestedTokens+=chunkObj.mTokens.size();
-                                    }
-                                    //print the number of nested token 
-                                    System.out.println("      "+nestedPrefix+"--> contains ("+numNestedTokens+") nested token(s)");
-                                }
-                            }
-                        }
                     }
                 }
             }
