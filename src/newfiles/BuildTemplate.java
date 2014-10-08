@@ -341,7 +341,7 @@ public class BuildTemplate {
                         }
                     }
                     //recursive move back (previous input field)
-                    getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i-1,count,true);
+                    listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i-1,count,true);
                 }else{
                     //already at first input field...
                     
@@ -361,14 +361,14 @@ public class BuildTemplate {
                         }
                         //recursive move back (previous input field)
                         listItemIndex--; //decrement list item index
-                        getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,count-1,count,true);
+                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,count-1,count,true);
                     }else{
                         //already at the first input field of the first item (in this level)...
 
                         //print the back message
                         System.out.println("\n \tCANNOT go back; already at first input field... \n");
                         //recursive repeat ask for input
-                        getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i,count,true);
+                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i,count,true);
                     }
                 }
                 //end the FOR EACH INPUT VALUE loop
@@ -390,8 +390,6 @@ public class BuildTemplate {
                     input=getInput(okGotItMsg);
                     //if not decided to go back
                     if(!input.equals(backTxt)){
-                        //stop the list item entry
-                        listItemIndex=-1;
                         //if this isn't the first input-value inside an item
                         if(i!=0){
                             //CANCEL A PARTIALLY COMPLETE LIST ITEM BY DELETING THE INCOMPLETE VALUE-SET
@@ -408,6 +406,8 @@ public class BuildTemplate {
                                 }
                             }
                         }
+                        //stop the list item entry
+                        listItemIndex=-1;
                     }else{
                         //decided to go back...
 
@@ -420,7 +420,7 @@ public class BuildTemplate {
                     //print the message
                     System.out.println("\n \tCANNOT use \""+stopTxt+"\" as input value. Ignored... \n");
                     //recursive repeat ask for input for same token
-                    getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i,count,true);
+                    listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i,count,true);
                 }
                 //end the FOR EACH INPUT VALUE loop
                 break;
