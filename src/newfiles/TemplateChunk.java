@@ -302,8 +302,8 @@ public class TemplateChunk {
                     //replace any token-alias or token-str with this value (as needed) for one list item
                     thisItemChunkStr=thisItemChunkStr.replace(tokenStrOrAlias, theValue);
                 }
-                //one list item is complete... add it to the actualValue
-                actualValue+=thisItemChunkStr;
+                //one list item is complete... prepend it to the actualValue
+                actualValue=thisItemChunkStr+actualValue;
             }
             //the template chunk is complete... replace the placeholder with the actual template text
             fileContent=fileContent.replace(chunkPlaceholderStr, actualValue);
