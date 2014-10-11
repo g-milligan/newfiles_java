@@ -73,7 +73,7 @@ public class BuildTemplate {
                 //1) look through all of the mIncludeFiles and load the content/token/alias hash lookups
                 boolean atLeastOneToken = mData.loadFilesData();
                 //2) accept user input for tokens
-                userInputForTokens(atLeastOneToken, "", 0, 0, mData.mUniqueTokenNames, mData.mUniqueListTokenNames, mData.mFileTokensLookup);
+                userInputForTokens(atLeastOneToken, "", 0, 0, 0, mData.mUniqueListTokenNames.size(), mData.mUniqueTokenNames, mData.mUniqueListTokenNames, mData.mFileTokensLookup);
                 //3) get the template files' contents with replaced tokens 
                 setTokenValues();
                 //4) write the template files
@@ -181,7 +181,7 @@ public class BuildTemplate {
         return line;
     }
     //get the input from the user for all of the template tokens
-    private int getAllTokenInput(String nestedParentKey, int nestedLevel, int listItemIndex, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, int startIndex, int count, boolean isBack){
+    private int getAllTokenInput(String nestedParentKey, int nestedLevel, int listItemIndex, int listIndex, int listsCount, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, int startIndex, int count, boolean isBack){
         /*ASSIGN REAL USER VALUES TO EACH UNIQUE TOKEN NAME
             1) mTokenInputValues
             load a HashMap: HashMap<[tokenName], [userInput]>
@@ -292,14 +292,15 @@ public class BuildTemplate {
                                         //if the user did not elect to quit this list
                                         while(listItemIndex!=-1){
                                             //recursive call to ask for this nested template section's token values
-                                            listItemIndex = userInputForTokens(true, nestedKey, nestedLevel+1, listItemIndex, nestedUniqueTokenNames, nestedUniqueListTokenNames, nestedFileTokensLookup);
+                                            listItemIndex = userInputForTokens(true, nestedKey, nestedLevel+1, listItemIndex, ls, uniqueListTokenNames.size(), nestedUniqueTokenNames, nestedUniqueListTokenNames, nestedFileTokensLookup);
                                             //if NOT completed the list
                                             if(listItemIndex!=-1){
                                                 //next listItemIndex
                                                 listItemIndex++;
                                             }
                                         }
-                                        break;
+                                        //reset the listItemIndex for the next list (if there is more than one list token)
+                                        listItemIndex=0;
                                     }
                                 }else{
                                     //the template contains a list that doesn't have any nested tokens...
@@ -341,7 +342,7 @@ public class BuildTemplate {
                         }
                     }
                     //recursive move back (previous input field)
-                    listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i-1,count,true);
+                    listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,listIndex,listsCount,uniqueTokenNames,uniqueListTokenNames,i-1,count,true);
                 }else{
                     //already at first input field...
                     
@@ -361,14 +362,14 @@ public class BuildTemplate {
                         }
                         //recursive move back (previous input field)
                         listItemIndex--; //decrement list item index
-                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,count-1,count,true);
+                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,listIndex,listsCount,uniqueTokenNames,uniqueListTokenNames,count-1,count,true);
                     }else{
                         //already at the first input field of the first item (in this level)...
 
                         //print the back message
                         System.out.println("\n \tCANNOT go back; already at first input field... \n");
                         //recursive repeat ask for input
-                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i,count,true);
+                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,listIndex,listsCount,uniqueTokenNames,uniqueListTokenNames,i,count,true);
                     }
                 }
                 //end the FOR EACH INPUT VALUE loop
@@ -385,9 +386,17 @@ public class BuildTemplate {
                     //==================================
                     //display "ending list" message
                     System.out.println("\n End \"" + nestedParentKey + "\" list. \n   --> ("+listItemIndex+") item(s). \n");
-                    //entered all of the values
-                    System.out.print(targetBuildMsg);
-                    input=getInput(okGotItMsg);
+                    //if this is the last list 
+                    if(listIndex+1==listsCount){
+                        //print the build message
+                        System.out.print(targetBuildMsg);
+                        input=getInput(okGotItMsg);
+                    }else{
+                        //not the last list...
+                        
+                        //give the user an option to go back or start next list
+                        input=getInput("[enter]=start next list, \"" + backTxt + "\"=go back");
+                    }
                     //if not decided to go back
                     if(!input.equals(backTxt)){
                         //if this isn't the first input-value inside an item
@@ -406,13 +415,13 @@ public class BuildTemplate {
                                 }
                             }
                         }
-                        //stop the list item entry
+                        //stop the list item entry (for this list)
                         listItemIndex=-1;
                     }else{
                         //decided to go back...
 
                         //recursive go back
-                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i,count,true);
+                        listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,listIndex,listsCount,uniqueTokenNames,uniqueListTokenNames,i,count,true);
                     }
                 }else{
                     //using the ">>" command during normal input value entry (NOT as a list item)...
@@ -420,7 +429,7 @@ public class BuildTemplate {
                     //print the message
                     System.out.println("\n \tCANNOT use \""+stopTxt+"\" as input value. Ignored... \n");
                     //recursive repeat ask for input for same token
-                    listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,i,count,true);
+                    listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,listIndex,listsCount,uniqueTokenNames,uniqueListTokenNames,i,count,true);
                 }
                 //end the FOR EACH INPUT VALUE loop
                 break;
@@ -581,12 +590,12 @@ public class BuildTemplate {
             }
             System.out.println("");
             //get all of the token input values from the user
-            getAllTokenInput("",0,0,inFileNameTokens,null,0,inFileNameTokens.size(),false);System.out.println("");
+            getAllTokenInput("",0,0,0,0,inFileNameTokens,null,0,inFileNameTokens.size(),false);System.out.println("");
         }
         return inFileNameTokens;
     }
     //accept user input for each of the unique tokens (inside one nested level)
-    private int userInputForTokens(boolean atLeastOneToken, String nestedParentKey, int nestedLevel, int listItemIndex, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, HashMap<String, ArrayList<String>> fileTokensLookup){
+    private int userInputForTokens(boolean atLeastOneToken, String nestedParentKey, int nestedLevel, int listItemIndex, int listIndex, int listsCount, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, HashMap<String, ArrayList<String>> fileTokensLookup){
         //if there is at least one token
         if(uniqueTokenNames.size()+uniqueListTokenNames.size()>0){
             String nestedPrefix=""; String perItem="";
@@ -657,7 +666,7 @@ public class BuildTemplate {
             //===========================================================
             //get all of the token input values from the user
             int count=uniqueTokenNames.size()+uniqueListTokenNames.size();
-            listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,uniqueTokenNames,uniqueListTokenNames,0,count,false);System.out.println("");
+            listItemIndex=getAllTokenInput(nestedParentKey,nestedLevel,listItemIndex,listIndex,listsCount,uniqueTokenNames,uniqueListTokenNames,0,count,false);System.out.println("");
         }else{
             //no token values to input
             System.out.println(" ZERO unique token values to input: ");
