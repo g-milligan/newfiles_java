@@ -761,7 +761,6 @@ public class BuildTemplate {
                             System.out.println(prevInputFieldMsg+prevValue+"\" \n");
                             //previous loop iteration
                             t--;t--;
-                            continue;
                         }else{
                             //first field in this item...
                             
@@ -785,17 +784,15 @@ public class BuildTemplate {
                                 //this INSTANCE of the inputsForEntireLevel() method should NOT proceed with any real processing beyond this point
                                 //since it was recursively reset to a different point (previous item)
                                 finishLevel=false;
-                                break;
                             }else{
                                 //first field in the first list-item...
                                 
                                 System.out.println("\n   CANNOT go back; already at first input-field, in first list-item... \n");
                                 //redo loop iteration
                                 t--;
-                                continue;
                             }
                         }
-                        //+++break;
+                        break;
                     default: //not inside a list
                         //MOVE BACK NON-LIST
                         //==================
@@ -813,7 +810,6 @@ public class BuildTemplate {
                             System.out.println(prevInputFieldMsg+prevValue+"\" \n");
                             //previous loop iteration
                             t--;t--;
-                            continue;
                         }else{
                             //already at first field in the level, can't go back...
                             
@@ -821,9 +817,8 @@ public class BuildTemplate {
                             System.out.println("\n   CANNOT go back; already at first input-field at this level... \n");
                             //redo loop iteration
                             t--;
-                            continue;
                         }
-                        //+++break;
+                        break;
                 }
             }else if(input.equals(stopTxt)){
                 //STOP LIST ENTRY AT THIS LEVEL
@@ -833,7 +828,10 @@ public class BuildTemplate {
                         //***
                         break;
                     default: //not inside a list
-                        //***
+                        //print end of the list item
+                        System.out.println("\n   CANNOT use \""+stopTxt+"\" here ... \n");
+                        //redo loop iteration
+                        t--;
                         break;
                 }
             }else{
@@ -863,6 +861,8 @@ public class BuildTemplate {
                 //add this save input key to the list (for back undo, if needed)
                 saveInputKeys.add(saveInputKey);
             }
+            //force the loop to end?
+            if(!finishLevel){break;}
         }
         //if this level wasn't cut short (recursively restarted at another input-field)
         if(finishLevel){
