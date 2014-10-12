@@ -480,7 +480,7 @@ public class Newfiles {
                         }
                         //if no included or excluded files
                         if(fileIndexList.size()<1){
-                            includeOrExclude=" all-files(*)\n";
+                            includeOrExclude="   all-files(*)\n";
                         }else{
                             //if numbers were excluded
                             if(isExclude){
@@ -525,7 +525,7 @@ public class Newfiles {
         //get just the template folder without the root path
         templateFolder=templateFolder.substring(mTemplatesRoot.length()+1);
         //show the template folder
-        System.out.println("  " + tIndex + "\t  " + templateFolder +"\n");
+        System.out.println("  " + tIndex + " " + templateFolder +"\n");
         //for each file inside this template
         File[] subFiles = temRoot.listFiles(); int fileIndex=0;
         for(int f=0;f<subFiles.length;f++){
@@ -539,7 +539,7 @@ public class Newfiles {
                         notTxtBased=" --> non-text";
                     }
                     //print the file item
-                    System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName() + notTxtBased);
+                    System.out.println(" \t" +fileIndex+ "\t  " + subFiles[f].getName() + notTxtBased);
                     //next file index
                     fileIndex++;
                 }
