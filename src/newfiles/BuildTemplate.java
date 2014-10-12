@@ -743,7 +743,28 @@ public class BuildTemplate {
             }else{
                 //SAVE ONE INPUT VALUE
                 //====================
+                //if there is a parent above this token
+                String saveInputKey=nestedParentKey;
+                if(saveInputKey.length()>0){
+                    //add "=>" separator
+                    saveInputKey+=mStrMgr.mAliasSetter;
+                    //add this token name to the nestedList
+                    saveInputKey+=tokenName;
+                    //if this is a list item
+                    if(listItemIndex>-1){
+                        //add the index to the key
+                        saveInputKey+=mStrMgr.mTokenSeparator+listItemIndex;
+                    }
+                }else{
+                    //NOT a nested token value...
+                    
+                    //add this token name to the nestedList
+                    saveInputKey+=tokenName;
+                }
+                System.out.println("\n "+nestedPrefix+"SAVED ["+saveInputKey+"] \n"); //---
+                //save this input value with the key
                 //***
+                //*** save an ArrayList of saveInputKey's that can be used to back-track?
             }
         }
         //FOR EACH LIST TO START (AT THIS LEVEL)
@@ -771,17 +792,46 @@ public class BuildTemplate {
             String listNestedKey=nestedParentKey; //add previous parent key
             if(listNestedKey.length()>0){listNestedKey+=mStrMgr.mAliasSetter;} //add "=>" separator
             listNestedKey+=listTokenName; //add this list's name to the listNestedKey
+            //if this is a repeatable list item
+            if(listItemIndex>-1){
+                //add the list item index to this key
+                listNestedKey+=mStrMgr.mTokenSeparator+listItemIndex; //eg: "name:0=>sub-name:1=>another-name:3"
+            }
             listNestedData.put("nestedParentKey", listNestedKey);
+            //GET listNestedKey WITHOUT INDEXES IN IT
+            //=======================================
+            String listNestedKeyNoIndexes=listNestedKey; //eg: "name=>sub-name=>another-name"
+            if(listNestedKeyNoIndexes.contains(mStrMgr.mTokenSeparator)){
+                String[] nestedKeyParts=listNestedKeyNoIndexes.split(mStrMgr.mTokenSeparator);
+                boolean isIndex=false; listNestedKeyNoIndexes="";
+                //for each nestedKeyPart
+                for(int p=0;p<nestedKeyParts.length;p++){
+                    //if this is an index part
+                    if(isIndex){
+                        isIndex=false;
+                        String indexPart=nestedKeyParts[p];
+                        if(indexPart.contains(mStrMgr.mAliasSetter)){
+                            //remove the index part
+                            indexPart=indexPart.substring(indexPart.indexOf(mStrMgr.mAliasSetter));
+                            //add the string that has the index part removed from it
+                            listNestedKeyNoIndexes+=indexPart;
+                        }
+                    }else{
+                        isIndex=true;
+                        listNestedKeyNoIndexes+=nestedKeyParts[p];
+                    }
+                }
+            }
             //GET THE TOKENS THAT ARE REPEATED FOR EVERY LIST ITEM (IN THIS LIST)
             //===================================================================
             //get the nested token lists, under this parent list token
-            HashMap<String, ArrayList<String>> nestedFileTokensLookup=mData.mNestedFileTokensLookup.get(listNestedKey);
-            ArrayList<String> listItemUniqueTokenNames=mData.mNestedUniqueTokenNames.get(listNestedKey);
+            HashMap<String, ArrayList<String>> nestedFileTokensLookup=mData.mNestedFileTokensLookup.get(listNestedKeyNoIndexes);
+            ArrayList<String> listItemUniqueTokenNames=mData.mNestedUniqueTokenNames.get(listNestedKeyNoIndexes);
             ArrayList<String> listItemUniqueListTokenNames=null;
             //if there are any list tokens nested under a different token parent
             if(mData.mNestedUniqueListTokenNames!=null){
-                if(mData.mNestedUniqueListTokenNames.containsKey(listNestedKey)){
-                    listItemUniqueListTokenNames=mData.mNestedUniqueListTokenNames.get(listNestedKey);
+                if(mData.mNestedUniqueListTokenNames.containsKey(listNestedKeyNoIndexes)){
+                    listItemUniqueListTokenNames=mData.mNestedUniqueListTokenNames.get(listNestedKeyNoIndexes);
                 }
             }else{listItemUniqueListTokenNames=new ArrayList<String>();}
             //WHILE THE USER WANTS TO CONTINUE ENTERING LIST ITEMS...
