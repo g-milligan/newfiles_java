@@ -704,11 +704,10 @@ public class BuildTemplate {
         //=================================================
         //keep a list of input value keys, in this level (if back undo is needed)
         ArrayList<String> saveInputKeys = new ArrayList<String>();
-        //set to fals if this level should be cut-short, (ie: when the level get's reset recursively)
-        boolean finishLevel=true;
+        //init user input value
+        String input="";
         //for each unique token name
         for(int t=startFieldIndex;t<uniqueTokenNames.size();t++){
-            String input="";
             String tokenName=uniqueTokenNames.get(t);
             //GET POSSIBLE VALUE OPTIONS FOR ONE VALUE (IF LIMITED OPTIONS)
             //=============================================================
@@ -749,6 +748,8 @@ public class BuildTemplate {
                         //=====================
                          //if NOT the first field in this item
                         if(t>0){
+                            //PREVIOUS INPUT-FIELD
+                            //====================
                             //get the input-key for the last saved value
                             int lastInputKeyIndex=saveInputKeys.size()-1;
                             String lastInputKey=saveInputKeys.get(lastInputKeyIndex);
@@ -766,25 +767,26 @@ public class BuildTemplate {
                             
                             //if NOT also the first item in the list
                             if(listItemIndex>0){
+                                //PREVIOUS ITEM
+                                //=============
                                 //go back to previous nestedData state (for last input-field in the previous list-item)
-                                nestedData.remove("listItemIndex");nestedData.remove("startFieldIndex");
-                                nestedData.put("listItemIndex", (listItemIndex-1)+""); //previous list item index
                                 int lastTokenNameIndex=uniqueTokenNames.size()-1;
-                                nestedData.put("startFieldIndex", lastTokenNameIndex+""); //last input-field in previous list-item
+                                startFieldIndex=lastTokenNameIndex; //next time around, start at the last input-value inside the item
                                 //figure out the input value key to remove
                                 String lastInputKey=nestedParentKey+mStrMgr.mAliasSetter+uniqueTokenNames.get(lastTokenNameIndex)+mStrMgr.mTokenSeparator+(listItemIndex-1);
+                                //previous list item index (-2 for the auto-increment)
+                                listItemIndex--;listItemIndex--; 
                                 //get the previous entered value
                                 String prevValue=mData.mTokenInputValues.get(lastInputKey);
                                 //remove the last saved value 
                                 mData.mTokenInputValues.remove(lastInputKey);
                                 //back message
                                 System.out.println(prevInputFieldMsg+prevValue+"\" \n");
-                                //recursively go to previous list-item
-                                inputsForEntireLevel(uniqueTokenNames, uniqueListTokenNames, nestedData);
-                                //this INSTANCE of the inputsForEntireLevel() method should NOT proceed with any real processing beyond this point
-                                //since it was recursively reset to a different point (previous item)
-                                finishLevel=false;
+                                //since this code is currently inside the recursive while loop, the undo will happen on the next while loop iteration...
+                                t=lastTokenNameIndex; //force this token-input, for loop to end
                             }else{
+                                //CAN'T GO BACK
+                                //=============
                                 //first field in the first list-item...
                                 
                                 System.out.println("\n   CANNOT go back; already at first input-field, in first list-item... \n");
@@ -798,6 +800,8 @@ public class BuildTemplate {
                         //==================
                         //if NOT the first field in this level
                         if(t>0){
+                            //PREVIOUS INPUT-FIELD
+                            //====================
                             //get the input-key for the last saved value
                             int lastInputKeyIndex=saveInputKeys.size()-1;
                             String lastInputKey=saveInputKeys.get(lastInputKeyIndex);
@@ -811,6 +815,8 @@ public class BuildTemplate {
                             //previous loop iteration
                             t--;t--;
                         }else{
+                            //CAN'T GO BACK
+                            //=============
                             //already at first field in the level, can't go back...
                             
                             //print end of the list item
@@ -861,106 +867,117 @@ public class BuildTemplate {
                 //add this save input key to the list (for back undo, if needed)
                 saveInputKeys.add(saveInputKey);
             }
-            //force the loop to end?
-            if(!finishLevel){break;}
         }
-        //if this level wasn't cut short (recursively restarted at another input-field)
-        if(finishLevel){
-            //FOR EACH LIST TO START (AT THIS LEVEL)
-            //======================================
-            //for each unique LIST token name
-            for(int t=0;t<uniqueListTokenNames.size();t++){
-                String input="";
-                String listTokenName=uniqueListTokenNames.get(t);
-                //GET THE TALLY LABEL
-                //===================
-                String tallyLabel="";
-                if(totalCount>1){
-                    tallyLabel=(itemCount+t+1)+"/"+totalCount+") ";
-                }
-                //SHOW THE START OF THIS LIST
-                //===========================
-                System.out.println(" "+nestedPrefix+tallyLabel+"List --> \""+listTokenName+"\""+listItemIndexStr);
-                //START NEW LIST: INIT THE NESTED DATA FOR THIS LIST
-                //==================================================
-                HashMap<String, String> listNestedData = new HashMap<String, String>();
-                listNestedData.put("endList", "false");
-                listNestedData.put("parentType", "list");
-                listNestedData.put("listItemIndex", "0"); //starting a new list of items
-                listNestedData.put("startFieldIndex", "0"); //what input-field (inside the item) index to start? (may not be zero, if moving back to previous item)
-                listNestedData.put("nestedLevel", (nestedLevel+1)+""); //going down to deeper level
-                String listNestedKey=nestedParentKey; //add previous parent key
-                if(listNestedKey.length()>0){listNestedKey+=mStrMgr.mAliasSetter;} //add "=>" separator
-                listNestedKey+=listTokenName; //add this list's name to the listNestedKey
-                //if this is a repeatable list item
-                if(listItemIndex>-1){
-                    //add the list item index to this key
-                    listNestedKey+=mStrMgr.mTokenSeparator+listItemIndex; //eg: "name:0=>sub-name:1=>another-name:3"
-                }
-                listNestedData.put("nestedParentKey", listNestedKey);
-                //GET listNestedKey WITHOUT INDEXES IN IT
-                //=======================================
-                String listNestedKeyNoIndexes=listNestedKey; //eg: "name=>sub-name=>another-name"
-                if(listNestedKeyNoIndexes.contains(mStrMgr.mTokenSeparator)){
-                    String[] nestedKeyParts=listNestedKeyNoIndexes.split(mStrMgr.mTokenSeparator);
-                    boolean isIndex=false; listNestedKeyNoIndexes="";
-                    //for each nestedKeyPart
-                    for(int p=0;p<nestedKeyParts.length;p++){
-                        //if this is an index part
-                        if(isIndex){
-                            isIndex=false;
-                            String indexPart=nestedKeyParts[p];
-                            if(indexPart.contains(mStrMgr.mAliasSetter)){
-                                //remove the index part
-                                indexPart=indexPart.substring(indexPart.indexOf(mStrMgr.mAliasSetter));
-                                //add the string that has the index part removed from it
-                                listNestedKeyNoIndexes+=indexPart;
-                            }
-                        }else{
-                            isIndex=true;
-                            listNestedKeyNoIndexes+=nestedKeyParts[p];
+        //FOR EACH LIST TO START (AT THIS LEVEL)
+        //======================================
+        //for each unique LIST token name
+        for(int t=0;t<uniqueListTokenNames.size();t++){
+            String listTokenName=uniqueListTokenNames.get(t);
+            //GET THE TALLY LABEL
+            //===================
+            String tallyLabel="";
+            if(totalCount>1){
+                tallyLabel=(itemCount+t+1)+"/"+totalCount+") ";
+            }
+            //SHOW THE START OF THIS LIST
+            //===========================
+            System.out.println(" "+nestedPrefix+tallyLabel+"List --> \""+listTokenName+"\""+listItemIndexStr);
+            //START NEW LIST: INIT THE NESTED DATA FOR THIS LIST
+            //==================================================
+            HashMap<String, String> listNestedData = new HashMap<String, String>();
+            listNestedData.put("endList", "false");
+            listNestedData.put("parentType", "list");
+            listNestedData.put("listItemIndex", "0"); //starting a new list of items
+            listNestedData.put("startFieldIndex", "0"); //what input-field (inside the item) index to start? (may not be zero, if moving back to previous item)
+            listNestedData.put("nestedLevel", (nestedLevel+1)+""); //going down to deeper level
+            String listNestedKey=nestedParentKey; //add previous parent key
+            if(listNestedKey.length()>0){listNestedKey+=mStrMgr.mAliasSetter;} //add "=>" separator
+            listNestedKey+=listTokenName; //add this list's name to the listNestedKey
+            //if this is a repeatable list item
+            if(listItemIndex>-1){
+                //add the list item index to this key
+                listNestedKey+=mStrMgr.mTokenSeparator+listItemIndex; //eg: "name:0=>sub-name:1=>another-name:3"
+            }
+            listNestedData.put("nestedParentKey", listNestedKey);
+            //GET listNestedKey WITHOUT INDEXES IN IT
+            //=======================================
+            String listNestedKeyNoIndexes=listNestedKey; //eg: "name=>sub-name=>another-name"
+            if(listNestedKeyNoIndexes.contains(mStrMgr.mTokenSeparator)){
+                String[] nestedKeyParts=listNestedKeyNoIndexes.split(mStrMgr.mTokenSeparator);
+                boolean isIndex=false; listNestedKeyNoIndexes="";
+                //for each nestedKeyPart
+                for(int p=0;p<nestedKeyParts.length;p++){
+                    //if this is an index part
+                    if(isIndex){
+                        isIndex=false;
+                        String indexPart=nestedKeyParts[p];
+                        if(indexPart.contains(mStrMgr.mAliasSetter)){
+                            //remove the index part
+                            indexPart=indexPart.substring(indexPart.indexOf(mStrMgr.mAliasSetter));
+                            //add the string that has the index part removed from it
+                            listNestedKeyNoIndexes+=indexPart;
                         }
+                    }else{
+                        isIndex=true;
+                        listNestedKeyNoIndexes+=nestedKeyParts[p];
                     }
-                }
-                //GET THE TOKENS THAT ARE REPEATED FOR EVERY LIST ITEM (IN THIS LIST)
-                //===================================================================
-                //get the nested token lists, under this parent list token
-                HashMap<String, ArrayList<String>> nestedFileTokensLookup=mData.mNestedFileTokensLookup.get(listNestedKeyNoIndexes);
-                ArrayList<String> listItemUniqueTokenNames=mData.mNestedUniqueTokenNames.get(listNestedKeyNoIndexes);
-                ArrayList<String> listItemUniqueListTokenNames=null;
-                //if there are any list tokens nested under a different token parent
-                if(mData.mNestedUniqueListTokenNames!=null){
-                    if(mData.mNestedUniqueListTokenNames.containsKey(listNestedKeyNoIndexes)){
-                        listItemUniqueListTokenNames=mData.mNestedUniqueListTokenNames.get(listNestedKeyNoIndexes);
-                    }
-                }else{listItemUniqueListTokenNames=new ArrayList<String>();}
-                //WHILE THE USER WANTS TO CONTINUE ENTERING LIST ITEMS...
-                //=======================================================
-                while(listNestedData.get("endList").equals("false")){
-                    //GET ONE LIST ITEM
-                    //=================
-                    listNestedData=inputsForEntireLevel(listItemUniqueTokenNames, listItemUniqueListTokenNames, listNestedData);
                 }
             }
-            //IF THIS IS A NESTED LEVEL (HANDLE FINISHING NESTED LEVEL)
-            //=========================================================
-            if(nestedData!=null){
-                //IF THIS IS A LIST ITEM
-                //======================
-                switch(nestedData.get("parentType")){
-                    case "list":
+            //GET THE TOKENS THAT ARE REPEATED FOR EVERY LIST ITEM (IN THIS LIST)
+            //===================================================================
+            //get the nested token lists, under this parent list token
+            HashMap<String, ArrayList<String>> nestedFileTokensLookup=mData.mNestedFileTokensLookup.get(listNestedKeyNoIndexes);
+            ArrayList<String> listItemUniqueTokenNames=mData.mNestedUniqueTokenNames.get(listNestedKeyNoIndexes);
+            ArrayList<String> listItemUniqueListTokenNames=null;
+            //if there are any list tokens nested under a different token parent
+            if(mData.mNestedUniqueListTokenNames!=null){
+                if(mData.mNestedUniqueListTokenNames.containsKey(listNestedKeyNoIndexes)){
+                    listItemUniqueListTokenNames=mData.mNestedUniqueListTokenNames.get(listNestedKeyNoIndexes);
+                }
+            }else{listItemUniqueListTokenNames=new ArrayList<String>();}
+            //WHILE THE USER WANTS TO CONTINUE ENTERING LIST ITEMS...
+            //=======================================================
+            while(listNestedData.get("endList").equals("false")){
+                //GET ONE LIST ITEM
+                //=================
+                listNestedData=inputsForEntireLevel(listItemUniqueTokenNames, listItemUniqueListTokenNames, listNestedData);
+            }
+        }
+        //IF THIS IS A NESTED LEVEL (HANDLE FINISHING NESTED LEVEL)
+        //=========================================================
+        if(nestedData!=null){
+            //IF THIS IS A LIST ITEM
+            //======================
+            switch(nestedData.get("parentType")){
+                case "list":
+                    //if NOT stopping list-item entry
+                    if(!input.equals(stopTxt)){
                         //next list item index
                         nestedData.remove("listItemIndex");
                         nestedData.put("listItemIndex", (listItemIndex+1)+"");
+                        //if the user chose to go back
+                        if(input.equals(backTxt)){
+                            //set the input-value index to go back to (in case going back to previous item)
+                            nestedData.remove("startFieldIndex");
+                            nestedData.put("startFieldIndex", startFieldIndex+"");
+                        }else{
+                            //set the input-value index to go back to (in case went back to previous item)
+                            nestedData.remove("startFieldIndex");
+                            nestedData.put("startFieldIndex", "0");
+                        }
                         //print end of the list item
                         System.out.println(" "+nestedPrefix+"... ");
-                        break;
-                }
-            }else{
-                //NOT A NESTED LEVEL (HANDLE FINISHING INPUT ENTRY)
-                //=================================================
-                //***
+                    }else{
+                        //stopping list-item entry...
+                        nestedData.remove("endList");
+                        nestedData.put("endList", "true");
+                    }
+                    break;
             }
+        }else{
+            //NOT A NESTED LEVEL (HANDLE FINISHING INPUT ENTRY)
+            //=================================================
+            //***
         }
         //return data about the nested this level (if this level is nested under a parent)
         return nestedData;
