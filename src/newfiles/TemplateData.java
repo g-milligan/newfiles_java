@@ -792,6 +792,34 @@ public class TemplateData {
         }
         return strVal;
     }
+    //get a input value key stripped of the index numbers
+    //eg: "name:0=>sub-name:1=>another-name:3" should change to
+    //    "name=>sub-name=>another-name"
+    public String getNestedKeyNoIndexes(String listNestedKey){
+        String listNestedKeyNoIndexes=listNestedKey; //eg: "name=>sub-name=>another-name"
+        if(listNestedKeyNoIndexes.contains(mStrMgr.mTokenSeparator)){
+            String[] nestedKeyParts=listNestedKeyNoIndexes.split(mStrMgr.mTokenSeparator);
+            boolean isIndex=false; listNestedKeyNoIndexes="";
+            //for each nestedKeyPart
+            for(int p=0;p<nestedKeyParts.length;p++){
+                //if this is an index part
+                if(isIndex){
+                    isIndex=false;
+                    String indexPart=nestedKeyParts[p];
+                    if(indexPart.contains(mStrMgr.mAliasSetter)){
+                        //remove the index part
+                        indexPart=indexPart.substring(indexPart.indexOf(mStrMgr.mAliasSetter));
+                        //add the string that has the index part removed from it
+                        listNestedKeyNoIndexes+=indexPart;
+                    }
+                }else{
+                    isIndex=true;
+                    listNestedKeyNoIndexes+=nestedKeyParts[p];
+                }
+            }
+        }
+        return listNestedKeyNoIndexes;
+    }
     //get the _filenames.xml File object, if the file exists
     private File getXmlFilenamesFile(){
         return new File(mUseTemplatePath+File.separator+mStrMgr.mFilenamesXml);

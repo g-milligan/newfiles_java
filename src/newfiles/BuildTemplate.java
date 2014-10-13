@@ -605,30 +605,9 @@ public class BuildTemplate {
                     listNestedKey+=mStrMgr.mTokenSeparator+listItemIndex; //eg: "name:0=>sub-name:1=>another-name:3"
                 }
                 listNestedData.put("nestedParentKey", listNestedKey);
-                //GET listNestedKey WITHOUT INDEXES IN IT
+                //GET listNestedKey WITHOUT INDEXES IN IT ***
                 //=======================================
-                String listNestedKeyNoIndexes=listNestedKey; //eg: "name=>sub-name=>another-name"
-                if(listNestedKeyNoIndexes.contains(mStrMgr.mTokenSeparator)){
-                    String[] nestedKeyParts=listNestedKeyNoIndexes.split(mStrMgr.mTokenSeparator);
-                    boolean isIndex=false; listNestedKeyNoIndexes="";
-                    //for each nestedKeyPart
-                    for(int p=0;p<nestedKeyParts.length;p++){
-                        //if this is an index part
-                        if(isIndex){
-                            isIndex=false;
-                            String indexPart=nestedKeyParts[p];
-                            if(indexPart.contains(mStrMgr.mAliasSetter)){
-                                //remove the index part
-                                indexPart=indexPart.substring(indexPart.indexOf(mStrMgr.mAliasSetter));
-                                //add the string that has the index part removed from it
-                                listNestedKeyNoIndexes+=indexPart;
-                            }
-                        }else{
-                            isIndex=true;
-                            listNestedKeyNoIndexes+=nestedKeyParts[p];
-                        }
-                    }
-                }
+                String listNestedKeyNoIndexes=mData.getNestedKeyNoIndexes(listNestedKey); //eg: "name=>sub-name=>another-name"
                 //GET THE TOKENS THAT ARE REPEATED FOR EVERY LIST ITEM (IN THIS LIST)
                 //===================================================================
                 //get the nested token lists, under this parent list token
