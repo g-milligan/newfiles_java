@@ -244,6 +244,7 @@ public class TemplateChunk {
                     String tokenName=td.getTokenPart("name", tokenParts);
                     //based on the token name, get the key to retrieve the stored input value
                     String tokenInputKey=nestedKey+mStrMgr.mAliasSetter+tokenName+mStrMgr.mTokenSeparator;
+                    //*** must loop tokenInputKey with indexes
                     //while there is a another input value for this token name (in this level)
                     int inputValIndex=0;
                     while(td.mTokenInputValues.containsKey(tokenInputKey+inputValIndex)){
