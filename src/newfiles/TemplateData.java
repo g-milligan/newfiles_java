@@ -792,19 +792,55 @@ public class TemplateData {
         }
         return strVal;
     }
+    //get a input value key of ONLY index numbers
+    //eg: "name=>sub-name:1=>another-name:3" should change to
+    //    "^1_3"
+    public String getNestedIndexesNoKey(String listNestedKey, boolean includeLastNestedChildIndex){
+        String listIndexesNoKey=""; //eg: "^1_3"
+        if(listNestedKey.contains(mStrMgr.mTokenSeparator)){
+            String[] nestedKeyParts=listNestedKey.split(mStrMgr.mTokenSeparator);
+            //for each nestedKeyPart
+            for(int p=0;p<nestedKeyParts.length;p++){
+                //if this is an index part (NOT first token name)
+                if(p!=0){
+                    String indexPart=nestedKeyParts[p];
+                    if(indexPart.contains(mStrMgr.mAliasSetter)){
+                        //remove the NON index part
+                        indexPart=indexPart.substring(0, indexPart.indexOf(mStrMgr.mAliasSetter));
+                    }
+                    //if NOT first index, then add "_" separator
+                    if(listIndexesNoKey.length()>0){listIndexesNoKey+="_";}
+                    //add the index part
+                    listIndexesNoKey+=indexPart;
+                }
+            }
+        }
+        //if not supposed to include the last NESTED child index
+        if(!includeLastNestedChildIndex){
+            //if contains more than one level (if nested)
+            if(listIndexesNoKey.contains("_")){
+                //strip off the last NESTED child index
+                listIndexesNoKey=listIndexesNoKey.substring(0, listIndexesNoKey.lastIndexOf("_"));
+            }else{
+                listIndexesNoKey="";
+            }
+        }
+        //add the first level character
+        listIndexesNoKey="^"+listIndexesNoKey;
+        return listIndexesNoKey;
+    }
     //get a input value key stripped of the index numbers
-    //eg: "name:0=>sub-name:1=>another-name:3" should change to
+    //eg: "name=>sub-name:1=>another-name:3" should change to
     //    "name=>sub-name=>another-name"
     public String getNestedKeyNoIndexes(String listNestedKey){
         String listNestedKeyNoIndexes=listNestedKey; //eg: "name=>sub-name=>another-name"
         if(listNestedKeyNoIndexes.contains(mStrMgr.mTokenSeparator)){
             String[] nestedKeyParts=listNestedKeyNoIndexes.split(mStrMgr.mTokenSeparator);
-            boolean isIndex=false; listNestedKeyNoIndexes="";
+            listNestedKeyNoIndexes="";
             //for each nestedKeyPart
             for(int p=0;p<nestedKeyParts.length;p++){
-                //if this is an index part
-                if(isIndex){
-                    isIndex=false;
+                //if this is an index part (NOT first token name)
+                if(p!=0){
                     String indexPart=nestedKeyParts[p];
                     if(indexPart.contains(mStrMgr.mAliasSetter)){
                         //remove the index part
@@ -813,7 +849,7 @@ public class TemplateData {
                         listNestedKeyNoIndexes+=indexPart;
                     }
                 }else{
-                    isIndex=true;
+                    //add the first token name
                     listNestedKeyNoIndexes+=nestedKeyParts[p];
                 }
             }

@@ -605,7 +605,7 @@ public class BuildTemplate {
                     listNestedKey+=mStrMgr.mTokenSeparator+listItemIndex; //eg: "name:0=>sub-name:1=>another-name:3"
                 }
                 listNestedData.put("nestedParentKey", listNestedKey);
-                //GET listNestedKey WITHOUT INDEXES IN IT ***
+                //GET listNestedKey WITHOUT INDEXES IN IT 
                 //=======================================
                 String listNestedKeyNoIndexes=mData.getNestedKeyNoIndexes(listNestedKey); //eg: "name=>sub-name=>another-name"
                 //GET THE TOKENS THAT ARE REPEATED FOR EVERY LIST ITEM (IN THIS LIST)
@@ -845,11 +845,11 @@ public class BuildTemplate {
                             if(mData.mTemplateChunks.get(listTokenName).containsKey(filePath)){
                                 //get the list of list tokens (inside this file)
                                 ArrayList<TemplateChunk> chunkObjs=mData.mTemplateChunks.get(listTokenName).get(filePath);
-                                //for each list list chunk inside this file
+                                //for each list chunk inside this file
                                 for(int c=0;c<chunkObjs.size();c++){
                                     //set the real token chunk that will replace the placeholder in the file content
                                     TemplateChunk chunkObj=chunkObjs.get(c);
-                                    fileContent=chunkObj.setTokenValues(fileContent,mData);                                    
+                                    fileContent=chunkObj.setTokenValues(chunkObj.getTokenName(),fileContent,mData); 
                                 }
                             }
                         }
