@@ -182,4 +182,37 @@ public class StrMgr {
         }
         return retStrs;
     }
+    //add new lines to long chunks of text (eg: license document text) for display
+    public String getFormattedLineBreaks(String str){return getFormattedLineBreaks(str, 10);}
+    public String getFormattedLineBreaks(String str, int maxWordsPerLine){
+        String newline="\r\n";
+        //for each line
+        String lines[] = str.split("\\r?\\n"); str="";
+        for(int l=0;l<lines.length;l++){
+            String line=lines[l];
+            //for each word
+            String words[] = line.split(" "); line="";
+            int wordPerLineCount=0;
+            for(int w=0;w<words.length;w++){
+                //add word to line
+                line+=words[w]+" ";
+                wordPerLineCount++;
+                //if reached max words per line
+                if(wordPerLineCount>=maxWordsPerLine){
+                    //add newline
+                    line+=newline;
+                    //reset number of words
+                    wordPerLineCount=0;
+                }
+            }
+            //add this line to the string
+            str+=line;
+            //if NOT last line
+            if(l+1<lines.length){
+                //add newline
+                str+=newline;
+            }
+        }
+        return str;
+    }
 }

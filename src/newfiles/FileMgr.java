@@ -206,6 +206,7 @@ public class FileMgr {
     public String getLicenseDocContents(){
         String licenseStr=getResStr(mStrMgr.mAppLicensePath);
         licenseStr=licenseStr.trim();
+        licenseStr=mStrMgr.getFormattedLineBreaks(licenseStr, 8);
         licenseStr="\n\n"+licenseStr+"\n\n";
         return licenseStr;
     }

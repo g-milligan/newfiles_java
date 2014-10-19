@@ -802,6 +802,7 @@ public class Newfiles {
     }
     //application main functionality entry point
     private static void start(String[] args){
+        System.out.println("\n WELCOME: You are now running \"Newfiles\". \n By running Newfiles, you agree to the license, terms, \n and conditions, which are packaged with this code. \n You can read the license terms and conditions \n by typing the \"" + mCommands[7] + "\" command. Removing or modifying \n the license and/or disrupting access to the license \n is not permitted. Thank you for putting up \n with this legal stuff. The license is designed \n to protect your user rights. \n ");
         //what basic command was given?
         String doWhat=mCommands[2]; //show help command by default
         //if the user entered any arguments at all(not just "nf")
