@@ -37,6 +37,10 @@ Or email <pandowerx@gmail.com>
 ------------------------------------------------------------------------------
  */
 public class Newfiles {
+    //version
+    private static final double VERSION_NUMBER = 1.0; //increment 10's place with every new version name
+    private static final int PATCH_NUMBER = 0; //increment by 1 with every hot-fix. Reset to zero with every new version number
+    private static final String VERSION_ALIAS = "Seedling"; //change name with every new master release
     //fields
     private static String mTemplatesRoot; //the root directory where all templates are stored
     private static String mTargetDir; //the target directory where the new files will be generated (current console directory)
@@ -47,6 +51,7 @@ public class Newfiles {
     private static TemplateData mData;
     
     private static FileMgr mFileMgr;
+    private static StrMgr mStrMgr;
     //list of commands (the commands can change, but their index position should NOT change)
     private static final String[] mCommands = 
     {
@@ -58,6 +63,18 @@ public class Newfiles {
         "export", //5: export a project's template files, eg: "nf export 3"
         "filenames", //6: create/update the xml document used to define the template's filenames/paths
         "license" //7: view the license agreement
+    };
+    //usage for commands (parallel array for mCommands)
+    private static final String[] mCmdUsageText = 
+    {
+        "{nf} >> "+mCommands[0],
+        "{nf} >> "+mCommands[1]+" <TEMPLATE-INDEX>",
+        "{nf} >> "+mCommands[2],
+        "{nf} >> "+mCommands[3],
+        "{nf} >> "+mCommands[4],
+        "{nf} >> "+mCommands[5]+" <TEMPLATE-INDEX>",
+        "{nf} >> "+mCommands[6]+" <TEMPLATE-INDEX>",
+        "{nf} >> "+mCommands[7]
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
@@ -572,12 +589,41 @@ public class Newfiles {
     }
     //print the help text
     private static void help(String[] args){
+        int numSepSpaces=3; //how many blank spaces separate commands from descriptions
+        //for each command
+        int maxCmdLen=-1;
+        for(int c=0;c<mCommands.length;c++){
+            //get the command length
+            String cmd=mCommands[c];
+            int len=cmd.length();
+            //if the command length is the longest so far
+            if(len>maxCmdLen){
+                //set the longest command length
+                maxCmdLen=len;
+            }
+        }
+        //get the spaces that begin each newline
+        String newLineSpaces=" ";
+        for(int s=0;s<numSepSpaces+maxCmdLen;s++){
+            newLineSpaces+=" ";
+        }
         //for each help text item
         System.out.println("\n");
         for (int h=0;h<mCmdHelpText.length;h++){
-            //print the command and help text
-            System.out.println("  "+mCommands[h]+" -->\t\t "+mCmdHelpText[h].replace("{nf}", mBatchFileName));
-            System.out.println("-------------------------------------------------------------------------------------------------------------------------------------");
+            //get help text
+            String helpSummary=mCmdHelpText[h].replace("{nf}", mBatchFileName);
+            String usageText=mCmdUsageText[h].replace("{nf}", mBatchFileName);
+            //set help text word wrap
+            helpSummary=mStrMgr.getFormattedLineBreaks(helpSummary, 6, newLineSpaces);
+            //get the spacing between the command and the first help-text line
+            String firstSpace="";
+            for(int s=0;s<numSepSpaces+maxCmdLen-mCommands[h].length();s++){
+                firstSpace+=" ";
+            }
+            //print command and help text
+            System.out.println(" "+mCommands[h]+firstSpace+helpSummary+"\n");
+            //print usage text
+            System.out.println(newLineSpaces+usageText+"\n");
         }
         System.out.println("\n");
     }
@@ -736,6 +782,7 @@ public class Newfiles {
             mUseTemplateIndex=-1;
             mBuild = new BuildTemplate(mTargetDir, mBatchFileName, mTemplatesRoot); //object used to build the given template files
             mFileMgr = new FileMgr();
+            mStrMgr = new StrMgr();
             mData = new TemplateData();
             //start the app
             start(args);
@@ -803,6 +850,7 @@ public class Newfiles {
     //application main functionality entry point
     private static void start(String[] args){
         System.out.println("\n WELCOME: You are now running \"Newfiles\". \n By running Newfiles, you agree to the license, terms, \n and conditions, which are packaged with this code. \n You can read the license terms and conditions \n by typing the \"" + mCommands[7] + "\" command. Removing or modifying \n the license and/or disrupting access to the license \n is not permitted. Thank you for putting up \n with this legal stuff. The license is designed \n to protect your user rights. \n ");
+        System.out.println(" VERSION: \"" + VERSION_ALIAS + "\" (" + VERSION_NUMBER + "_" + PATCH_NUMBER + ") \n");
         //what basic command was given?
         String doWhat=mCommands[2]; //show help command by default
         //if the user entered any arguments at all(not just "nf")
