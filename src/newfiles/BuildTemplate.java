@@ -463,7 +463,7 @@ public class BuildTemplate {
                             if(listItemIndex>0){
                                 //if this item doesn't contain nested list(s) (can't undo nested list items)
                                 if(uniqueListTokenNames.size()<1){
-                                    //PREVIOUS ITEM ***
+                                    //PREVIOUS ITEM
                                     //=============
                                     //go back to previous nestedData state (for last input-field in the previous list-item)
                                     int lastTokenNameIndex=uniqueTokenNames.size()-1;
@@ -599,6 +599,16 @@ public class BuildTemplate {
                 //SHOW THE START OF THIS LIST
                 //===========================
                 System.out.println(" "+nestedPrefix+tallyLabel+"List --> \""+listTokenName+"\""+listItemIndexStr);
+                //if this is the first level
+                if(nestedLevel==0){
+                    //if this is the first list token name, in the first level
+                    if(t==0){
+                        //show the directions to either quit a list or go back 
+                        System.out.println("\n LIST ENTRY: ");
+                        System.out.println(" "+nestedPrefix+"\""+backTxt+"\" --> Go back (when conditions allow)");
+                        System.out.println(" "+nestedPrefix+"\""+stopTxt+"\" --> Finish complete list / cancel current item \n");
+                    }
+                }
                 //START NEW LIST: INIT THE NESTED DATA FOR THIS LIST
                 //==================================================
                 HashMap<String, String> listNestedData = new HashMap<String, String>();
