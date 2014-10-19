@@ -461,23 +461,34 @@ public class BuildTemplate {
                             
                             //if NOT also the first item in the list
                             if(listItemIndex>0){
-                                //PREVIOUS ITEM
-                                //=============
-                                //go back to previous nestedData state (for last input-field in the previous list-item)
-                                int lastTokenNameIndex=uniqueTokenNames.size()-1;
-                                startFieldIndex=lastTokenNameIndex; //next time around, start at the last input-value inside the item
-                                //figure out the input value key to remove
-                                String lastInputKey=nestedParentKey+mStrMgr.mAliasSetter+uniqueTokenNames.get(lastTokenNameIndex)+mStrMgr.mTokenSeparator+(listItemIndex-1);
-                                //previous list item index (-2 for the auto-increment)
-                                listItemIndex--;listItemIndex--; 
-                                //get the previous entered value
-                                String prevValue=mData.mTokenInputValues.get(lastInputKey);
-                                //remove the last saved value 
-                                mData.mTokenInputValues.remove(lastInputKey);
-                                //back message
-                                System.out.println(prevInputFieldMsg+prevValue+"\" \n");
-                                //since this code is currently inside the recursive while loop, the undo will happen on the next while loop iteration...
-                                t=lastTokenNameIndex; //force this token-input, for loop to end
+                                //if this item doesn't contain nested list(s) (can't undo nested list items)
+                                if(uniqueListTokenNames.size()<1){
+                                    //PREVIOUS ITEM ***
+                                    //=============
+                                    //go back to previous nestedData state (for last input-field in the previous list-item)
+                                    int lastTokenNameIndex=uniqueTokenNames.size()-1;
+                                    startFieldIndex=lastTokenNameIndex; //next time around, start at the last input-value inside the item
+                                    //figure out the input value key to remove
+                                    String lastInputKey=nestedParentKey+mStrMgr.mAliasSetter+uniqueTokenNames.get(lastTokenNameIndex)+mStrMgr.mTokenSeparator+(listItemIndex-1);
+                                    //previous list item index (-2 for the auto-increment)
+                                    listItemIndex--;listItemIndex--; 
+                                    //get the previous entered value
+                                    String prevValue=mData.mTokenInputValues.get(lastInputKey);
+                                    //remove the last saved value 
+                                    mData.mTokenInputValues.remove(lastInputKey);
+                                    //back message
+                                    System.out.println(prevInputFieldMsg+prevValue+"\" \n");
+                                    //since this code is currently inside the recursive while loop, the undo will happen on the next while loop iteration...
+                                    t=lastTokenNameIndex; //force this token-input, for loop to end
+                                }else{
+                                    //CAN'T GO BACK
+                                    //=============
+                                    //would have to undo a nested list to get back to the previous input value in this level...
+
+                                    System.out.println("\n   CANNOT undo previous \""+uniqueListTokenNames.get(uniqueListTokenNames.size()-1)+"\" nested list... \n");
+                                    //redo loop iteration
+                                    t--;
+                                }
                             }else{
                                 //CAN'T GO BACK
                                 //=============
