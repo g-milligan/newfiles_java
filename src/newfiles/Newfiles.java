@@ -37,6 +37,10 @@ Or email <pandowerx@gmail.com>
 ------------------------------------------------------------------------------
  */
 public class Newfiles {
+    //version
+    private static final double VERSION_NUMBER = 1.0; //increment 10's place with every new version name
+    private static final int PATCH_NUMBER = 0; //increment by 1 with every hot-fix. Reset to zero with every new version number
+    private static final String VERSION_ALIAS = "Seedling"; //change name with every new master release
     //fields
     private static String mTemplatesRoot; //the root directory where all templates are stored
     private static String mTargetDir; //the target directory where the new files will be generated (current console directory)
@@ -44,17 +48,33 @@ public class Newfiles {
     private static String mBatchFileName; //the name of the batch file... also the key command to run this app, eg: "nf"
     private static ArrayList<String> mTemplateList; //list of folder paths for each template
     private static BuildTemplate mBuild; //the object class used to build out a template
+    private static TemplateData mData;
+    
+    private static FileMgr mFileMgr;
+    private static StrMgr mStrMgr;
     //list of commands (the commands can change, but their index position should NOT change)
     private static final String[] mCommands = 
     {
         "ls", //0: show a list of available templates, ie: "nf ls"
         "use", //1: use a template based on its number (starts input process), eg: "nf use 3"
         "help", //2: show help for available commands, eg: "nf" or "nf help" or "nf help ls"
-        "end", //3: stop entering commands for newfiles.jar... exit app, eg: "nf end"
+        "end", //3: (or "exit") stop entering commands for newfiles.jar... exit app, eg: "nf end"
         "templates", //4: open the root templates directory file-system window
         "export", //5: export a project's template files, eg: "nf export 3"
         "filenames", //6: create/update the xml document used to define the template's filenames/paths
         "license" //7: view the license agreement
+    };
+    //usage for commands (parallel array for mCommands)
+    private static final String[] mCmdUsageText = 
+    {
+        "{nf} >> "+mCommands[0],
+        "{nf} >> "+mCommands[1]+" <TEMPLATE-INDEX>",
+        "{nf} >> "+mCommands[2],
+        "{nf} >> "+mCommands[3],
+        "{nf} >> "+mCommands[4],
+        "{nf} >> "+mCommands[5]+" <TEMPLATE-INDEX>",
+        "{nf} >> "+mCommands[6]+" <TEMPLATE-INDEX>",
+        "{nf} >> "+mCommands[7]
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
@@ -62,7 +82,7 @@ public class Newfiles {
         "show a list of available templates, ie: \"{nf} "+mCommands[0]+"\"",
         "use a template based on its number (starts input process), eg: \"{nf} "+mCommands[1]+" 3\"",
         "show help for available commands, eg: \"{nf} "+mCommands[2]+"\"",
-        "exit app, eg: \"{nf} "+mCommands[3]+"\"",
+        "(or \"exit\") exits app, eg: \"{nf} "+mCommands[3]+"\"",
         "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\"",
         "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\"",
         "create/update an xml doc, used to define the template's filenames/paths, eg: \"{nf} "+mCommands[6]+" 3\"",
@@ -88,7 +108,7 @@ public class Newfiles {
                 isEnd=true;
                 break;
             case 4: //4: open the root templates directory file-system window
-                mBuild.openDirWindow(mTemplatesRoot);
+                mFileMgr.openDirWindow(mTemplatesRoot);
                 break;
             case 5: //5: export a project's template files, eg: "nf export 3"
                 export(args);
@@ -97,7 +117,7 @@ public class Newfiles {
                 filenames(args);
                 break;
             case 7: //7: view the license for this Newfiles application
-                System.out.print(mBuild.getLicenseDocContents());
+                System.out.print(mFileMgr.getLicenseDocContents());
                 break;
             default:
                 //invalid command (int code)
@@ -223,7 +243,7 @@ public class Newfiles {
                         //loop through each File[] files and include the appropriate files into includeFiles
                         for(int f=0;f<files.length;f++){
                             //if the file does NOT start with "_"
-                            if(files[f].getName().indexOf("_")!=0){
+                            if(!mFileMgr.isIgnoredFileOrFolder(files[f])){
                                 includeFiles.add(files[f]);
                             }
                         }
@@ -240,7 +260,7 @@ public class Newfiles {
                                 String line = mBuild.getInput("View \""+exportDirFile.getName()+"\" in a file-system window? y/n");
                                 //ifthe user wants to open the export directory
                                 if(line.trim().toLowerCase().indexOf("y")==0){
-                                    mBuild.openDirWindow(exportDirFile.getParent());
+                                    mFileMgr.openDirWindow(exportDirFile.getParent());
                                 }
                             }
                         }
@@ -315,7 +335,7 @@ public class Newfiles {
                         //show template header
                         System.out.println("\n FILENAMES: \n");
                         //create or update the filenames xml
-                        mBuild.createUpdateFilenamesXml(mTemplateList.get(tIndex)); 
+                        mData.createUpdateFilenamesXml(mTemplateList.get(tIndex)); 
                         //reset the use template index
                         mUseTemplateIndex=-1;
                     }else{
@@ -445,7 +465,7 @@ public class Newfiles {
                         String includedFileNames="";int fIndex=0;
                         for(int f=0;f<files.length;f++){
                             //if the file does NOT start with "_"
-                            if(files[f].getName().indexOf("_")!=0){
+                            if(!mFileMgr.isIgnoredFileOrFolder(files[f])){
                                 //if including all files
                                 if(fileIndexList.size()<1){
                                     includeFiles.add(files[f]);
@@ -477,7 +497,7 @@ public class Newfiles {
                         }
                         //if no included or excluded files
                         if(fileIndexList.size()<1){
-                            includeOrExclude=" all-files(*)\n";
+                            includeOrExclude="   all-files(*)\n";
                         }else{
                             //if numbers were excluded
                             if(isExclude){
@@ -522,21 +542,21 @@ public class Newfiles {
         //get just the template folder without the root path
         templateFolder=templateFolder.substring(mTemplatesRoot.length()+1);
         //show the template folder
-        System.out.println("  " + tIndex + "\t  " + templateFolder +"\n");
+        System.out.println("  " + tIndex + " " + templateFolder +"\n");
         //for each file inside this template
         File[] subFiles = temRoot.listFiles(); int fileIndex=0;
         for(int f=0;f<subFiles.length;f++){
             //if not a directory
             if(!subFiles[f].isDirectory()){
                 //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
-                if(subFiles[f].getName().indexOf("_")!=0){
+                if(!mFileMgr.isIgnoredFileOrFolder(subFiles[f])){
                     //if this file is NOT text based, eg: it's an image
                     String notTxtBased="";
-                    if(!mBuild.isTextBasedFile(subFiles[f])){
+                    if(!mFileMgr.isTextBasedFile(subFiles[f])){
                         notTxtBased=" --> non-text";
                     }
                     //print the file item
-                    System.out.println("\t\t  " +fileIndex+ "\t  " + subFiles[f].getName() + notTxtBased);
+                    System.out.println(" \t" +fileIndex+ "\t  " + subFiles[f].getName() + notTxtBased);
                     //next file index
                     fileIndex++;
                 }
@@ -569,12 +589,41 @@ public class Newfiles {
     }
     //print the help text
     private static void help(String[] args){
+        int numSepSpaces=3; //how many blank spaces separate commands from descriptions
+        //for each command
+        int maxCmdLen=-1;
+        for(int c=0;c<mCommands.length;c++){
+            //get the command length
+            String cmd=mCommands[c];
+            int len=cmd.length();
+            //if the command length is the longest so far
+            if(len>maxCmdLen){
+                //set the longest command length
+                maxCmdLen=len;
+            }
+        }
+        //get the spaces that begin each newline
+        String newLineSpaces=" ";
+        for(int s=0;s<numSepSpaces+maxCmdLen;s++){
+            newLineSpaces+=" ";
+        }
         //for each help text item
         System.out.println("\n");
         for (int h=0;h<mCmdHelpText.length;h++){
-            //print the command and help text
-            System.out.println("  "+mCommands[h]+" -->\t\t "+mCmdHelpText[h].replace("{nf}", mBatchFileName));
-            System.out.println("-------------------------------------------------------------------------------------------------------------------------------------");
+            //get help text
+            String helpSummary=mCmdHelpText[h].replace("{nf}", mBatchFileName);
+            String usageText=mCmdUsageText[h].replace("{nf}", mBatchFileName);
+            //set help text word wrap
+            helpSummary=mStrMgr.getFormattedLineBreaks(helpSummary, 6, newLineSpaces);
+            //get the spacing between the command and the first help-text line
+            String firstSpace="";
+            for(int s=0;s<numSepSpaces+maxCmdLen-mCommands[h].length();s++){
+                firstSpace+=" ";
+            }
+            //print command and help text
+            System.out.println(" "+mCommands[h]+firstSpace+helpSummary+"\n");
+            //print usage text
+            System.out.println(newLineSpaces+usageText+"\n");
         }
         System.out.println("\n");
     }
@@ -603,7 +652,7 @@ public class Newfiles {
     //add a directory to the template list IF it contains at least one file
     private static void maybeAddDirToTemplateList(File dir){
         //if the directory does NOT start with _ (you can disable a template sub-directory by adding _ before its name)
-        if(dir.getName().indexOf("_")!=0){
+        if(!mFileMgr.isIgnoredFileOrFolder(dir)){
             boolean dirHasFile=false;
             ArrayList<String> templateFiles = new ArrayList<String>();
             //for each direct child under dir
@@ -618,7 +667,7 @@ public class Newfiles {
 
                     //if the file does NOT start with _ (you can disable a template file by adding _ before its name)
                     //but a file called _template.xml is a special config file for the template
-                    if(subFiles[f].getName().indexOf("_")!=0){
+                    if(!mFileMgr.isIgnoredFileOrFolder(subFiles[f])){
                         //since dir contains at least one file, it should be added to mTemplateList
                         dirHasFile=true;
                         //add this file to the list of files under this directory
@@ -732,6 +781,9 @@ public class Newfiles {
             mBatchFileName = batchFile.getName();
             mUseTemplateIndex=-1;
             mBuild = new BuildTemplate(mTargetDir, mBatchFileName, mTemplatesRoot); //object used to build the given template files
+            mFileMgr = new FileMgr();
+            mStrMgr = new StrMgr();
+            mData = new TemplateData();
             //start the app
             start(args);
         }else{
@@ -772,6 +824,12 @@ public class Newfiles {
         int doWhatInt=-1; cmdStr=cmdStr.toLowerCase();
         //if command is NOT blank
         if(!cmdStr.trim().equals("")){
+            //if the command is "exit"
+            if(cmdStr.trim().equals("exit")){cmdStr="end";}
+            else{
+                //if the command is "quit"
+                if(cmdStr.trim().equals("quit")){cmdStr="end";}
+            }
             //for each command
             for (int i=0;i<mCommands.length;i++){
                 //if this is the current command
@@ -780,7 +838,7 @@ public class Newfiles {
                     doWhatInt=i;
                     break;
                 }
-            }
+            } 
         }else{
             //command is blank...
             
@@ -791,6 +849,8 @@ public class Newfiles {
     }
     //application main functionality entry point
     private static void start(String[] args){
+        System.out.println("\n WELCOME: You are now running \"Newfiles\". \n By running Newfiles, you agree to the license, terms, \n and conditions, which are packaged with this code. \n You can read the license terms and conditions \n by typing the \"" + mCommands[7] + "\" command. Removing or modifying \n the license and/or disrupting access to the license \n is not permitted. Thank you for putting up \n with this legal stuff. The license is designed \n to protect your user rights. \n ");
+        System.out.println(" VERSION: \"" + VERSION_ALIAS + "\" (" + VERSION_NUMBER + "_" + PATCH_NUMBER + ") \n");
         //what basic command was given?
         String doWhat=mCommands[2]; //show help command by default
         //if the user entered any arguments at all(not just "nf")

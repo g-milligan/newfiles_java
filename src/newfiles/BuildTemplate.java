@@ -1,37 +1,11 @@
 package newfiles;
 
-import java.awt.Desktop;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Comment;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
 All rights reserved
@@ -62,15 +36,6 @@ Or email <pandowerx@gmail.com>
 ------------------------------------------------------------------------------
  */
 public class BuildTemplate {
-    //fields 
-    private static HashMap<String, String> mFileContentLookup; //HashMap<[filePath], [fileContent]>
-    private static HashMap<String, ArrayList<String>> mFileTokensLookup; //HashMap<[filePath], ArrayList<[tokenItemText]>>
-    private static HashMap<String, String> mFilenameXmlOverwriteLookup; //HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
-    private static HashMap<String, HashMap<String, String>> mFileAliasesLookup; //HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>
-    private static ArrayList<String> mUniqueTokenNames; //ArrayList<[tokenName]> each token name only appears once
-    private static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]>
-    private static HashMap<String, String> mChangedFileNames; //HashMap<[filePath], [changedFileName]>
-    private static HashMap<String, String> mChangedFileDirs; //HashMap<[filePath], [changedFileDirectories]>
     
     private static ArrayList<File> mIncludeFiles; //Files objects to include into the build 
     private static String mTargetDir;
@@ -78,21 +43,18 @@ public class BuildTemplate {
     private static String mTemplatesRoot;
     private static String mUseTemplatePath; //the path to the current using template
     
-    //constants
-    private static final String mStartToken="<<";
-    private static final String mEndToken=">>";
-    private static final String mTokenSeparator=":";
-    private static final String mTokenSourceSeparator="-->";
-    private static final String mAliasSetter="=>";
-    private static final String mStartEscToken="|_-+StrtToKen..=!_|";
-    private static final String mEndEscToken="|_--eNdToKen..=!_|";
-    private static final String mNonTextFileContent="|_--nOT@tXTfiLE..=!_|~~JUB123eZ55_-CoO__|"; //unique text content to use as a non-text file content placeholder
-    private static final String mAppResDir="res"; //root folder name of resources packaged inside the .jar app
-    private static final String mAppResXmlDir="xml";
-    private static final String mAppLicensePath=mAppResDir+"/license/pandowerx.newfiles.LICENSE.txt";
-    private final static String mFilenamesXml = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined
+    //objects
+    private static TemplateData mData; //the primary template data (eg: tokens, aliases, etc...)
+    private static StrMgr mStrMgr;
+    private static FileMgr mFileMgr;
+    
     //constructor
     public BuildTemplate(String targetDir, String batchFileName, String templatesRoot){
+        //objects
+        mData = new TemplateData();
+        mStrMgr = new StrMgr();
+        mFileMgr = new FileMgr();
+        //fields
         mIncludeFiles=null;
         mTargetDir=targetDir;
         mBatchFileName=batchFileName;
@@ -102,15 +64,16 @@ public class BuildTemplate {
     public void useFiles(String useTemplatePath, ArrayList<File> includeFiles){
         mIncludeFiles=includeFiles;
         mUseTemplatePath=useTemplatePath;
+        mData.useFiles(mUseTemplatePath, mIncludeFiles);
     }
     //build the template
     public void build(){
         if(mIncludeFiles!=null){
             if(mIncludeFiles.size()>0){
                 //1) look through all of the mIncludeFiles and load the content/token/alias hash lookups
-                boolean atLeastOneToken = loadFilesData();
+                boolean atLeastOneToken = mData.loadFilesData();
                 //2) accept user input for tokens
-                userInputForTokens(atLeastOneToken);
+                userInputForTokens(atLeastOneToken, mData.mUniqueTokenNames, mData.mUniqueListTokenNames, mData.mFileTokensLookup);
                 //3) get the template files' contents with replaced tokens 
                 setTokenValues();
                 //4) write the template files
@@ -126,7 +89,7 @@ public class BuildTemplate {
         if(mIncludeFiles!=null){
             if(mIncludeFiles.size()>0){
                 //1) look through all of the mIncludeFiles and load the content/token/alias hash lookups
-                boolean atLeastOneToken = loadFilesData();
+                boolean atLeastOneToken = mData.loadFilesData();
                 //2) accept user input for tokens (only if the token is used to build out the file path)
                 ArrayList<String> inFileNameTokens=userInputForFilenameTokens(atLeastOneToken);
                 //3) set the template files' contents with replaced filename-tokens
@@ -140,823 +103,29 @@ public class BuildTemplate {
         }
         return exportDir;
     }
-    //get the _filenames.xml File object, if the file exists
-    private File getXmlFilenamesFile(){
-        return new File(mUseTemplatePath+File.separator+mFilenamesXml);
-    }
-    //get the _filenames.xml XML document object, if the file exists
-    private Document getXmlFilenamesDoc(){return getXmlFilenamesDoc(getXmlFilenamesFile());}
-    private Document getXmlFilenamesDoc(File fnXmlFile){
-       Document xmlDoc=null;
-        //if _filenames.xml exists
-        if(fnXmlFile.exists()){
-            //get the XML document object
-            xmlDoc=getXmlDoc(fnXmlFile);
-        }
-       return xmlDoc;
-    }
-    //get a list of rename values from _filenames.xml 
-    //and remove any <filename> node that is pointing at nothing OR a file that doesn't exist 
-    private HashMap<String, String> getXmlFilenameHashValues(){
-        HashMap<String, String> renameList = new HashMap<String, String>();
-        boolean xmlChangesMade=false;
-        //get the _filenames.xml file (if it already exists)
-        File fnXmlFile=getXmlFilenamesFile();
-        if(fnXmlFile.exists()){
-            //get the XML document object
-            Document xmlDoc=getXmlFilenamesDoc(fnXmlFile);
-            if(xmlDoc!=null){
-                //get the document root
-                Element root=xmlDoc.getDocumentElement();
-                //loop through each <filename> node inside the root node
-                NodeList renameNodes = root.getChildNodes();
-                for (int r=0;r<renameNodes.getLength();r++){
-                    //if this child node is an element (not a text node)
-                    Node renameNode=renameNodes.item(r);
-                    if (renameNode.getNodeType()==Node.ELEMENT_NODE) {
-                        //if this child node is a "filename" node
-                        if(renameNode.getNodeName().toLowerCase().equals("filename")){
-                            boolean removeNode=true;
-                            //if there is a name attribute
-                            Node nameAttr=renameNode.getAttributes().getNamedItem("for");
-                            if(nameAttr!=null){
-                                //if the name attribute is NOT blank
-                                String nameAttrVal=nameAttr.getNodeValue();
-                                if(nameAttrVal.length()>0){
-                                    //if the name attribute's filePath value is not already a key in the list
-                                    String filePath=mUseTemplatePath+File.separator+nameAttrVal;
-                                    if(!renameList.containsKey(filePath)){
-                                        //if the file actual exists
-                                        if(new File(filePath).exists()){
-                                            removeNode=false;
-                                            //get the <filename> node inner text
-                                            renameNode.normalize(); //remove comment text inside the node
-                                            String nodeText=renameNode.getTextContent();
-                                            if(nodeText==null){nodeText="";}
-                                            nodeText=nodeText.trim();
-                                            //if the node text is NOT blank
-                                            if(nodeText.length()>0){
-                                                //if the token contains the token separator
-                                                if(nodeText.contains(mTokenSeparator)){
-                                                    //create the full token text
-                                                    nodeText=mStartToken+"filename"+mTokenSeparator+nodeText+mEndToken;
-                                                }else{
-                                                    //invalid token string format
-                                                    nodeText="";
-                                                }
-                                            }
-                                            //add the token string to the map list
-                                            renameList.put(filePath, nodeText);
-                                        }
-                                    }else{
-                                        //filePath already a key in the list...
-                                        removeNode=false;
-                                    }
-                                }
-                            }
-                            //if this node should be removed
-                            if(removeNode){
-                                //remove this <filename> node
-                                root.removeChild(renameNode);
-                                xmlChangesMade=true;
-                            }
-                        }
-                    }
-                }
-                //if any changes were made to the xml file
-                if(xmlChangesMade){
-                    //save the changes
-                    saveXmlDoc(xmlDoc, fnXmlFile);
-                }
-            }
-        }
-        return renameList;
-    }
-    //create/update _filenames.xml for the files inside this template
-    public void createUpdateFilenamesXml(String useTemplatePath){
-        //get the template folder
-        mUseTemplatePath=useTemplatePath;
-        File templateFolder=new File(mUseTemplatePath);
-        System.out.println(" filenames from the template --> " + mUseTemplatePath + File.separator + "...");
-        //get the _filenames.xml file (if it already exists)
-        File fnXmlFile=new File(mUseTemplatePath+File.separator+mFilenamesXml);
-        //HashMap<[filePathInTemplate], [filenameTokenTxt]>
-        HashMap<String, String> renameNodeList = new HashMap<String, String>();
-        //if _filenames.xml does NOT exist
-        if(!fnXmlFile.exists()){
-            System.out.println(" creating --> " + mFilenamesXml + " ... ");
-            //get boilerplate content for _filenames.xml
-            String xmlStr=getFilenamesXmlStr();
-            //create _filenames.xml
-            writeFile(fnXmlFile.getPath(),xmlStr);
-        }else{
-            //_filenames.xml already exists...
-            
-            //get the HashMaps of rename values
-            //HashMap<[filePathInTemplate], [filenameTokenTxt]>
-            renameNodeList = getXmlFilenameHashValues();
-        }
-        System.out.println(" Tip: filename definitions in " + mFilenamesXml + " will override filename definitions inside other template file tokens. ");
-        System.out.println(" ... \n");
-        //get the XML document object
-        Document xmlDoc=getXmlDoc(fnXmlFile);
-        if(xmlDoc!=null){
-            //LOAD ALL OF THE TOKENS INSIDE THE TEMPLATE SO THAT THE FILENAME TOKENS CAN BE FOUND
-            if(mIncludeFiles==null){
-                mIncludeFiles=new ArrayList<File>();
-            }else{
-                mIncludeFiles.clear();
-            }
-            File[] subFiles = templateFolder.listFiles();
-            for(int f=0;f<subFiles.length;f++){
-                mIncludeFiles.add(subFiles[f]);
-            }
-            boolean atLeastOneToken=loadFilesData();
-            //LOOP THROUGH EACH FILE TO LIST ITS FILENAME DEFINITION(S) AND UPDATE IT'S _filename.xml FILE, IF NEEDED
-            Element root=xmlDoc.getDocumentElement();
-            //loop through each file inside templateFolder folder and add the <filename> node to xmlDoc, if it's not already there
-            boolean xmlChangeMade=false;
-            int fileIndex=0; 
-            for(int f=0;f<subFiles.length;f++){
-                //if file is NOT commented out
-                if(subFiles[f].getName().indexOf("_")!=0){
-                    System.out.println(" "+subFiles[f].getName() + "\n");
-                    //start the output messages (one for token filename and the other for xml filename)
-                    String filenameTokenMsg=""; int numFilenameXmlTokens=0;int numFilenameTokens=0;
-                    String tooManyFilenameTokensMsg="";
-                    String nonTextMsg="";
-                    //if this is NOT a text-based file
-                    if(!isTextBasedFile(subFiles[f])){
-                        nonTextMsg="\tConfigure filename in " + mFilenamesXml + "; this is NOT a text-based file type. \n";
-                        nonTextMsg+="\t-------------------------------------------------------------------------- \n";
-                    }
-                    //if there is at least one token in any of the template files
-                    if(atLeastOneToken){
-                        //if this template file has ANY tokens
-                        if(mFileTokensLookup.containsKey(subFiles[f].getPath())){
-                            //for each token inside this file
-                            ArrayList<String> tokens=mFileTokensLookup.get(subFiles[f].getPath());
-                            for(int t=0;t<tokens.size();t++){
-                                //if this token is a filename type
-                                String tokenStr=tokens.get(t);
-                                String type=getTokenPart("type", tokenStr);
-                                if(type.equals("filename")){
-                                    //if this filename came from _filenames.xml...
-                                    String tokenSource=getTokenPart("source", tokenStr);
-                                    if(tokenSource.equals(mFilenamesXml)){numFilenameXmlTokens++;}
-                                    else{numFilenameTokens++;}
-                                    //write the token output
-                                    filenameTokenMsg+="\t"+tokenStr+" \n";
-                                    //if NOT the first token
-                                    if(numFilenameTokens>1||numFilenameXmlTokens>1){
-                                        tooManyFilenameTokensMsg="\tERROR: there should be ONLY 0 or 1 filename token per file!!! \n";
-                                        tooManyFilenameTokensMsg+="\t------------------------------------------------------------- \n";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    //filename defined as token message
-                    System.out.println(nonTextMsg+tooManyFilenameTokensMsg+filenameTokenMsg); 
-                    //if this file is NOT already in the _filenames.xml file
-                    if(!renameNodeList.containsKey(subFiles[f].getPath())){
-                        //create tab before the filename node
-                        root.appendChild(xmlDoc.createTextNode("\t"));
-                        //create this <filename> node in the xmlDoc
-                        Element renameNode=(Element)xmlDoc.createElement("filename");
-                        renameNode.setAttribute("for", subFiles[f].getName());
-                        Comment renameComment = xmlDoc.createComment("{1}"+mTokenSeparator+"{2}"+mTokenSeparator+"{3}");
-                        renameNode.appendChild(renameComment);
-                        root.appendChild(renameNode);
-                        //create newline after the filename node
-                        root.appendChild(xmlDoc.createTextNode("\n"));
-                        //print message
-                        xmlChangeMade=true;
-                    }
-                }
-            }
-            //if there were any xml changes
-            if(xmlChangeMade){
-                //save the changed xml document
-                saveXmlDoc(xmlDoc, fnXmlFile);
-            }
-        }
-    }
-    private boolean saveXmlDoc(Document xmlDoc, File output){
-        boolean success=false;
-        try{
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            Result result = new StreamResult(output);
-            Source input = new DOMSource(xmlDoc);
-            transformer.transform(input, result);
-            success=true;
-        }catch(TransformerException te){
-            System.out.println("\n Uh oh... failed to save XML file --> "+output.getPath());
-            System.out.println(te.getStackTrace()+"\n");
-        }
-        return success;
-    }
-    //get an xml document object from the given file object
-    private Document getXmlDoc(File file){return getXmlDoc(file, false);}
-    private Document getXmlDoc(File file, boolean doNormalize){
-        Document document = null;
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        try
-        {
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            document = db.parse(file);
-            if(doNormalize){
-                document.getDocumentElement().normalize();
-            }
-        }catch(ParserConfigurationException pex){
-            System.out.println("\n Uh oh... failed to parse XML file --> "+file.getPath());
-            System.out.println(pex.getStackTrace()+"\n");
-        }catch(SAXException sax){
-            System.out.println("\n Uh oh... failed to sax XML file --> "+file.getPath());
-            System.out.println(sax.getStackTrace()+"\n");
-        }catch(IOException iox){
-            System.out.println("\n Uh oh... failed to io XML file --> "+file.getPath());
-            System.out.println(iox.getStackTrace()+"\n");
-        }
-        return document;
-    }
-    //get the url to a resource file packaged inside the .jar app
-    private String getFilenamesXmlStr() {
-        //use / instead of File.separator because this is an internal resource path
-        return getResStr(mAppResDir + "/" + mAppResXmlDir + "/" + mFilenamesXml);
-    }
-    //get the license document's string contents 
-    public String getLicenseDocContents(){
-        String licenseStr=getResStr(mAppLicensePath);
-        licenseStr=licenseStr.trim();
-        licenseStr="\n\n"+licenseStr+"\n\n";
-        return licenseStr;
-    }
-    //gets a string from an internal resource stream
-    private String getResStr(String resPath){
-        String str=null;
-        //get the stream
-        InputStream is = this.getClass().getResourceAsStream(resPath);
-        BufferedReader reader = null;
-        //start reading
-        try {
-            //create a buffered reader
-            reader = new BufferedReader(new InputStreamReader(is));
-            //create a string builder
-            StringBuilder out = new StringBuilder();
-            String line;
-            //try to read the file
-            while ((line = reader.readLine()) != null) {
-                out.append(line+"\n");
-            }
-            //set the file contents
-            str=out.toString();
-        } catch (IOException ex) {
-            System.out.println("\n Uh oh... failed to read resource file --> "+resPath);
-            ex.printStackTrace();
-        } finally {
-           try {reader.close();} catch (Exception ex) {}
-        }
-        return str;
-    }
-     //open up a direcctory window
-    public static void openDirWindow(String dirPath){
-        Desktop desktop = Desktop.getDesktop();
-        try {
-            File dirToOpen = new File(dirPath);
-            System.out.print(" opening... ");
-            desktop.open(dirToOpen);
-            System.out.println("");
-        } catch (IOException e) {
-            System.out.println("\nUh oh... failed to open directory --> " + dirPath);
-            System.out.println(e.getMessage()+"\n");
-        }
-    }
-    //determine if the file is a text-based file or other... eg: an image...
-    //this info is needed to decide if a file should be written or copied to a location
-    public static boolean isTextBasedFile(File f){
-        boolean isTxt=true;
-        //if the file exists
-        if(f.exists()){
-            //get the file name
-            String fileName=f.getName();
-            //if the file name contains a dot, '.'
-            int lastIndexOfDot=fileName.lastIndexOf(".");
-            if(lastIndexOfDot>-1){
-                //get just the extension from the file name (trim off name)
-                String ext=fileName.substring(lastIndexOfDot+1);
-                ext=ext.trim();
-                //if the filename didn't just end with a dot
-                if(ext.length()>0){
-                   ext=ext.toLowerCase();
-                   //detect for NON-text based file extensions
-                   switch(ext){
-                       //COMMON IMAGE FILE EXTENSIONS
-                       case "jpeg": isTxt=false;break; case "jpg": isTxt=false;break;
-                       case "jfif": isTxt=false;break; case "exif": isTxt=false;break;
-                       case "tiff": isTxt=false;break; case "tif": isTxt=false;break;
-                       case "raw": isTxt=false;break; case "gif": isTxt=false;break;
-                       case "bmp": isTxt=false;break; case "png": isTxt=false;break;
-                       case "ppm": isTxt=false;break; case "pgm": isTxt=false;break;
-                       case "pbm": isTxt=false;break; case "pnm": isTxt=false;break;
-                       case "webp": isTxt=false;break; case "hdr": isTxt=false;break;
-                       //COMMON COMPRESSED FILE EXTENSIONS
-                       case "zip": isTxt=false;break; case "tgz": isTxt=false;break;
-                       case "gz": isTxt=false;break; case "tar": isTxt=false;break; 
-                       case "lbr": isTxt=false;break; case "iso": isTxt=false;break;
-                       case "7z": isTxt=false;break; case "ar": isTxt=false;break;
-                       case "rar": isTxt=false;break;
-                       //COMMON EXECUTABLE EXTENSIONS
-                       case "jar": isTxt=false;break; case "exe": isTxt=false;break;
-                       //COMMON COMPILED CODE EXTENSIONS
-                       case "dll": isTxt=false;break;
-                       //DEFAULT HANDLING
-                       default:
-                       break;
-                   }
-                }
-            }
-        }else{
-            //file doesn't exist
-            isTxt=false;
-        }
-        return isTxt;
-    }
-    //read the contents of a file into a string (default UTF 8 encoding) 
-    public static String readFile(String path){
-        return readFile(path, StandardCharsets.UTF_8);
-    }
-    //read the contents of a file into a string
-    public static String readFile(String path, Charset encoding){
-        String str="";
-        //if this is a text based file, eg: not an image file
-        if(isTextBasedFile(new File(path))){
-            try{
-                //read the file content
-                byte[] encoded = Files.readAllBytes(Paths.get(path));
-                str=new String(encoded, encoding);
-            }catch (IOException errread){
-                str=null;
-                System.out.println("\n Uh oh... failed to read file --> " + path + " ");
-                System.out.println(errread.getStackTrace() + "\n");
-            }
-        }else{
-            //this is a non-text based file...
-            str=mNonTextFileContent;
-        }
-        return str;
-    }
-    //copy a non-text OR normal text file to some location
-    public static boolean copyFileTo(File source, File dest) {
-        boolean success=false;
-        try {
-            //try to copy the file to a destination
-            Files.copy(source.toPath(), dest.toPath());
-            success=true;
-        } catch (IOException ex) {
-            //show a message if the copy failed
-            System.out.println("\n Uh oh... failed to copy file --> "+source.toPath() + " ");
-            System.out.println("to destination --> " + dest.toPath() + " \n" + ex.getMessage() + "\n");
-        }
-        return success;
-    }
-    //create / overwrite file (default UTF 8 encoding) 
-    public boolean writeFile(String filePath, String fileContent){
-        return writeFile(filePath, fileContent, StandardCharsets.UTF_8);
-    }
-    //create / overwrite file
-    public boolean writeFile(String filePath, String fileContent, Charset encoding){
-        Writer writer = null; boolean success=false;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(filePath), encoding));
-            writer.write(fileContent);
-            success=true;
-        } catch (IOException ex) {
-            System.out.println("\n Uh oh... failed to write file --> "+filePath);
-            ex.printStackTrace();
-        } finally {
-           try {writer.close();} catch (Exception ex) {}
-        }
-        return success;
-    }
-    //return an array list of tokens found in string content (appended to the tokens)
-    private ArrayList<String> getTokensFromContent(String contents){
-        ArrayList<String> tokens = new ArrayList<String>();
-        //what are the different possible token type starting strings?
-        ArrayList<String> tokenStartTags = new ArrayList<String>();
-        tokenStartTags.add("var");
-        tokenStartTags.add("filename");
-        //if the file content contains the start tag
-        if(contents.contains(mStartToken)){
-            //split the contents up by the start token tag
-            String[] splitByStartTag=contents.split(mStartToken);
-            //for each string that started with mStartToken
-            for(int s=0;s<splitByStartTag.length;s++){
-                //if the string is not empty
-                String str=splitByStartTag[s];
-                if(str.trim().length()>0){
-                    //if the string contains the end tag
-                    if(str.contains(mEndToken)){
-                        //get just the string before the next end token
-                        str=str.substring(0,str.indexOf(mEndToken)+mEndToken.length());
-                        //if the string contains the token-part-separator
-                        if(str.contains(mTokenSeparator)){
-                            //get the token parts
-                            String[] tokenParts=str.split(mTokenSeparator);
-                            //if the first token part is NOT blank
-                            if(tokenParts[0].trim().length()>0){
-                                //if the first token part is a token type listed in tokenStartTags
-                                if(tokenStartTags.contains(tokenParts[0].trim())){
-                                    //if there are at least three parts to the token
-                                    if(tokenParts.length>2){
-                                        //add the start tag back to the start of the token text
-                                        str=mStartToken+str;
-                                        //if this token key is not already in the list
-                                        if(!tokens.contains(str)){
-                                            //add this token text to the list of of token text (for this one file)
-                                            tokens.add(str);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return tokens;
-    }
-    private String getTokenPart(String partKey, String tokenStr){
-        //get the token parts, eg: <<type:casing:name>>
-        String[] tokenParts=tokenStr.split(mTokenSeparator);
-        return getTokenPart(partKey, tokenParts);
-    }
-    private String getTokenPart(String partKey, String[] tokenParts){
-        String returnStr="";
-        //return a different part depending on the given part key
-        switch(partKey){
-            case "type":
-                //type is always first part
-                String type = tokenParts[0];
-                //if token name contains >>
-                if (type.contains(mStartToken)) {
-                    //remove starting <<
-                    type = type.substring(mEndToken.length());
-                }
-                //always trim and lowercase token type
-                type = type.trim(); type = type.toLowerCase();
-                returnStr = type;
-                break;
-            case "casing":
-                //token casing is always second part
-                String casing = tokenParts[1];
-                //always trim and lowercase token casing
-                casing = casing.trim(); casing = casing.toLowerCase();
-                returnStr = casing;
-                break;
-            case "dir":
-                //if there are more than 3 token parts
-                if (tokenParts.length>3){
-                    //recursively get type
-                    String tokenType=getTokenPart("type", tokenParts);
-                    //if this type is a "filename"
-                    if (tokenType.equals("filename")){
-                        //token directory is always second-to-last part, eg: <<filename:lowercase:folder/path:filename>>
-                        String dir=tokenParts[tokenParts.length-2];
-                        //always trim token dir
-                        dir = dir.trim();
-                        returnStr = dir;
-                        //normalize the directory separators
-                        returnStr=returnStr.replace("\\", "/");
-                        returnStr=returnStr.replace("///", "/");
-                        returnStr=returnStr.replace("//", "/");
-                        returnStr=returnStr.replace("/", File.separator);
-                        //if this dir path contains a separtor
-                        if (returnStr.contains(File.separator)){
-                            //cannot end with \\
-                            if (returnStr.lastIndexOf(File.separator) == returnStr.length() - File.separator.length()){
-                                //trim off ending \\
-                                returnStr = returnStr.substring(0, returnStr.length() - File.separator.length());
-                            }
-                            //cannot start with \\
-                            if (returnStr.indexOf(File.separator) == 0){
-                                //trim off starting \\
-                                returnStr = returnStr.substring(File.separator.length());
-                            }
-                        }
-                    }
-                }
-                break;
-            case "name":
-                //token name is always last part
-                String uniqueTokenName = tokenParts[tokenParts.length - 1];
-                //if the token name contains a name alias, eg: {name}=>{shorter-alias}
-                if (uniqueTokenName.contains(mAliasSetter)){
-                    //get just the name part and remove the alias part
-                    uniqueTokenName = uniqueTokenName.substring(0, uniqueTokenName.indexOf(mAliasSetter));
-                }
-                else{
-                    //no name alias...
-
-                    //if token name contains >>
-                    if (uniqueTokenName.contains(mEndToken)){
-                        //remove trailing >>
-                        uniqueTokenName = uniqueTokenName.substring(0, uniqueTokenName.lastIndexOf(mEndToken));
-                    }
-                }
-                //always trim token name
-                uniqueTokenName = uniqueTokenName.trim(); 
-                //if the token name is NOT a string literal... surrounded by "quotes"
-                if (uniqueTokenName.indexOf("\"") != 0 && uniqueTokenName.indexOf("'") != 0){
-                    //unique (non-literal) token names are always lowercase
-                    uniqueTokenName = uniqueTokenName.toLowerCase();
-                }
-                returnStr = uniqueTokenName;
-                break;
-            case "alias":
-                returnStr = "";
-                //recursively get type
-                String tType = getTokenPart("type", tokenParts);
-                //if this type is a "var" (only var types can have an alias)
-                if (tType.equals("var")){
-                    //token name => alias is always last part
-                    String nameAndAlias = tokenParts[tokenParts.length - 1];
-                    //if the token name contains a name alias, eg: {name}=>{shorter-alias}
-                    if (nameAndAlias.contains(mAliasSetter)){
-                        //get just the alias part and remove the name part
-                        String aliasStr = nameAndAlias.substring(nameAndAlias.indexOf(mAliasSetter) + mAliasSetter.length());
-                        //if alias contains >>
-                        if (aliasStr.contains(mEndToken)){
-                            //remove trailing >>
-                            aliasStr = aliasStr.substring(0, aliasStr.lastIndexOf(mEndToken));
-                        }
-                        //trim the alias (alias is case sensitive so it does NOT get toLowerCase)
-                        aliasStr = aliasStr.trim();
-                        returnStr = aliasStr;
-                    }
-                }
-                break;
-            case "source": //what file did the token come from? most times it will be from the file where the token is placed, but sometimes the token can come from _filenames.xml for example
-                returnStr = "";
-                //recursively get type
-                String tfType = getTokenPart("type", tokenParts);
-                //if this type is a "filename" (only filename types can have a source other than the file where the token is written)
-                if (tfType.equals("filename")){
-                    //if there are two or more token parts
-                    if(tokenParts.length>1){
-                        //get the last token part
-                        String lastPart=tokenParts[tokenParts.length-1];
-                        //if the last part contains -->
-                        if(lastPart.contains(mTokenSourceSeparator)){
-                            //get just the string after the -->
-                            lastPart=lastPart.substring(lastPart.lastIndexOf(mTokenSourceSeparator)+mTokenSourceSeparator.length());
-                            returnStr=lastPart.trim();
-                        }
-                    }
-                }
-                break;
-        }
-        return returnStr;
-    }
-    //look through all of the mIncludeFiles and load the content/token/alias hash lookups for each file
-    private boolean loadFilesData(){
-        /*LOOP EACH FILE THE FIRST TIME
-        1) mFileContentLookup
-            load a HashMap; HashMap<[filePath], [fileContent]>
-
-            IF a file is NOT TEXT-BASED, eg: an image file...
-            then the file content will be loaded with a placeholder string text, defined in the constant,
-            mNonTextFileContent
-
-        2) mFileTokensLookup
-            load a HashMap; HashMap<[filePath], ArrayList<[tokenItemText]>> ... get tokens (if any)
-
-            Token items are mixed together; both _filenames.xml AND template file tokens are included. 
-            But tokens from _filenames.xml are only included for a file IF THE FILE'S NAME IS DEFINED IN _filenames.xml...
-            AND the definition in _filenames.xml IS NOT BLANK TOKEN TEXT
-
-                    ../config.xml
-                            <<var:l:your hi>> --> _filenames.xml
-                            <<var:u:your something => [something]>>
-
-        3) mFileAliasesLookup
-            load a HashMap; HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>> ... get token-aliases (if any)
-
-            Contains alias lists, including aliases related to _filenames.xml.
-            
-            Note, there is a strict association between an alias and its file. The reason for this 1 to 1 relationship: 
-            The scope of an alias is ONLY within the file in which it was defined. This means...
-            There may be an alias with the SAME NAME in two different files, 
-            but they would be able to hold DIFFERENT VALUES unique to their own file, having no knowledge/relation to their twin(s) in separate file(s). 
-            
-            Image files and other NON-text based files will NEVER have any items in mFileAliasesLookup
-
-                    ../config.xml
-                            [something]
-                                    <<var:u:your something => [something]>>
-                    ../_filenames.xml
-                            [name]
-                                    <<var:l:your name => [name]>> --> _filenames.xml
-                            [test]
-                                    <<var:l:your test => [test]>> --> _filenames.xml
-
-        4) mUniqueTokenNames
-            load an ArrayList; ArrayList<[tokenName]> where each token name only appears once.
-            Token names come from any template file PLUS _filenames.xml.
-
-                your name
-                your test
-                your something
-                your hi
-
-        5) mFilenameXmlOverwriteLookup
-            HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
-
-            Gets the filename defined in _filenames.xml... throughout the code, 
-            you can check to see if a file's name is defined in _filenames.xml by seeing 
-            if it's file path is a key inside mFilenameXmlOverwriteLookup.
-            
-            Each token string item is guaranteed to come from _filenames.xml AND
-            it's guaranteed to be a filename token type
-
-                    ../config.xml
-                            <<filename:u:path:[test]>> --> _filenames.xml
-                    ../Data.php
-                            <<filename:l:.>> --> _filenames.xml
-                    ../test.png
-                            <<filename:n:test/path:"newname">> --> _filenames.xml
-        */
-        if(mFileContentLookup==null){
-            //1) load a HashMap; HashMap<[filePath], [fileContent]>
-            mFileContentLookup=new HashMap<String, String>();
-        }else{
-            mFileContentLookup.clear();
-        }
-        if(mFileTokensLookup==null){
-            //2) load a HashMap; HashMap<[filePath], ArrayList<[tokenItemText]>> ... get tokens (if any)
-            mFileTokensLookup=new HashMap<String, ArrayList<String>>();
-        }else{
-            mFileTokensLookup.clear();
-        }
-        if(mFileAliasesLookup==null){
-            //3) load a HashMap; HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>> ... get token-aliases (if any)
-            mFileAliasesLookup=new HashMap<String, HashMap<String, String>>();
-        }else{
-            mFileAliasesLookup.clear();
-        }
-        if(mUniqueTokenNames==null){
-            //4) load an ArrayList; ArrayList<[tokenName]> where each token name only appears once
-            mUniqueTokenNames=new ArrayList<String>();
-        }else{
-            mUniqueTokenNames.clear();
-        }
-        if(mFilenameXmlOverwriteLookup==null){
-            mFilenameXmlOverwriteLookup=new HashMap<String, String>();
-        }else{
-            //5) HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>
-            mFilenameXmlOverwriteLookup.clear();
-        }
-        if(mTokenInputValues==null){
-            mTokenInputValues=new HashMap<String, String>();
-        }else{
-            mTokenInputValues.clear();
-        }
-        if(mChangedFileNames==null){
-            mChangedFileNames=new HashMap<String, String>();
-        }else{
-            mChangedFileNames.clear();
-        }
-        if(mChangedFileDirs==null){
-            mChangedFileDirs=new HashMap<String, String>();
-        }else{
-            mChangedFileDirs.clear();
-        }
-        //get the _filenames.xml file (if it exists)
-        HashMap<String, String> filenamesFromXml = new HashMap<String, String>();
-        File fNamesXmlFile=getXmlFilenamesFile();
-        ArrayList<String> filenameTokens = new ArrayList<String>();
-        if(fNamesXmlFile.exists()){
-            //include the filenames xml file in the list of files to collect tokens from
-            mIncludeFiles.add(fNamesXmlFile);
-            //get all of the filenames from the xml (if any)
-            filenamesFromXml=getXmlFilenameHashValues();
-            //get the content from _filenames.xml
-            String filenamesContent=readFile(fNamesXmlFile.getPath());
-            //if file read was successful
-            if(filenamesContent!=null){
-                //escape tokens, as needed
-                filenamesContent = filenamesContent.replace("\\"+mStartToken, mStartEscToken);
-                filenamesContent = filenamesContent.replace("\\"+mEndToken, mEndEscToken);
-                //get the tokens used inside _filenames.xml
-                filenameTokens=getTokensFromContent(filenamesContent);
-            }
-        }
-        //for each file
-        boolean atLeastOneToken = false;
-        for(int f=0;f<mIncludeFiles.size();f++){
-            //STORE ORIGINAL FILE CONTENTS AND GET AN ARRAY OF TOKENS FOR THIS FILE
-            //=====================================================================
-            String contents="";
-            //get the file content
-            contents=readFile(mIncludeFiles.get(f).getPath());
-            //if file read was successful
-            if(contents!=null){
-                //if this file has a <filename> in the _filenames.xml file
-                String overwriteFilename="";
-                if(filenamesFromXml.containsKey(mIncludeFiles.get(f).getPath())){
-                    //get the filename token string from inside the <filename> xml element 
-                    //(this string is formatted just like a normal token, eg: <<filename:l:path:name>>)
-                    String filenameXmlStr=filenamesFromXml.get(mIncludeFiles.get(f).getPath());
-                    //if the filename token string is NOT blank
-                    if(filenameXmlStr.length()>0){
-                        //any filename token in this file will be overwritten by the filename definition in _filenames.xml
-                        overwriteFilename=filenameXmlStr;
-                    }
-                }
-                //escape certain string contents
-                contents = contents.replace("\\"+mStartToken, mStartEscToken);
-                contents = contents.replace("\\"+mEndToken, mEndEscToken);
-                //store an array of tokens for this file
-                ArrayList<String> tokens=getTokensFromContent(contents);
-                //if there is a filename defined in _filenames.xml
-                if(overwriteFilename.length()>0){
-                    //if _filenames.xml contains any tokens (eg, <<var:l:name>>)
-                    if(filenameTokens.size()>0){
-                        //for each token inside _filenames.xml
-                        for(int t=0;t<filenameTokens.size();t++){
-                            String tStr=filenameTokens.get(t);
-                            //add the tokens from _filenames.xml to the tokens list
-                            tokens.add(tStr+" " + mTokenSourceSeparator + " " + mFilenamesXml);
-                        }
-                    }
-                    //add the <filename> xml node token
-                    overwriteFilename+=" " + mTokenSourceSeparator + " " + mFilenamesXml;
-                    tokens.add(overwriteFilename);
-                    //add to the list of files that have a filename xml overwrite
-                    mFilenameXmlOverwriteLookup.put(mIncludeFiles.get(f).getPath(), overwriteFilename);
-                }
-                //store the file path and original content
-                mFileContentLookup.put(mIncludeFiles.get(f).getPath(), contents);
-                //store the file path and tokens
-                mFileTokensLookup.put(mIncludeFiles.get(f).getPath(), tokens);
-                //if there is at least one token for this file
-                if(tokens.size()>0){
-                    atLeastOneToken = true;
-                    //for each token in this file
-                    for(int t=0;t<tokens.size();t++){
-                        //get the token name
-                        String tName = getTokenPart("name", tokens.get(t));
-                        //if the name is NOT blank
-                        if(tName.length()>0){
-                            //STORE ALL OF THE TOKEN ALIASES (IF ANY) FOR THIS FILE
-                            //=====================================================
-                            //if this token has an alias
-                            String tAlias = getTokenPart("alias", tokens.get(t));
-                            if(tAlias.length()>0){
-                                String tAliasPath=mIncludeFiles.get(f).getPath();
-                                //is this alias coming from _filenames.xml?
-                                String tAliasSource = getTokenPart("source", tokens.get(t));
-                                if(tAliasSource.equals(mFilenamesXml)){
-                                    //set the path of _filenames.xml instead of the template files
-                                    tAliasPath=fNamesXmlFile.getPath();
-                                }                                
-                                //if this file path isn't already a key in mFileAliasesLookup
-                                if(!mFileAliasesLookup.containsKey(tAliasPath)){
-                                    //create this path-key in HashMap<[tokenAlias], [tokenStr]>
-                                    HashMap<String, String> aliasTokenStr = new HashMap<String, String>();
-                                    mFileAliasesLookup.put(tAliasPath, aliasTokenStr);
-                                }
-                                //if this alias isn't already listed for this file
-                                if (!mFileAliasesLookup.get(tAliasPath).containsKey(tAlias)){
-                                    //add the alias/name to the file's listing
-                                    mFileAliasesLookup.get(tAliasPath).put(tAlias, tokens.get(t));
-                                }
-                            }
-                            //STORE ALL OF UNIQUE TOKEN NAMES FOR ALL FILES
-                            //=============================================   
-                            //if this is not a blank token
-                            if (!tName.equals(".")){
-                                //if this is NOT a literal token, eg: the file name is "hard-coded.txt"
-                                if (tName.indexOf("\"") != 0 && tName.indexOf("'") != 0){
-                                    //if this token name is not already included in the list
-                                    if (!mUniqueTokenNames.contains(tName)){
-                                        //add the unique token name, if not already in the list
-                                        mUniqueTokenNames.add(tName);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return atLeastOneToken;
-    }
     //prompt the user for the next input
-    public String getInput(String inputLabel){
-        //prompt for next command
-        System.out.print(" " + inputLabel + " >> ");
+    public String getInput(String inputLabel){return getInput(inputLabel, null);}
+    public String getInput(String inputLabel, ArrayList<String> inputOptions){
+         //if the options aren't null
+        boolean hasOptions = false;
+        if(inputOptions!=null){
+            //if there are any option items
+            if(inputOptions.size()>0){
+                hasOptions=true;
+                System.out.print("\n    Choose option # ");
+                System.out.println("\n");
+                //for each option
+                for(int i=0;i<inputOptions.size();i++){
+                    System.out.println("    " + i + "  \"" + inputOptions.get(i) + "\"");
+                }
+                System.out.print("\n " + inputLabel + " >> ");
+            }
+        }
+        //no options (any value)
+        if(!hasOptions){
+            //prompt for next command
+            System.out.print(" " + inputLabel + " >> ");
+        }
         String line = "";
         try{
             //accept next input from user
@@ -967,74 +136,49 @@ public class BuildTemplate {
         catch(IOException e) {
             e.printStackTrace();
         }
-        return line;
-    }
-    //get the input from the user for all of the template tokens
-    private void getAllTokenInput(ArrayList<String> uniqueTokenNames, int startIndex, boolean isBack){
-        /*ASSIGN REAL USER VALUES TO EACH UNIQUE TOKEN NAME
-            1) mTokenInputValues
-            load a HashMap: HashMap<[tokenName], [userInput]>
-
-            HashMap values come from any file inside the template, including the special _filenames.xml file
-                
-                your name
-                    gmilligan
-                your test
-                    I am testing
-                your something
-                    in the way she moves...
-                your hi
-                    howdy
-         */
-        String backTxt="<<";
-        //if NOT moved back
-        if(!isBack){
-            //display direction on how to move back
-            System.out.println("\n --------------------");
-            System.out.println(" DEFINE VARIABLE VALUES");
-            System.out.println(" Type \""+backTxt+"\" to back-track... \n");
-        }
-        //for each input value to enter
-        String lastTokenName=null;
-        for(int i=startIndex;i<=uniqueTokenNames.size();i++){
-            String input="";
-            //if NOT entered all of the values
-            if(i<uniqueTokenNames.size()){
-                //get user input
-                input=getInput("" + (i+1) + "/" + uniqueTokenNames.size() + ") Enter --> \"" +uniqueTokenNames.get(i) + "\"");
-            }else{
-                //entered all of the values
-                System.out.println("");
-                System.out.println(" Target root path --> " + mTargetDir+File.separator+"...");
-                input=getInput("Ok, got it. Hit [enter] to build");
-            }
-            //if the input is the back text
-            if(input.equals(backTxt)){
-                //print the back message
-                System.out.println("\n \tback... \n");
-                //make sure the index won't go below zero when backtracking
-                if(i==0){i++;}
-                //if there was a previous item
-                if(lastTokenName!=null){
-                    //if the previous value was saved
-                    if(mTokenInputValues.containsKey(lastTokenName)){
-                       //remove the saved value for the previous item 
-                       mTokenInputValues.remove(lastTokenName);
+        //if input is based on options...
+        if(hasOptions){
+            //if not trying to go back
+            if(!line.equals(mStrMgr.mStartToken)){
+                //if no input was given
+                if(line.length()<1){line="0";}
+                int lineInt=-1;
+                String errMsg = "";
+                try{
+                    lineInt=lineInt=Integer.parseInt(line);
+                }catch(NumberFormatException e){
+                    errMsg="\""+line+"\" is not a number. Try again...";
+                }
+                //if valid number
+                if(errMsg.length()<1){
+                    //if number greater than -1
+                    if(lineInt>-1){
+                        //if number less than the number of items
+                        if(lineInt<inputOptions.size()){
+                            //set the chosen option
+                            line=inputOptions.get(lineInt);
+                        }else{
+                            //number too high
+                            errMsg="\""+line+"\" is too high. Try again...";
+                        }
+                    }else{
+                        //number less than 0
+                        errMsg="\""+line+"\" is too low. Try again...";
                     }
                 }
-                //recursive move back
-                getAllTokenInput(uniqueTokenNames,i-1,true);
-                break;
-            }else{
-                //if NO already saved all input values
-                if(i<uniqueTokenNames.size()){
-                    //add this input value to the list
-                    mTokenInputValues.put(uniqueTokenNames.get(i), input);
-                    //record the last token name to be assigned a value
-                    lastTokenName=uniqueTokenNames.get(i);
+                //if number too high or low
+                if(errMsg.length()>0){
+                    //print error message
+                    System.out.print("\n " + errMsg + " \n");
+                    //recursive try again
+                    line = getInput(inputLabel, inputOptions);
+                }else{
+                    //print the valid selected value
+                    System.out.println("    --> \"" + line + "\" \n");
                 }
             }
         }
+        return line;
     }
     //get a list of tokens that have an influence on filename/paths
     //note: the only way for a token to influence a file name or file path is for it to have its alias inside either the name or path
@@ -1053,45 +197,45 @@ public class BuildTemplate {
          */
         ArrayList<String> inFileNameTokens = new ArrayList<String>();
         //for each file that contains tokens
-        for (String filePath : mFileTokensLookup.keySet()) {
+        for (String filePath : mData.mFileTokensLookup.keySet()) {
             String fileAliasPath=filePath;
             String name="";String dir="";
             //GET THE FILENAME TOKEN FROM EITHER _filenames.xml OR WITHIN A TOKEN INSIDE THE FILE
             //if this file's name gets defined in _filenames.xml
-            if(mFilenameXmlOverwriteLookup.containsKey(filePath)){
+            if(mData.mFilenameXmlOverwriteLookup.containsKey(filePath)){
                 //the file aliases (used inside the filename) are assigned to _filenames.xml instead of the actual template file
-                fileAliasPath=mUseTemplatePath+File.separator+mFilenamesXml;
+                fileAliasPath=mUseTemplatePath+File.separator+mStrMgr.mFilenamesXml;
                 //get the token string
-                String tokenStr=mFilenameXmlOverwriteLookup.get(filePath);
-                String[] tokenParts = tokenStr.split(mTokenSeparator);
+                String tokenStr=mData.mFilenameXmlOverwriteLookup.get(filePath);
+                String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
                 //get the file name
-                name=getTokenPart("name", tokenParts);
+                name=mData.getTokenPart("name", tokenParts);
                 //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
                 if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
                     name=""; //no need to check a NON-string literal. It will NOT contain any aliases
                 }
                 //get the file folder
-                dir=getTokenPart("dir", tokenParts);
+                dir=mData.getTokenPart("dir", tokenParts);
             }else{
                 //TRY TO FIND A FILENAME TOKEN WITHIN THE TEMPLATE FILE... _filenames.xml DOESN'T INFLUENCE THIS TEMPLATE FILE'S NAME...
                 //for each token belonging to this file
-                ArrayList<String> tokens = mFileTokensLookup.get(filePath);
+                ArrayList<String> tokens = mData.mFileTokensLookup.get(filePath);
                 for(int t=0;t<tokens.size();t++){
                     //get the token text, eg: <<var:l:something>>
                     String tokenStr=tokens.get(t);
-                    String[] tokenParts = tokenStr.split(mTokenSeparator);
+                    String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
                     //get the token alias
-                    String tokenType=getTokenPart("type", tokenParts);
+                    String tokenType=mData.getTokenPart("type", tokenParts);
                     //if the token type is filename
                     if(tokenType.equals("filename")){
                         //get the file name
-                        name=getTokenPart("name", tokenParts);
+                        name=mData.getTokenPart("name", tokenParts);
                         //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
                         if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
                             name=""; //no need to check a NON-string literal. It will NOT contain any aliases
                         }
                         //get the file folder
-                        dir=getTokenPart("dir", tokenParts);
+                        dir=mData.getTokenPart("dir", tokenParts);
                         //end the looped search for the filename token inside this file
                         break;
                     }
@@ -1101,11 +245,11 @@ public class BuildTemplate {
             //if EITHER the filename directory OR the name is a candidate for possibly containing token aliases
             if(name.length()>0||dir.length()>0){
                 //if the file (that defines the filename token) contains any aliases
-                if(mFileAliasesLookup.containsKey(fileAliasPath)){
+                if(mData.mFileAliasesLookup.containsKey(fileAliasPath)){
                     //for each alias inside this file (one or more aliases MAY appear inside either the filename "name" or "dir")
-                    for (String aliasStr : mFileAliasesLookup.get(fileAliasPath).keySet()) {
+                    for (String aliasStr : mData.mFileAliasesLookup.get(fileAliasPath).keySet()) {
                         //get the token name, associated with this alias
-                        String nameForAlias=getTokenPart("name", mFileAliasesLookup.get(fileAliasPath).get(aliasStr));
+                        String nameForAlias=mData.getTokenPart("name", mData.mFileAliasesLookup.get(fileAliasPath).get(aliasStr));
                         //if this token name is NOT ALREADY listed as influencing one or more filename/paths
                         if(!inFileNameTokens.contains(nameForAlias)){
                             boolean aliasInflencesFilename=false;
@@ -1154,7 +298,7 @@ public class BuildTemplate {
                System.out.println(" only ONE token value needed to identify your project: ");
             }
             //for each token value to input
-            System.out.print(" ");
+            System.out.print("   ");
             for(int v=0;v<inFileNameTokens.size();v++){
                 //if NOT the first unique token name
                 if(v!=0){
@@ -1164,124 +308,454 @@ public class BuildTemplate {
                 System.out.print("\""+inFileNameTokens.get(v)+"\"");
             }
             System.out.println("");
-            //get all of the token input values from the user
-            getAllTokenInput(inFileNameTokens,0,false);System.out.println("");
+            //get all of the token input values from the user 
+            userInputForTokens(atLeastOneToken, inFileNameTokens, null, null);
+            System.out.println("");
         }
         return inFileNameTokens;
     }
-    //accept user input for each of the unique tokens
-    private void userInputForTokens(boolean atLeastOneToken){
+    //ENTRY POINT TO: accept user input for each of the unique tokens
+    private void userInputForTokens(boolean atLeastOneToken, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, HashMap<String, ArrayList<String>> fileTokensLookup){
+        //uniqueTokenNames ... ArrayList<[tokenName]>
+        //uniqueListTokenNames ... ArrayList<[tokenName]>
+        //fileTokensLookup ... HashMap<[filePath], ArrayList<[tokenItemText]>>
+        
         //if there is at least one token
-        if(mUniqueTokenNames.size()>0){
-            //if more than one token value to input
-            if(mUniqueTokenNames.size()>1){
-                System.out.println(" "+mUniqueTokenNames.size()+" unique token values to input: ");
-            }else{
-               //only one token value to input 
-               System.out.println(" only ONE token value to input: ");
-            }
-            //for each token value to input
-            System.out.print(" ");
-            for(int v=0;v<mUniqueTokenNames.size();v++){
-                //if NOT the first unique token name
-                if(v!=0){
-                    System.out.print(", ");
+        if(atLeastOneToken){
+            if(uniqueListTokenNames==null){uniqueListTokenNames=new ArrayList<String>();}
+            //if there is at least one token
+            if(uniqueTokenNames.size()+uniqueListTokenNames.size()>0){
+                //if the fileTokensLookup was provided
+                if(fileTokensLookup!=null){
+                    //SHOW THE LIST OF TOKENS TO INPUT IN THIS LEVEL
+                    //==============================================
+                    showTokensInLevel("", uniqueTokenNames, uniqueListTokenNames, fileTokensLookup);
                 }
-                //print the token name
-                System.out.print("\""+mUniqueTokenNames.get(v)+"\"");
+                //ENTRY POINT: GET ALL OF THE INPUT VALUES FOR TOP LEVEL (CAN CALL THIS RECURSIVELY FOR SUB-LEVELS)
+                //=================================================================================================
+                inputsForEntireLevel(uniqueTokenNames, uniqueListTokenNames, null);
+            }else{
+                //no token values to input
+                System.out.println(" ZERO unique token values to input: ");
             }
+        }
+    }
+    //get the input for ONE level of values (CAN CALL THIS RECURSIVELY FOR SUB-LEVELS)
+    private HashMap<String, String> inputsForEntireLevel(ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, HashMap<String, String> nestedData){
+        if(uniqueListTokenNames==null){uniqueListTokenNames=new ArrayList<String>();}
+        //HANDLE NESTED LEVEL VALUES
+        //==========================
+        //init the nestedLevel and nestedPrefix default values
+        int nestedLevel=0;
+        int listItemIndex=-1;
+        int startFieldIndex=0;
+        String nestedPrefix="";
+        String parentType="";
+        String nestedParentKey="";
+        //if this is a nested level
+        if(nestedData!=null){
+            //get the parentType
+            parentType=nestedData.get("parentType");
+            //if this parent level is a list token
+            if(parentType.equals("list")){
+                //get the current list item index
+                String listItemIndexStr=nestedData.get("listItemIndex");
+                listItemIndex=Integer.parseInt(listItemIndexStr);
+                //get the start input-field index (which input field to start at in this level?)
+                String startFieldIndexStr=nestedData.get("startFieldIndex");
+                startFieldIndex=Integer.parseInt(startFieldIndexStr);
+            }
+            //get the nestedLevel
+            String nestedLevelStr=nestedData.get("nestedLevel");
+            nestedLevel=Integer.parseInt(nestedLevelStr);
+            //get the nestedParentKey
+            nestedParentKey=nestedData.get("nestedParentKey");
+            //if this is NOT the first un-nested level
+            if(nestedLevel > 0){
+                //build the nested prefix
+                for(int n=0;n<nestedLevel;n++){
+                    if(n<5){
+                        nestedPrefix+=" ";
+                    }else{
+                        break;
+                    }
+                }
+                nestedPrefix+="^"+nestedLevel+".  "; 
+            }
+        }
+        String listItemIndexStr="";
+        if(listItemIndex>-1){listItemIndexStr=" #"+(listItemIndex+1);}
+        //CONTINUE FOR ANY LEVEL, NESTED OR NOT-NESTED
+        //============================================
+        //get the total count of input items (in this current level)
+        int itemCount=uniqueTokenNames.size();
+        int listCount=uniqueListTokenNames.size();
+        int totalCount=itemCount+listCount;
+        //back and stop key-input
+        final String backTxt=mStrMgr.mStartToken;
+        final String stopTxt=mStrMgr.mEndToken;
+        //ENTER ALL OF THE UNIQUE TOKEN NAMES IN THIS LEVEL
+        //=================================================
+        //keep a list of input value keys, in this level (if back undo is needed)
+        ArrayList<String> saveInputKeys = new ArrayList<String>();
+        //init user input value
+        String input="";
+        //for each unique token name
+        for(int t=startFieldIndex;t<uniqueTokenNames.size();t++){
+            String tokenName=uniqueTokenNames.get(t);
+            //GET POSSIBLE VALUE OPTIONS FOR ONE VALUE (IF LIMITED OPTIONS)
+            //=============================================================
+            //if this token requires specific value options
+            ArrayList<String> inputOptions = new ArrayList<String>();
+            if(mData.mUniqueTokenNameOptions.containsKey(tokenName)){
+                //get the allowed options
+                inputOptions = mData.mUniqueTokenNameOptions.get(tokenName);
+            }
+            //GET THE TALLY LABEL
+            //===================
+            String tallyLabel="";
+            if(totalCount>1){
+                tallyLabel=(t+1)+"/"+totalCount+") ";
+            }
+            //GET USER INPUT FOR ONE VALUE
+            //============================
+            //if the user is allowed to enter any value
+            if(inputOptions.size()<1){
+                //get user input
+                input=getInput(nestedPrefix+tallyLabel+"Enter --> \""+tokenName+"\""+listItemIndexStr);
+            }else{
+                //there are specific option values that are required
+
+                //get user input
+                input=getInput(nestedPrefix+tallyLabel+"Select --> \""+tokenName+"\""+listItemIndexStr,inputOptions);
+            }
+            //DECIDE WHAT TO DO BASED ON USER INPUT FOR ONE VALUE
+            //===================================================
+            //if use wanted to move back
+            if(input.equals(backTxt)){
+                String prevInputFieldMsg="\n   BACK (undo) \"";
+                //MOVE BACK
+                //=========
+                switch(parentType){
+                    case "list": //moving back inside a list
+                        //MOVE BACK INSIDE LIST
+                        //=====================
+                         //if NOT the first field in this item
+                        if(t>0){
+                            //PREVIOUS INPUT-FIELD
+                            //====================
+                            //get the input-key for the last saved value
+                            int lastInputKeyIndex=saveInputKeys.size()-1;
+                            String lastInputKey=saveInputKeys.get(lastInputKeyIndex);
+                            //get the previous entered value
+                            String prevValue=mData.mTokenInputValues.get(lastInputKey);
+                            //remove the last saved value 
+                            mData.mTokenInputValues.remove(lastInputKey);
+                            saveInputKeys.remove(lastInputKeyIndex);
+                            //print end of the list item
+                            System.out.println(prevInputFieldMsg+prevValue+"\" \n");
+                            //previous loop iteration
+                            t--;t--;
+                        }else{
+                            //first field in this item...
+                            
+                            //if NOT also the first item in the list
+                            if(listItemIndex>0){
+                                //if this item doesn't contain nested list(s) (can't undo nested list items)
+                                if(uniqueListTokenNames.size()<1){
+                                    //PREVIOUS ITEM
+                                    //=============
+                                    //go back to previous nestedData state (for last input-field in the previous list-item)
+                                    int lastTokenNameIndex=uniqueTokenNames.size()-1;
+                                    startFieldIndex=lastTokenNameIndex; //next time around, start at the last input-value inside the item
+                                    //figure out the input value key to remove
+                                    String lastInputKey=nestedParentKey+mStrMgr.mAliasSetter+uniqueTokenNames.get(lastTokenNameIndex)+mStrMgr.mTokenSeparator+(listItemIndex-1);
+                                    //previous list item index (-2 for the auto-increment)
+                                    listItemIndex--;listItemIndex--; 
+                                    //get the previous entered value
+                                    String prevValue=mData.mTokenInputValues.get(lastInputKey);
+                                    //remove the last saved value 
+                                    mData.mTokenInputValues.remove(lastInputKey);
+                                    //back message
+                                    System.out.println(prevInputFieldMsg+prevValue+"\" \n");
+                                    //since this code is currently inside the recursive while loop, the undo will happen on the next while loop iteration...
+                                    t=lastTokenNameIndex; //force this token-input, for loop to end
+                                }else{
+                                    //CAN'T GO BACK
+                                    //=============
+                                    //would have to undo a nested list to get back to the previous input value in this level...
+
+                                    System.out.println("\n   CANNOT undo previous \""+uniqueListTokenNames.get(uniqueListTokenNames.size()-1)+"\" nested list... \n");
+                                    //redo loop iteration
+                                    t--;
+                                }
+                            }else{
+                                //CAN'T GO BACK
+                                //=============
+                                //first field in the first list-item...
+                                
+                                System.out.println("\n   CANNOT go back; already at first input-field, in first list-item... \n");
+                                //redo loop iteration
+                                t--;
+                            }
+                        }
+                        break;
+                    default: //not inside a list
+                        //MOVE BACK NON-LIST
+                        //==================
+                        //if NOT the first field in this level
+                        if(t>0){
+                            //PREVIOUS INPUT-FIELD
+                            //====================
+                            //get the input-key for the last saved value
+                            int lastInputKeyIndex=saveInputKeys.size()-1;
+                            String lastInputKey=saveInputKeys.get(lastInputKeyIndex);
+                            //get the previous entered value
+                            String prevValue=mData.mTokenInputValues.get(lastInputKey);
+                            //remove the last saved value 
+                            mData.mTokenInputValues.remove(lastInputKey);
+                            saveInputKeys.remove(lastInputKeyIndex);
+                            //print end of the list item
+                            System.out.println(prevInputFieldMsg+prevValue+"\" \n");
+                            //previous loop iteration
+                            t--;t--;
+                        }else{
+                            //CAN'T GO BACK
+                            //=============
+                            //already at first field in the level, can't go back...
+                            
+                            //print end of the list item
+                            System.out.println("\n   CANNOT go back; already at first input-field at this level... \n");
+                            //redo loop iteration
+                            t--;
+                        }
+                        break;
+                }
+            }else if(input.equals(stopTxt)){
+                //STOP LIST ENTRY AT THIS LEVEL
+                //=============================
+                switch(parentType){
+                    case "list": //stopping list entry
+                        //if this item is partially complete with some input-values, but not all of them
+                        if(t>0){
+                            //for each saved input-value in this item
+                            for(int i=0;i<saveInputKeys.size();i++){
+                                //remove the input-value since the user is cancelling this item
+                                String inputKeyToRemove=saveInputKeys.get(i);
+                                mData.mTokenInputValues.remove(inputKeyToRemove);
+                            }
+                        }
+                        //force the list entry to end
+                        t=uniqueTokenNames.size()-1;
+                        break;
+                    default: //not inside a list
+                        //print end of the list item
+                        System.out.println("\n   CANNOT use \""+stopTxt+"\" here ... \n");
+                        //redo loop iteration
+                        t--;
+                        break;
+                }
+            }else{
+                //SAVE ONE INPUT VALUE
+                //====================
+                //if there is a parent above this token
+                String saveInputKey=nestedParentKey;
+                if(saveInputKey.length()>0){
+                    //add "=>" separator
+                    saveInputKey+=mStrMgr.mAliasSetter;
+                    //add this token name to the nestedList
+                    saveInputKey+=tokenName;
+                    //if this is a list item
+                    if(listItemIndex>-1){
+                        //add the index to the key
+                        saveInputKey+=mStrMgr.mTokenSeparator+listItemIndex;
+                    }
+                }else{
+                    //NOT a nested token value...
+                    
+                    //add this token name to the nestedList
+                    saveInputKey+=tokenName;
+                }
+                //System.out.println("\n "+nestedPrefix+"SAVED ["+saveInputKey+"] \n"); //---
+                //save this input value with the key
+                mData.mTokenInputValues.put(saveInputKey, input);
+                //add this save input key to the list (for back undo, if needed)
+                saveInputKeys.add(saveInputKey);
+            }
+        }
+        //FOR EACH LIST TO START (AT THIS LEVEL)
+        //======================================
+        //if NOT stopping list entry
+        if(!input.equals(stopTxt)){
+            //for each unique LIST token name
+            for(int t=0;t<uniqueListTokenNames.size();t++){
+                String listTokenName=uniqueListTokenNames.get(t);
+                //GET THE TALLY LABEL
+                //===================
+                String tallyLabel="";
+                if(totalCount>1){
+                    tallyLabel=(itemCount+t+1)+"/"+totalCount+") ";
+                }
+                //SHOW THE START OF THIS LIST
+                //===========================
+                System.out.println(" "+nestedPrefix+tallyLabel+"List --> \""+listTokenName+"\""+listItemIndexStr);
+                //if this is the first level
+                if(nestedLevel==0){
+                    //if this is the first list token name, in the first level
+                    if(t==0){
+                        //show the directions to either quit a list or go back 
+                        System.out.println("\n LIST ENTRY: ");
+                        System.out.println(" "+nestedPrefix+"\""+backTxt+"\" --> Go back (when conditions allow)");
+                        System.out.println(" "+nestedPrefix+"\""+stopTxt+"\" --> Finish complete list / cancel current item \n");
+                    }
+                }
+                //START NEW LIST: INIT THE NESTED DATA FOR THIS LIST
+                //==================================================
+                HashMap<String, String> listNestedData = new HashMap<String, String>();
+                listNestedData.put("endList", "false");
+                listNestedData.put("parentType", "list");
+                listNestedData.put("listItemIndex", "0"); //starting a new list of items
+                listNestedData.put("startFieldIndex", "0"); //what input-field (inside the item) index to start? (may not be zero, if moving back to previous item)
+                listNestedData.put("nestedLevel", (nestedLevel+1)+""); //going down to deeper level
+                String listNestedKey=nestedParentKey; //add previous parent key
+                if(listNestedKey.length()>0){listNestedKey+=mStrMgr.mAliasSetter;} //add "=>" separator
+                listNestedKey+=listTokenName; //add this list's name to the listNestedKey
+                //if this is a repeatable list item
+                if(listItemIndex>-1){
+                    //add the list item index to this key
+                    listNestedKey+=mStrMgr.mTokenSeparator+listItemIndex; //eg: "name:0=>sub-name:1=>another-name:3"
+                }
+                listNestedData.put("nestedParentKey", listNestedKey);
+                //GET listNestedKey WITHOUT INDEXES IN IT 
+                //=======================================
+                String listNestedKeyNoIndexes=mData.getNestedKeyNoIndexes(listNestedKey); //eg: "name=>sub-name=>another-name"
+                //GET THE TOKENS THAT ARE REPEATED FOR EVERY LIST ITEM (IN THIS LIST)
+                //===================================================================
+                //get the nested token lists, under this parent list token
+                HashMap<String, ArrayList<String>> nestedFileTokensLookup=mData.mNestedFileTokensLookup.get(listNestedKeyNoIndexes);
+                ArrayList<String> listItemUniqueTokenNames=mData.mNestedUniqueTokenNames.get(listNestedKeyNoIndexes);
+                ArrayList<String> listItemUniqueListTokenNames=null;
+                //if there are any list tokens nested under a different token parent
+                if(mData.mNestedUniqueListTokenNames!=null){
+                    if(mData.mNestedUniqueListTokenNames.containsKey(listNestedKeyNoIndexes)){
+                        listItemUniqueListTokenNames=mData.mNestedUniqueListTokenNames.get(listNestedKeyNoIndexes);
+                    }
+                }else{listItemUniqueListTokenNames=new ArrayList<String>();}
+                //WHILE THE USER WANTS TO CONTINUE ENTERING LIST ITEMS...
+                //=======================================================
+                while(listNestedData.get("endList").equals("false")){
+                    //GET ONE LIST ITEM
+                    //=================
+                    listNestedData=inputsForEntireLevel(listItemUniqueTokenNames, listItemUniqueListTokenNames, listNestedData);
+                }
+            }
+        }
+        //IF THIS IS A NESTED LEVEL (HANDLE FINISHING NESTED LEVEL)
+        //=========================================================
+        if(nestedData!=null){
+            //IF THIS IS A LIST ITEM
+            //======================
+            switch(nestedData.get("parentType")){
+                case "list":
+                    //if NOT stopping list-item entry
+                    if(!input.equals(stopTxt)){
+                        //next list item index
+                        nestedData.remove("listItemIndex");
+                        nestedData.put("listItemIndex", (listItemIndex+1)+"");
+                        //if the user chose to go back
+                        if(input.equals(backTxt)){
+                            //set the input-value index to go back to (in case going back to previous item)
+                            nestedData.remove("startFieldIndex");
+                            nestedData.put("startFieldIndex", startFieldIndex+"");
+                        }else{
+                            //set the input-value index to go back to (in case went back to previous item)
+                            nestedData.remove("startFieldIndex");
+                            nestedData.put("startFieldIndex", "0");
+                        }
+                        //print end of the list item
+                        System.out.println(" "+nestedPrefix+"... ");
+                    }else{
+                        //stopping list-item entry...
+                        nestedData.remove("endList");
+                        nestedData.put("endList", "true");
+                        //end message
+                        System.out.println("\n  ...end \""+nestedParentKey+"\" \n  with ("+listItemIndex+") item(s) ... \n");
+                    }
+                    break;
+            }
+        }else{
+            //NOT A NESTED LEVEL (HANDLE FINISHING INPUT ENTRY)
+            //=================================================
+            //wrap-up message
+            String targetBuildMsg = "\n";
+            targetBuildMsg+=" Target root path --> " + mTargetDir+File.separator+"...\n";
+            String okGotItMsg="Ok, got it. Hit [enter] to build";
+            //entered all of the values
+            System.out.print(targetBuildMsg);
+            input=getInput(okGotItMsg);
+        }
+        //return data about the nested this level (if this level is nested under a parent)
+        return nestedData;
+    }
+    //show the tokens at this level and provide option to list them
+    private void showTokensInLevel(String nestedPrefix, ArrayList<String> uniqueTokenNames, ArrayList<String> uniqueListTokenNames, HashMap<String, ArrayList<String>> fileTokensLookup){
+        //uniqueTokenNames ... ArrayList<[tokenName]>
+        //uniqueListTokenNames ... ArrayList<[tokenName]>
+        //fileTokensLookup ... HashMap<[filePath], ArrayList<[tokenItemText]>>
+        
+        //SHOW THE LIST OF TOKENS TO INPUT IN THIS LEVEL
+        //==============================================
+        //if more than one token value to input
+        if(uniqueTokenNames.size()+uniqueListTokenNames.size()>1){
+            System.out.println(" "+nestedPrefix+(uniqueTokenNames.size()+uniqueListTokenNames.size())+" unique token values to input: ");
+        }else{
+           //only one token value to input 
+           System.out.println(" "+nestedPrefix+"only ONE token value to input: ");
+        }
+        //for each token value to input
+        System.out.print(" "+nestedPrefix+"  ");
+        for(int v=0;v<uniqueTokenNames.size();v++){
+            //if NOT the first unique token name
+            if(v!=0){
+                System.out.print(", ");
+            }
+            //print the token name
+            System.out.print("\""+uniqueTokenNames.get(v)+"\"");
+        }
+        //for each <<list>> token value to input
+        for(int v=0;v<uniqueListTokenNames.size();v++){
+            //if NOT the first unique token name
+            if(v!=0||uniqueTokenNames.size()>0){
+                System.out.print(", ");
+            }
+            //print the token name
+            System.out.print("LIST(\""+uniqueListTokenNames.get(v)+"\")");
+        }
+        //GIVE USER THE OPTION TO VIEW THE TOKEN STRINGS IN THIS LEVEL
+        //============================================================
+        //if NOT in a nested level
+        if(nestedPrefix.length()<1){
             System.out.println("\n");
             //get the list tokens/continue choice 
-            String lsOrContinue=getInput("\"ls\"=list files/tokens, [enter]=continue");
+            String lsOrContinue=getInput(nestedPrefix+"\"ls\"=list files/tokens, [enter]=continue");
             //if the user chose to view the file / token listing
             if(lsOrContinue.toLowerCase().equals("ls")){
                 //for each file (that contains at least one token)
-                for (String path : mFileTokensLookup.keySet()) {
+                for (String path : fileTokensLookup.keySet()) {
                     File file=new File(path);
                     //print the file name and number of tokens
-                    ArrayList<String> fileTokens = mFileTokensLookup.get(path);
-                    System.out.println("\n "+file.getName()+" >> "+fileTokens.size()+" token(s) \n");
+                    ArrayList<String> fileTokens = fileTokensLookup.get(path);
+                    System.out.println("\n "+nestedPrefix+file.getName()+" >> "+fileTokens.size()+" token(s) \n");
                     //for each token in this file
                     for(int t=0;t<fileTokens.size();t++){
                         //print the token text
-                        System.out.println(" \t"+fileTokens.get(t).trim());
+                        String tokenStr=fileTokens.get(t).trim();
+                        System.out.println("   "+nestedPrefix+tokenStr);
                     }
                 }
             }
-            //get all of the token input values from the user
-            getAllTokenInput(mUniqueTokenNames,0,false);System.out.println("");
-        }else{
-            //no token values to input
-            System.out.println(" ZERO unique token values to input: ");
+            System.out.println("");
         }
-    }
-    //formats the value based on token parameters and input value, eg: decides the casing to apply to the user input
-    private String getFormattedTokenValue(String[] tokenParts){return getFormattedTokenValue(tokenParts, null);}
-    private String getFormattedTokenValue(String[] tokenParts, ArrayList<String> inFileNameTokens){
-        String tokenValue = "";
-        //get the token name
-        String tokenName=getTokenPart("name", tokenParts);
-        //if inFileNameTokens is NOT null
-        boolean doGetVal=true;
-        if(inFileNameTokens!=null){
-            //if this token name SHOULD be ignored because it is NOT listed in inFileNameTokens
-            if(!inFileNameTokens.contains(tokenName)){
-                doGetVal=false;
-            }
-        }
-        //if this token name is NOT being ignored because it is NOT listed in inFileNameTokens
-        if(doGetVal){
-            //get the token type
-            String type=getTokenPart("type", tokenParts);
-            //get the token casing
-            String casing=getTokenPart("casing", tokenParts);
-            //if not a blank tokenName, represented by a dot, . AND not a static value surrounded by "quotes"
-            if (!tokenName.equals(".") && tokenName.indexOf("\"") != 0 && tokenName.indexOf("'") != 0){
-                //get the token value... the value is formatted based on the different token parts, eg: casing
-                tokenValue = mTokenInputValues.get(tokenName);
-                //get the first letter of the casing 
-                String firstCharCasing = casing.trim().toLowerCase();
-                firstCharCasing = firstCharCasing.substring(0, 1);
-                //default casing
-                casing = "normal";
-                //standardized what casing is assigned based on the first letter 
-                //(for code-readability... no other reason)
-                switch (firstCharCasing){
-                    case "u":
-                        casing = "uppercase";
-                        break;
-                    case "l":
-                        casing = "lowercase";
-                        break;
-                    case "c":
-                        casing = "capitalize";
-                        break;
-                    default:
-                        break;
-                }
-                //format depending on casing
-                switch (casing){
-                    case "uppercase":
-                        tokenValue = tokenValue.toUpperCase();
-                        break;
-                    case "lowercase":
-                        tokenValue = tokenValue.toLowerCase();
-                        break;
-                    case "capitalize":
-                        String firstChar = tokenValue.substring(0, 1);
-                        String theRest = tokenValue.substring(1);
-                        firstChar = firstChar.toUpperCase();
-                        tokenValue = firstChar + theRest;
-                        break;
-                    case "normal":
-                        //yep... do nothing. Leave as is
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-        return tokenValue;
     }
     //replace the aliases inside fileContent with their associated value (if the alias is inside fileContent)
     private String getReplacedAliases(String fileContent, HashMap<String, String> aliasValueLookup)
@@ -1305,17 +779,17 @@ public class BuildTemplate {
     //determine if the default file name / path should be changed based on the given token
     private void setChangedFilenameForFile(String filePath, String[] tokenParts, String tokenValue, HashMap<String, String> aliasValueLookup){
         //if this file doesn't already have a designated changed name
-        if (!mChangedFileNames.containsKey(filePath)){
+        if (!mData.mChangedFileNames.containsKey(filePath)){
             //if there is a specified file name (other than the existing template file's name)
             if (!tokenValue.equals("") && !tokenValue.equals(".")){
                 //replace any aliases with real values that may be inside the filename
                 tokenValue = getReplacedAliases(tokenValue, aliasValueLookup);
                 //set the new name of the file
-                mChangedFileNames.put(filePath, tokenValue);
+                mData.mChangedFileNames.put(filePath, tokenValue);
             }else{
                 //no specified file name...
 
-                String tokenName = getTokenPart("name", tokenParts);
+                String tokenName = mData.getTokenPart("name", tokenParts);
                 //if the file name was literally hard-coded (surrounded by "quotes")
                 if (tokenName.indexOf("\"") == 0 || tokenName.indexOf("'") == 0){
                     //set the static filename value surrounded by "quotes"
@@ -1331,21 +805,21 @@ public class BuildTemplate {
                         //replace any aliases with real values that may be inside the filename
                         tokenValue = getReplacedAliases(tokenValue, aliasValueLookup);
                         //set the static name of the file
-                        mChangedFileNames.put(filePath, tokenValue);
+                        mData.mChangedFileNames.put(filePath, tokenValue);
                     }
                 }
             }
         }
         //since this token specifies a filename, it may also specify the root directory for the file (if not, changedFileDir = "")...
         //if this file doesn't already have a designated changed sub directory
-        if (!mChangedFileDirs.containsKey(filePath)){
+        if (!mData.mChangedFileDirs.containsKey(filePath)){
             //if there is a specified directory in the tokenParts
-            String changedDir = getTokenPart("dir", tokenParts);
+            String changedDir = mData.getTokenPart("dir", tokenParts);
             if (!changedDir.equals("") && !changedDir.equals(".")){
                 //replace any aliases with real values that may be inside the directory
                 changedDir = getReplacedAliases(changedDir, aliasValueLookup);
                 //set the new sub directory of the file
-                mChangedFileDirs.put(filePath, changedDir);
+                mData.mChangedFileDirs.put(filePath, changedDir);
             }
         }
     }
@@ -1363,11 +837,11 @@ public class BuildTemplate {
         */        
         
         //for each template file
-        for (String filePath : mFileTokensLookup.keySet()) {
-            //get key values related to this file
-            String fileContent=mFileContentLookup.get(filePath);
+        for (String filePath : mData.mFileTokensLookup.keySet()) {
+            //get content in this file
+            String fileContent=mData.mFileContentLookup.get(filePath);
             //if this file is NOT a non-text file, eg: an image
-            ArrayList<String> tokens=mFileTokensLookup.get(filePath);
+            ArrayList<String> tokens=mData.mFileTokensLookup.get(filePath);
             /*tokens:
                 ../config.xml
                     <<var:l:your hi>> --> _filenames.xml
@@ -1377,26 +851,52 @@ public class BuildTemplate {
                     <<filename:n:my/path:"overwrite">> --> _filenames.xml
                     <<var:u:another thing => [yep]>>
              */
+            //REPLACE LIST-TOKEN CHUNK PLACEHOLDERS
+            //=====================================
+            //if this file's content contains a list chunk placeholder
+            if(fileContent.contains(mStrMgr.mStartToken+mStrMgr.mPlaceholderChunkName+mStrMgr.mTokenSeparator+"list")){
+                //if there are any list token chunks (there should be since the file contains a list placeholder)
+                if(mData.mUniqueListTokenNames.size()>0){
+                    //for each unique list token (at this first level)
+                    for(int lt=0;lt<mData.mUniqueListTokenNames.size();lt++){
+                        //if this list token is stored as a template chunk (it should be)
+                        String listTokenName=mData.mUniqueListTokenNames.get(lt);
+                        if(mData.mTemplateChunks.containsKey(listTokenName)){
+                            //if this list token name is used in THIS file
+                            if(mData.mTemplateChunks.get(listTokenName).containsKey(filePath)){
+                                //get the list of list tokens (inside this file)
+                                ArrayList<TemplateChunk> chunkObjs=mData.mTemplateChunks.get(listTokenName).get(filePath);
+                                //for each list chunk inside this file
+                                for(int c=0;c<chunkObjs.size();c++){
+                                    //set the real token chunk that will replace the placeholder in the file content
+                                    TemplateChunk chunkObj=chunkObjs.get(c);
+                                    fileContent=chunkObj.setTokenValues(chunkObj.getTokenName(),fileContent,mData); 
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             //GET FORMATTED VALUES FOR ALIASES AND REMOVE ALIAS DECLARATIONS FROM FILE CONTENTS
             //=================================================================================
             //if there are any aliased tokens in this file,
             //side-note: ONLY text-based files might have associated aliases. Non-text files, like images, will never have any items in mFileAliasesLookup ...
             HashMap<String, String> aliasValueLookup=new HashMap<String, String>();
-            if(mFileAliasesLookup.containsKey(filePath)){
+            if(mData.mFileAliasesLookup.containsKey(filePath)){
                 //for each alias declaration inside the file
-                for (String aliasKey : mFileAliasesLookup.get(filePath).keySet()) {
+                for (String aliasKey : mData.mFileAliasesLookup.get(filePath).keySet()) {
                     //if the alias doesn't already have an associated formatted value
                     if(!aliasValueLookup.containsKey(aliasKey)){
                         //REMOVE ALIAS DEFINITION FROM THE CONTENT
                         //get the token string for this alias
-                        String tokenStr = mFileAliasesLookup.get(filePath).get(aliasKey);
+                        String tokenStr = mData.mFileAliasesLookup.get(filePath).get(aliasKey);
                         //remove the tokenStr (alias variable declaration) from fileContent
                         fileContent = fileContent.replace(tokenStr, "");
                         //STORE THE VALUE ASSIGNED TO THE ALIAS (THAT WILL REPLACE INSTANCES OF THE ALIAS THROUGHOUT THE FILE)
                         //split the token key parts up
-                        String[] tokenParts = tokenStr.split(mTokenSeparator);
+                        String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
                         //get the formatted token value
-                        String tokenValue = getFormattedTokenValue(tokenParts,inFileNameTokens);
+                        String tokenValue = mData.getFormattedTokenValue(tokenParts,inFileNameTokens);
                         //associate this value with this alias (only for this file)
                         aliasValueLookup.put(aliasKey, tokenValue);
                     }
@@ -1406,12 +906,12 @@ public class BuildTemplate {
             //==================================================================================
             //if this file has a filename defined in _filenames.xml
             boolean filenameInXml=false;
-            if(mFilenameXmlOverwriteLookup.containsKey(filePath)){
-                String tokenStr=mFilenameXmlOverwriteLookup.get(filePath);
+            if(mData.mFilenameXmlOverwriteLookup.containsKey(filePath)){
+                String tokenStr=mData.mFilenameXmlOverwriteLookup.get(filePath);
                 //split the token key parts up
-                String[] tokenParts=tokenStr.split(mTokenSeparator);
+                String[] tokenParts=tokenStr.split(mStrMgr.mTokenSeparator);
                 //get the formatted token value
-                String tokenValue=getFormattedTokenValue(tokenParts,inFileNameTokens);
+                String tokenValue=mData.getFormattedTokenValue(tokenParts,inFileNameTokens);
                 //save the changed file name or directory, if either dir or name should be changed
                 setChangedFilenameForFile(filePath, tokenParts, tokenValue, aliasValueLookup);
                 filenameInXml=true;
@@ -1424,15 +924,15 @@ public class BuildTemplate {
                 //get the token key, eg: <<type:casing:name>>
                 String tokenStr=tokens.get(t);
                 //split the token key parts up
-                String[] tokenParts=tokenStr.split(mTokenSeparator);
+                String[] tokenParts=tokenStr.split(mStrMgr.mTokenSeparator);
                 //get the formatted token value
-                String tokenValue=getFormattedTokenValue(tokenParts,inFileNameTokens);
+                String tokenValue=mData.getFormattedTokenValue(tokenParts,inFileNameTokens);
                 //INSERT THE FORMATTED TOKEN VALUE INTO THE CONTENT (OR SET IT AS A SPECIAL VALUE, LIKE FILENAME, ETC...)
                 //=======================================================================================================
                 //get the token name
-                String tokenName=getTokenPart("name", tokenParts);
+                String tokenName=mData.getTokenPart("name", tokenParts);
                 //get the token type
-                String type=getTokenPart("type", tokenParts);
+                String type=mData.getTokenPart("type", tokenParts);
                 switch (type){
                     case "var":
                         //replace the tokens with the actual values
@@ -1450,12 +950,12 @@ public class BuildTemplate {
                     default:
                         break;
                 }
-                //replace any aliases with real values that may be inside the fileContent
-                fileContent=getReplacedAliases(fileContent, aliasValueLookup);
-                //set the modified content into the lookup
-                mFileContentLookup.remove(filePath);
-                mFileContentLookup.put(filePath, fileContent);
             }
+            //replace any aliases with real values that may be inside the fileContent
+            fileContent=getReplacedAliases(fileContent, aliasValueLookup);
+            //set the modified content into the lookup
+            mData.mFileContentLookup.remove(filePath);
+            mData.mFileContentLookup.put(filePath, fileContent);
         }
     }
     //write the output files
@@ -1507,19 +1007,19 @@ public class BuildTemplate {
         //=================================
         //for each file to create
         int fileCount = 0; int skippedFileCount = 0; int errFileCount = 0;
-        for (String filePath : mFileContentLookup.keySet()) {
+        for (String filePath : mData.mFileContentLookup.keySet()) {
             String fileName = "";File templateFile=new File(filePath);
             //if this file doesn't start with _, eg: _filenames.xml
-            if(templateFile.getName().indexOf("_")!=0){
+            if(!mFileMgr.isIgnoredFileOrFolder(templateFile)){
                 //if changing the file name
-                if (mChangedFileNames.containsKey(filePath)){
+                if (mData.mChangedFileNames.containsKey(filePath)){
                     //get just the file extension
                     String fileExt = templateFile.getName();
                     if (fileExt.indexOf(".") != -1){
                         //remove file name from the extension
                         fileExt = fileExt.substring(fileExt.lastIndexOf("."));
                         //add file extension to file name
-                        fileName = mChangedFileNames.get(filePath) + fileExt;
+                        fileName = mData.mChangedFileNames.get(filePath) + fileExt;
                     }else{fileExt="";}
                 }
                 else //use same filename as the original template file
@@ -1529,8 +1029,8 @@ public class BuildTemplate {
                 }
                 //if changing the file directory (under the current project directory)
                 String changedFileDir = "";
-                if (mChangedFileDirs.containsKey(filePath)){
-                    changedFileDir = mChangedFileDirs.get(filePath);
+                if (mData.mChangedFileDirs.containsKey(filePath)){
+                    changedFileDir = mData.mChangedFileDirs.get(filePath);
                     //make sure each directory exists... create them if they don't
                     changedFileDir=changedFileDir.replace(File.separator, "/");
                     String[] dirs = changedFileDir.split("/");
@@ -1572,7 +1072,7 @@ public class BuildTemplate {
                         //set the target directory as the root of the output file path
                         outputFilePath = mTargetDir + outputFilePath;
                         //get the new file content
-                        String fileContent = mFileContentLookup.get(filePath);
+                        String fileContent = mData.mFileContentLookup.get(filePath);
                         File newFile=new File(outputFilePath);
                         //if the new file doesn't already exist
                         if (!newFile.exists()){
@@ -1582,16 +1082,16 @@ public class BuildTemplate {
                                 //create the file with its content (maybe changed or maybe not changed and just copied over)
                                 boolean success=false;
                                 //if this is a NON-text file, eg and image
-                                if(fileContent.equals(mNonTextFileContent)){
+                                if(fileContent.equals(mStrMgr.mNonTextFileContent)){
                                     //copy the NON text file to the build location
-                                    success=copyFileTo(new File(mUseTemplatePath + File.separator + new File(filePath).getName()), newFile);
+                                    success=mFileMgr.copyFileTo(new File(mUseTemplatePath + File.separator + new File(filePath).getName()), newFile);
                                 }else{
                                     //this IS a text-based file...
                                     //restore certain string contents
-                                    fileContent = fileContent.replace(mStartEscToken, mStartToken);
-                                    fileContent = fileContent.replace(mEndEscToken, mEndToken);
+                                    fileContent = fileContent.replace(mStrMgr.mStartEscToken, mStrMgr.mStartToken);
+                                    fileContent = fileContent.replace(mStrMgr.mEndEscToken, mStrMgr.mEndToken);
                                     //write the token-replaced file content
-                                    success=writeFile(newFile.getPath(), fileContent);
+                                    success=mFileMgr.writeFile(newFile.getPath(), fileContent);
                                 }
                                 if(success){
                                     System.out.println(" FILE CREATED: \t" + "..."+newFile.getPath().substring(mTargetDir.length()+1));
@@ -1624,7 +1124,7 @@ public class BuildTemplate {
                         if (exportFile.exists()){
                             //try to get the file content
                             String exportContent = ""; boolean errorReading=false;
-                            exportContent = readFile(exportFile.getPath());
+                            exportContent = mFileMgr.readFile(exportFile.getPath());
                             if(exportContent==null){
                                 errorReading=true;
                                 errFileCount++;
@@ -1634,7 +1134,7 @@ public class BuildTemplate {
                                 //if the file content is NOT blank
                                 if (exportContent.length() > 0){
                                     //make a copy of the export file under the exportDir root
-                                    boolean success=copyFileTo(exportFile, new File(exportDir + outputFilePath));
+                                    boolean success=mFileMgr.copyFileTo(exportFile, new File(exportDir + outputFilePath));
                                     if(success){
                                         System.out.println(" FILE EXPORTED: \t" + "..."+(exportDir + outputFilePath).substring(mTargetDir.length()+1));
                                         fileCount++;

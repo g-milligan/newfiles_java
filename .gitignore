@@ -1,9 +1,9 @@
 #exclude files
 manifest.mf
 build.xml
-*.bat
-*.sh
-nf
+/run/win/*.bat
+/run/mac/*.sh
+/run/mac/nf
 README.TXT
 
 #exclude directories
