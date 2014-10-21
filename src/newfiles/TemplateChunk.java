@@ -338,7 +338,24 @@ public class TemplateChunk {
         }else{
             //no tokens inside this chunk...
             
-            //*** just repeat this token chunk depending on user input item count
+            //if there is a set number of times to repeat this chunk
+            if(td.mTokenInputValues.containsKey(nestedKey+mStrMgr.mAliasSetter+mStrMgr.mItemCountName)){
+                //HANDLE REPEATED TEMPLATE CONTENT THAT DOES NOT CONTAIN ANY TOKENS
+                //=================================================================
+                //just repeat this token chunk depending on user input item count
+                String repeatNumStr=td.mTokenInputValues.get(nestedKey+mStrMgr.mAliasSetter+mStrMgr.mItemCountName);
+                int repeatNum=Integer.parseInt(repeatNumStr);
+                String allItemChunks="";
+                //for each item to repeat
+                for(int i=0;i<repeatNum;i++){
+                    //append another duplicate item to the blob of items
+                    allItemChunks+=oneItemChunkStr;
+                }
+                //INSERT THE LIST ITEMS GLOB BACK INTO THE FILE CONTENT
+                //=====================================================
+                //the template chunk is complete... replace the placeholder with the actual template text
+                fileContent=fileContent.replace(chunkPlaceholderStr, allItemChunks);
+            }
         }
         return fileContent;
     }

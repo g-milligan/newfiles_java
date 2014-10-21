@@ -49,6 +49,7 @@ public class StrMgr {
     public static final String mAppLicensePath=mAppResDir+"/license/pandowerx.newfiles.LICENSE.txt";
     public final static String mFilenamesXml = "_filenames.xml"; //the filename where non-text files (eg: images) can have their output paths defined
     public static final String mPlaceholderChunkName="placeholer"; //the name of a placeholder for a chunk, eg: list
+    public static final String mItemCountName="ITEM_COUNT"; //the name used in the key, which can access the number of times to repeat a list item (that doesn't contain any tokens)
     
     //accepts a string blob and returns a sub-string that begins and ends with a beginning and ending sub-string
     //even if there are NESTED start and end tags within the return string, this function will determine the correct return sub-string
