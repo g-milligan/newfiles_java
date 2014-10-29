@@ -140,6 +140,7 @@ public class TemplateData {
                             if (!mUniqueListTokenNames.contains(cName)){
                                 //add the unique token name, if not already in the list
                                 mUniqueListTokenNames.add(cName); 
+                                atLeastOneToken = true;
                             }
                             break;
                     }
@@ -434,7 +435,8 @@ public class TemplateData {
             //if file read was successful
             if(contents!=null){
                 //load the data for this file
-                atLeastOneToken = loadContentData(mIncludeFiles.get(f).getPath(), contents, fNamesXmlFile, filenamesFromXml, filenameTokens);
+                boolean fileHasToken = loadContentData(mIncludeFiles.get(f).getPath(), contents, fNamesXmlFile, filenamesFromXml, filenameTokens);
+                if(fileHasToken){atLeastOneToken=true;}
             }
         }
         return atLeastOneToken;
