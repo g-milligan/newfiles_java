@@ -252,7 +252,7 @@ public class TemplateChunk {
                         while(td.mTokenInputValues.containsKey(tokenInputKey+mStrMgr.mTokenSeparator+itemIndex)){
                             //FORMAT THE VAR VALUE
                             //====================
-                            String inputValue=td.mTokenInputValues.get(tokenInputKey+mStrMgr.mTokenSeparator+itemIndex);
+                            String inputValue=td.getFormattedTokenValue(tokenParts,tokenInputKey+mStrMgr.mTokenSeparator+itemIndex);
                             //WHAT STRING GETS REPLACED BY THE VALUE?
                             //=======================================
                             String replaceThisStr=tokenStr;
