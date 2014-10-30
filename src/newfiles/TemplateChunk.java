@@ -178,7 +178,14 @@ public class TemplateChunk {
                         if(!tType.equals("filename")){
                             //if this token name is NOT already listed in unique names
                             if(!mUniqueTokenNames.contains(tName)){
+                                //add this unique token name to the list of unique names
                                 mUniqueTokenNames.add(tName);
+                                //if this is a var token
+                                if(tType.equals("var")){
+                                    //STORE THE TOKEN VALUE "OPTIONS" FOR THIS UNIQUE TOKEN NAME
+                                    //========================================================
+                                    mTemplateData.linkOptionsToUniqueTokenName(tName, tokenStr);
+                                }
                             }
                             //if this token has an alias
                             String tAlias = mTemplateData.getTokenPart("alias", tokenParts);

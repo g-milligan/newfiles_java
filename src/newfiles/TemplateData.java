@@ -56,7 +56,7 @@ public class TemplateData {
     public static HashMap<String, ArrayList<String>> mNestedUniqueListTokenNames; //HashMap<[nestedKey], ArrayList<[tokenName]>> each <<list>> token name only appears once
     public static HashMap<String, HashMap<String, ArrayList<String>>> mNestedFileTokensLookup; //HashMap<[nestedKey], HashMap<[filePath], ArrayList<[tokenItemText]>>>
     
-    public static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>>
+    public static HashMap<String, ArrayList<String>> mUniqueTokenNameOptions; //HashMap<[tokenName], ArrayList<[possible-input-value-options]>> token name is NOT the nested name, it's just the name with no index
     public static HashMap<String, String> mTokenInputValues; //HashMap<[tokenName], [inputValue]> [tokenName] will be the nested key for nested token values
     public static HashMap<String, String> mChangedFileNames; //HashMap<[filePath], [changedFileName]>
     public static HashMap<String, String> mChangedFileDirs; //HashMap<[filePath], [changedFileDirectories]>
@@ -77,6 +77,28 @@ public class TemplateData {
     public void useFiles(String useTemplatePath, ArrayList<File> includeFiles){
         mIncludeFiles=includeFiles;
         mUseTemplatePath=useTemplatePath;
+    }
+    public void linkOptionsToUniqueTokenName(String tokenName, String tokenStr){
+        //if there are defined input value options for this token
+        String tOptionsStr = getTokenPart("options", tokenStr);
+        if(tOptionsStr.length()>0){
+            //if this token name doesn't already have any associated options
+            if(!mUniqueTokenNameOptions.containsKey(tokenName)){
+                //create the token name as a key in this HashMap
+                ArrayList<String> options = new ArrayList<String>();
+                mUniqueTokenNameOptions.put(tokenName, options);
+            }
+            //for each option
+            String[] tOptionsArray = tOptionsStr.split("\\|");
+            for(int a=0;a<tOptionsArray.length;a++){
+                //if this option isn't already associated with this token name
+                String opt=tOptionsArray[a];
+                if(!mUniqueTokenNameOptions.get(tokenName).contains(opt)){
+                    //add the association between this token name and value option
+                    mUniqueTokenNameOptions.get(tokenName).add(opt);
+                }
+            }
+        }
     }
     //load the template content for one nested section inside one file
     public boolean loadContentData(String filePath, String contents, File fNamesXmlFile, HashMap<String, String> filenamesFromXml, ArrayList<String> filenameTokens){
@@ -220,26 +242,7 @@ public class TemplateData {
                     }
                     //STORE THE TOKEN VALUE "OPTIONS" FOR THIS UNIQUE TOKEN NAME
                     //========================================================
-                    //if there are defined input value options for this token
-                    String tOptionsStr = getTokenPart("options", tokens.get(t));
-                    if(tOptionsStr.length()>0){
-                        //if this token name doesn't already have any associated options
-                        if(!mUniqueTokenNameOptions.containsKey(tName)){
-                            //create the token name as a key in this HashMap
-                            ArrayList<String> options = new ArrayList<String>();
-                            mUniqueTokenNameOptions.put(tName, options);
-                        }
-                        //for each option
-                        String[] tOptionsArray = tOptionsStr.split("\\|");
-                        for(int a=0;a<tOptionsArray.length;a++){
-                            //if this option isn't already associated with this token name
-                            String opt=tOptionsArray[a];
-                            if(!mUniqueTokenNameOptions.get(tName).contains(opt)){
-                                //add the association between this token name and value option
-                                mUniqueTokenNameOptions.get(tName).add(opt);
-                            }
-                        }
-                    }
+                    linkOptionsToUniqueTokenName(tName, tokens.get(t));
                     //STORE ALL OF UNIQUE TOKEN NAMES FOR ALL FILES
                     //=============================================   
                     //if this is not a blank token
