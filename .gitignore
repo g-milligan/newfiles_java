@@ -4,9 +4,12 @@ build.xml
 /run/win/*.bat
 /run/mac/*.sh
 /run/mac/nf
+/dist/newfiles_run.jar
 README.TXT
 
 #exclude directories
 /nbproject
 /build
 /templates
+/lib
+/dist/lib

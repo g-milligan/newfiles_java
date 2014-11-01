@@ -1,6 +1,5 @@
 package newfiles;
 
-import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -49,9 +48,10 @@ public class Newfiles {
     private static ArrayList<String> mTemplateList; //list of folder paths for each template
     private static BuildTemplate mBuild; //the object class used to build out a template
     private static TemplateData mData;
-    
+    //objects
     private static FileMgr mFileMgr;
     private static StrMgr mStrMgr;
+    private static NfGui mGui;
     //list of commands (the commands can change, but their index position should NOT change)
     private static final String[] mCommands = 
     {
@@ -123,7 +123,7 @@ public class Newfiles {
                 System.out.print(mFileMgr.getLicenseDocContents());
                 break;
             case 8: //8: open the Graphical user interface for Newfiles
-                //***
+                mGui = new NfGui();
                 break;
             default:
                 //invalid command (int code)
