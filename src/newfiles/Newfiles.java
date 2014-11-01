@@ -37,9 +37,9 @@ Or email <pandowerx@gmail.com>
  */
 public class Newfiles {
     //version
-    private static final double VERSION_NUMBER = 1.1; //increment 10's place with every new version name
-    private static final int PATCH_NUMBER = 0; //increment by 1 with every hot-fix. Reset to zero with every new version number
-    private static final String VERSION_ALIAS = "Surculus"; //change name with every new master release
+    public static final double VERSION_NUMBER = 1.1; //increment 10's place with every new version name
+    public static final int PATCH_NUMBER = 0; //increment by 1 with every hot-fix. Reset to zero with every new version number
+    public static final String VERSION_ALIAS = "Surculus"; //change name with every new master release
     //fields
     private static String mTemplatesRoot; //the root directory where all templates are stored
     private static String mTargetDir; //the target directory where the new files will be generated (current console directory)
@@ -51,7 +51,6 @@ public class Newfiles {
     //objects
     private static FileMgr mFileMgr;
     private static StrMgr mStrMgr;
-    private static NfGui mGui;
     //list of commands (the commands can change, but their index position should NOT change)
     private static final String[] mCommands = 
     {
@@ -123,7 +122,8 @@ public class Newfiles {
                 System.out.print(mFileMgr.getLicenseDocContents());
                 break;
             case 8: //8: open the Graphical user interface for Newfiles
-                mGui = new NfGui();
+                System.out.println(" Loading GUI window, just a moment...");
+                NfGui gui=new NfGui(); gui.main(args); gui.close();
                 break;
             default:
                 //invalid command (int code)

@@ -36,6 +36,9 @@ Or email <pandowerx@gmail.com>
  */
 public class StrMgr {
     //constants
+    public static final String mGuiTitle="Newfiles";
+    public static final String mPandowerxUrl="pandowerx.com";
+    public static final String mGuiRootDir="gui/";
     public static final String mStartToken="<<";
     public static final String mEndToken=">>";
     public static final String mTokenSeparator=":";
