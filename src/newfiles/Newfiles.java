@@ -38,9 +38,9 @@ Or email <pandowerx@gmail.com>
  */
 public class Newfiles {
     //version
-    private static final double VERSION_NUMBER = 1.0; //increment 10's place with every new version name
-    private static final int PATCH_NUMBER = 4; //increment by 1 with every hot-fix. Reset to zero with every new version number
-    private static final String VERSION_ALIAS = "Seedling"; //change name with every new master release
+    private static final double VERSION_NUMBER = 1.1; //increment 10's place with every new version name
+    private static final int PATCH_NUMBER = 0; //increment by 1 with every hot-fix. Reset to zero with every new version number
+    private static final String VERSION_ALIAS = "Surculus"; //change name with every new master release
     //fields
     private static String mTemplatesRoot; //the root directory where all templates are stored
     private static String mTargetDir; //the target directory where the new files will be generated (current console directory)
