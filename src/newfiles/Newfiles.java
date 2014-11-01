@@ -62,7 +62,8 @@ public class Newfiles {
         "templates", //4: open the root templates directory file-system window
         "export", //5: export a project's template files, eg: "nf export 3"
         "filenames", //6: create/update the xml document used to define the template's filenames/paths
-        "license" //7: view the license agreement
+        "license", //7: view the license agreement
+        "gui" //8: Open the graphical user interface for Newfiles
     };
     //usage for commands (parallel array for mCommands)
     private static final String[] mCmdUsageText = 
@@ -74,7 +75,8 @@ public class Newfiles {
         "{nf} >> "+mCommands[4],
         "{nf} >> "+mCommands[5]+" <TEMPLATE-INDEX>",
         "{nf} >> "+mCommands[6]+" <TEMPLATE-INDEX>",
-        "{nf} >> "+mCommands[7]
+        "{nf} >> "+mCommands[7],
+        "{nf} >> "+mCommands[8]
     };
     //help text for commands (parallel array for mCommands)
     private static final String[] mCmdHelpText = 
@@ -86,7 +88,8 @@ public class Newfiles {
         "open the root templates directory file-system window, eg: \"{nf} "+mCommands[4]+"\"",
         "export a project's template files, eg: \"{nf} "+mCommands[5]+" 3\"",
         "create/update an xml doc, used to define the template's filenames/paths, eg: \"{nf} "+mCommands[6]+" 3\"",
-        "view the license for this Newfiles application, eg: \"{nf} "+mCommands[7]+"\""
+        "view the license for this Newfiles application, eg: \"{nf} "+mCommands[7]+"\"",
+        "Open the graphical user interface for Newfiles, eg: \"{nf} "+mCommands[8]+"\""
     };
     private static int mUseTemplateIndex; //the integer number of the current template being used
     private final static int mNumArgsFromBatch=3; //the number of arguments that get passed to this app automatically
@@ -118,6 +121,9 @@ public class Newfiles {
                 break;
             case 7: //7: view the license for this Newfiles application
                 System.out.print(mFileMgr.getLicenseDocContents());
+                break;
+            case 8: //8: open the Graphical user interface for Newfiles
+                //***
                 break;
             default:
                 //invalid command (int code)
