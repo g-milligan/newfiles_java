@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 
 /**
 All rights reserved
@@ -84,6 +85,8 @@ public class NfGui extends Application {
     }
     //get the URL path of a GUI resource
     private URL getGuiUrl(String fileName){return getClass().getResource(mStrMgr.mGuiRootDir + fileName);}
+    //get the image object for a GUI image resource
+    private Image getGuiImage(String fileName){return new Image(getClass().getResourceAsStream(mStrMgr.mGuiRootDir+"img/"+fileName)); }
     @Override
     public void start(Stage stage) {
         //normal init
@@ -93,7 +96,12 @@ public class NfGui extends Application {
         // create the scene
         stage.setTitle(mStrMgr.mGuiTitle+" \""+mNewfiles.VERSION_ALIAS+"\" ("+mNewfiles.VERSION_NUMBER+"_"+mNewfiles.PATCH_NUMBER+") | "+mStrMgr.mPandowerxUrl);
         mScene = new Scene(mWebView,750,500, Color.web("#666970"));
-        stage.setScene(mScene);      
+        stage.setScene(mScene); 
+        //get icon image(s)
+        Image icon32 = getGuiImage("logo_newfiles_32.png"); 
+        //set icon image(s)
+        stage.getIcons().add(icon32);
+        //show the window
         stage.show();
     }
     //close Newfiles (terminal, GUI window, all of it)
