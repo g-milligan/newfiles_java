@@ -56,4 +56,5 @@
 				If BOTH this file AND a filename token is used to influence the name of the SAME file, 
 				then the renaming performed in THIS file has a higher priority and the token would be ignored.
 	-->
+    <include><!-- path/to/one/or/more/files/or/folders/to/include/in/exports/*.txt --></include>
 </filenames>

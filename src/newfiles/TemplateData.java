@@ -876,6 +876,128 @@ public class TemplateData {
         }
        return xmlDoc;
     }
+    //pass a matchesStr value to match files under the given rootPath 
+    public ArrayList<File> getIncludeFileMatches(String rootPath, String matchesStr){
+        ArrayList<File> matchedFiles = new ArrayList<File>();
+        //normalize separators in paths
+        String sep=File.separator;
+        if(!sep.equals("/")){
+            rootPath=rootPath.replace("/", sep);
+            matchesStr=matchesStr.replace("/", sep);
+        }
+        //if the include rule begins with /
+        if(matchesStr.indexOf(sep)==0){
+            //remove the starting "/"
+            matchesStr=matchesStr.substring(sep.length());
+        }
+        //if the include rule ends with /
+        if(matchesStr.lastIndexOf(sep)==matchesStr.length()-sep.length()){
+            //remove the ending "/"
+            matchesStr=matchesStr.substring(0, matchesStr.lastIndexOf(sep));
+        }
+        //if the root path ends with /
+        if(rootPath.lastIndexOf(sep)==rootPath.length()-sep.length()){
+            //remove the ending "/"
+            rootPath=rootPath.substring(0, rootPath.lastIndexOf(sep));
+        }
+        //if the matchesStr is NOT blank
+        matchesStr=matchesStr.trim();
+        if(matchesStr.length()>0){
+            //if the rootPath is NOT blank
+            rootPath=rootPath.trim();
+            if(rootPath.length()>0){
+                //get the full path
+                String fullPath=rootPath+sep+matchesStr;
+                //if the full path contains * special wild-card character
+                if(fullPath.indexOf("\\*")!=-1){
+                    //get the path BEFORE the first * wild-card
+                    rootPath=fullPath.substring(0,fullPath.indexOf("\\*"));
+                    //get the string AFTER the first * wild-card
+                    matchesStr=fullPath.substring(fullPath.indexOf("\\*"));
+                }else{
+                    //no * special wild-card character...
+                    
+                    rootPath=fullPath;
+                    matchesStr="";
+                }
+                //if the rootPath still exists
+                File rootFileFold=new File(rootPath);
+                if(rootFileFold.exists()){
+                    //if the root is a folder
+                    if(rootFileFold.isDirectory()){
+                        //***
+                    }else if(rootFileFold.isFile()){
+                        //***
+                    }
+                }
+            }
+        }
+        return matchedFiles;
+    }
+    //get a list of files to include (from _filenames.xml) in an export of a project
+    public ArrayList<String> getXmlFilenamesIncludeValues(){
+        ArrayList<String> includeValues = new ArrayList<String>();
+        boolean xmlChangesMade=false;
+        //get the _filenames.xml file (if it already exists)
+        File fnXmlFile=getXmlFilenamesFile();
+        if(fnXmlFile.exists()){
+            //get the XML document object
+            Document xmlDoc=getXmlFilenamesDoc(fnXmlFile);
+            if(xmlDoc!=null){
+                //get the document root
+                Element root=xmlDoc.getDocumentElement();
+                //loop through each <filename> node inside the root node
+                NodeList renameNodes = root.getChildNodes();
+                for (int r=0;r<renameNodes.getLength();r++){
+                    //if this child node is an element (not a text node)
+                    Node includeNode=renameNodes.item(r);
+                    if (includeNode.getNodeType()==Node.ELEMENT_NODE) {
+                        //if this child node is a "include" node
+                        if(includeNode.getNodeName().toLowerCase().equals("include")){
+                            //get the <include> node inner text
+                            includeNode.normalize(); //remove comment text inside the node
+                            String nodeText=includeNode.getTextContent();
+                            if(nodeText==null){nodeText="";}
+                            nodeText=nodeText.trim();
+                            //if the node text is NOT blank
+                            if(nodeText.length()>0){
+                                //if the include rule begins with /
+                                if(nodeText.indexOf("/")==0){
+                                    //remove the starting "/"
+                                    nodeText=nodeText.substring(1);
+                                }
+                                //if the include rule ends with /
+                                if(nodeText.lastIndexOf("/")==nodeText.length()-1){
+                                    //remove the ending "/"
+                                    nodeText=nodeText.substring(0, nodeText.lastIndexOf("/"));
+                                }
+                                //if the node text is STILL NOT blank
+                                if(nodeText.length()>0){
+                                    //if this include value is NOT already listed
+                                    if(!includeValues.contains(nodeText)){
+                                        //add this include value to the list
+                                        includeValues.add(nodeText);
+                                    }else{
+                                        //include value is ALREADY listed more than once...
+
+                                        //remove this <include> node
+                                        root.removeChild(includeNode);
+                                        xmlChangesMade=true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                //if any changes were made to the xml file
+                if(xmlChangesMade){
+                    //save the changes
+                    mFileMgr.saveXmlDoc(xmlDoc, fnXmlFile);
+                }
+            }
+        }
+        return includeValues;
+    }
     //get a list of rename values from _filenames.xml 
     //and remove any <filename> node that is pointing at nothing OR a file that doesn't exist 
     private HashMap<String, String> getXmlFilenameHashValues(){
@@ -975,7 +1097,7 @@ public class TemplateData {
             
             //get the HashMaps of rename values
             //HashMap<[filePathInTemplate], [filenameTokenTxt]>
-            renameNodeList = getXmlFilenameHashValues();
+            renameNodeList = getXmlFilenameHashValues(); //***
         }
         System.out.println(" Tip: filename definitions in " + mStrMgr.mFilenamesXml + " will override filename definitions inside other template file tokens. ");
         System.out.println(" ... \n");

@@ -1217,6 +1217,26 @@ public class BuildTemplate {
                 }
             }
         }
+        //if this is an export
+        if(writeType.equals("export")){
+            //IF THERE ARE ADDITIONAL FILES TO INCLUDE INTO AN EXPORT
+            ArrayList<String> includeRules=mData.getXmlFilenamesIncludeValues();
+            if(includeRules.size()>0){
+                System.out.println("");
+                System.out.println(" INCLUDED WITH EXPORT: \n");
+                //for each include rule
+                for(int i=0;i<includeRules.size();i++){
+                    String includeRule=includeRules.get(i);
+                    //get all of the files that are matched by this include rule
+                    ArrayList<File> matchedFiles = mData.getIncludeFileMatches(mTargetDir, includeRule);
+                    System.out.println(" (" + matchedFiles.size() + ") RULE MATCHE(S): " + includeRule);
+                    //if any files in this target directory match the include rule
+                    if(matchedFiles.size()>0){
+                        //***
+                    }
+                }
+            }
+        }
         //FILE WRITING COMPLETE... PRINT STATUS MESSAGE
         System.out.println("\n -------------------------------------------------------");
         System.out.println(" Done.\n Created files: (" + fileCount + ") \n Skipped files: (" + skippedFileCount + ") \n Error files: (" + errFileCount + ") \n ");
