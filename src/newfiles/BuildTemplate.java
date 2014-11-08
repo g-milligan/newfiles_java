@@ -1228,7 +1228,7 @@ public class BuildTemplate {
                 for(int i=0;i<includeRules.size();i++){
                     String includeRule=includeRules.get(i);
                     //get all of the files that are matched by this include rule
-                    ArrayList<File> matchedFiles = mData.getIncludeFileMatches(mTargetDir, includeRule);
+                    ArrayList<String> matchedFiles = mData.getIncludeFileMatches(mTargetDir, includeRule);
                     System.out.println(" (" + matchedFiles.size() + ") RULE MATCHE(S): " + includeRule);
                     //if any files in this target directory match the include rule
                     if(matchedFiles.size()>0){

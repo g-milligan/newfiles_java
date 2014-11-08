@@ -877,28 +877,28 @@ public class TemplateData {
        return xmlDoc;
     }
     //pass a matchesStr value to match files under the given rootPath 
-    public ArrayList<File> getIncludeFileMatches(String rootPath, String matchesStr){
-        ArrayList<File> matchedFiles = new ArrayList<File>();
+    public ArrayList<String> getIncludeFileMatches(String rootPath, String matchesStr){
+        ArrayList<String> matchedFiles = new ArrayList<String>();
         //normalize separators in paths
         String sep=File.separator;
         if(!sep.equals("/")){
-            rootPath=rootPath.replace("/", sep);
-            matchesStr=matchesStr.replace("/", sep);
+            rootPath=rootPath.replace(sep,"/");
+            matchesStr=matchesStr.replace(sep,"/");
         }
         //if the include rule begins with /
-        if(matchesStr.indexOf(sep)==0){
+        if(matchesStr.indexOf("/")==0){
             //remove the starting "/"
-            matchesStr=matchesStr.substring(sep.length());
+            matchesStr=matchesStr.substring("/".length());
         }
         //if the include rule ends with /
-        if(matchesStr.lastIndexOf(sep)==matchesStr.length()-sep.length()){
+        if(matchesStr.lastIndexOf("/")==matchesStr.length()-"/".length()){
             //remove the ending "/"
-            matchesStr=matchesStr.substring(0, matchesStr.lastIndexOf(sep));
+            matchesStr=matchesStr.substring(0, matchesStr.lastIndexOf("/"));
         }
         //if the root path ends with /
-        if(rootPath.lastIndexOf(sep)==rootPath.length()-sep.length()){
+        if(rootPath.lastIndexOf("/")==rootPath.length()-"/".length()){
             //remove the ending "/"
-            rootPath=rootPath.substring(0, rootPath.lastIndexOf(sep));
+            rootPath=rootPath.substring(0, rootPath.lastIndexOf("/"));
         }
         //if the matchesStr is NOT blank
         matchesStr=matchesStr.trim();
@@ -907,13 +907,16 @@ public class TemplateData {
             rootPath=rootPath.trim();
             if(rootPath.length()>0){
                 //get the full path
-                String fullPath=rootPath+sep+matchesStr;
+                String fullPath=rootPath+"/"+matchesStr;
                 //if the full path contains * special wild-card character
-                if(fullPath.indexOf("\\*")!=-1){
+                if(fullPath.indexOf("*")!=-1){
+                    //*** and ** are the same as *
+                    fullPath=fullPath.replace("***", "*");
+                    fullPath=fullPath.replace("**", "*");
                     //get the path BEFORE the first * wild-card
-                    rootPath=fullPath.substring(0,fullPath.indexOf("\\*"));
+                    rootPath=fullPath.substring(0,fullPath.indexOf("*"));
                     //get the string AFTER the first * wild-card
-                    matchesStr=fullPath.substring(fullPath.indexOf("\\*"));
+                    matchesStr=fullPath.substring(fullPath.indexOf("*"));
                 }else{
                     //no * special wild-card character...
                     
@@ -921,13 +924,33 @@ public class TemplateData {
                     matchesStr="";
                 }
                 //if the rootPath still exists
-                File rootFileFold=new File(rootPath);
-                if(rootFileFold.exists()){
-                    //if the root is a folder
-                    if(rootFileFold.isDirectory()){
-                        //***
-                    }else if(rootFileFold.isFile()){
-                        //***
+                File rootFileFold=new File(rootPath.replace("/", sep));
+                if(rootFileFold.exists()){ //*** 
+                    //if there is still matchStr
+                    if(matchesStr.length()>0){
+                        //recursive get the matches
+                        ArrayList<String> subMatches=getIncludeFileMatches(rootPath, matchesStr);
+                        //for each recursive match
+                        for(int r=0;r<subMatches.size();r++){
+                            //if this file isn't already added to the match list
+                            if(!matchedFiles.contains(subMatches.get(r))){
+                                //add this file path to the matched list
+                                matchedFiles.add(subMatches.get(r));
+                            }
+                        }
+                    }else{
+                        //matchesStr is now empty...
+                        
+                        //if the root is a folder
+                        if(rootFileFold.isDirectory()){
+                            //***
+                        }else if(rootFileFold.isFile()){
+                            //if this file isn't already added to the match list
+                            if(!matchedFiles.contains(rootFileFold.getPath())){
+                                //add this file path to the matched list
+                                matchedFiles.add(rootFileFold.getPath());
+                            }
+                        }
                     }
                 }
             }
@@ -1097,7 +1120,7 @@ public class TemplateData {
             
             //get the HashMaps of rename values
             //HashMap<[filePathInTemplate], [filenameTokenTxt]>
-            renameNodeList = getXmlFilenameHashValues(); //***
+            renameNodeList = getXmlFilenameHashValues();
         }
         System.out.println(" Tip: filename definitions in " + mStrMgr.mFilenamesXml + " will override filename definitions inside other template file tokens. ");
         System.out.println(" ... \n");
