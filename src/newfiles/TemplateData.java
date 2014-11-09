@@ -876,6 +876,41 @@ public class TemplateData {
         }
        return xmlDoc;
     }
+    //get a list of file or folder names, that meet the criteria... they must start with, end with, or both
+    private ArrayList<String> getFileOrDirNamesMatch(File[] fileList, String type,String nameStartsWith, String nameEndsWith){
+        ArrayList<String> matchedNames = new ArrayList<String>();
+        //for each potential match
+        for(int f=0;f<fileList.length;f++){
+            //if this is the correct file/folder type
+            if((type=="dir"&&fileList[f].isDirectory())||(type=="file"&&fileList[f].isFile())){
+                boolean isMatch=true;
+                //get the file/folder name
+                String name=fileList[f].getName();
+                //if the name has to start with some string
+                if(nameStartsWith!=null&&nameStartsWith.length()>0){
+                    //if the name DOES NOT start with... 
+                    if(name.indexOf(nameStartsWith)!=0){
+                        isMatch=false;
+                    }
+                }
+                //if still meets match criteria so far
+                if(isMatch){
+                    //if the name has to end with some string
+                    if(nameEndsWith!=null&&nameEndsWith.length()>0){
+                        //if the name DOES NOT end with... 
+                        if(name.lastIndexOf(nameEndsWith)!=name.length()-nameEndsWith.length()){
+                            isMatch=false;
+                        }
+                    }
+                }
+                //if still meets match criteria so far
+                if(isMatch){
+                    matchedNames.add(name);
+                }
+            }
+        }
+        return matchedNames;
+    }
     //pass a matchesStr value to match files under the given rootPath 
     public ArrayList<String> getIncludeFileMatches(String rootPath, String matchesStr){
         ArrayList<String> matchedFiles = new ArrayList<String>();
@@ -910,13 +945,24 @@ public class TemplateData {
                 String fullPath=rootPath+"/"+matchesStr;
                 //if the full path contains * special wild-card character
                 if(fullPath.indexOf("*")!=-1){
-                    //*** and ** are the same as *
+                    //*** and ** are the same as * (this tripple star does NOT denote a code-check)
                     fullPath=fullPath.replace("***", "*");
                     fullPath=fullPath.replace("**", "*");
                     //get the path BEFORE the first * wild-card
                     rootPath=fullPath.substring(0,fullPath.indexOf("*"));
                     //get the string AFTER the first * wild-card
                     matchesStr=fullPath.substring(fullPath.indexOf("*"));
+                    //if the rootPath doesn't exist, eg: "path/to/file/filestartswith*"
+                    File rootFileFold=new File(rootPath.replace("/", sep));
+                    if(!rootFileFold.exists()){
+                        //if the root path contains a "/"
+                        if(rootPath.lastIndexOf("/")!=-1){
+                            //add the string after the last "/" to the start of matchesStr
+                            matchesStr=rootPath.substring(rootPath.lastIndexOf("/")+"/".length())+matchesStr;
+                            //remove the string before the last "/" from rootPath
+                            rootPath=rootPath.substring(0,rootPath.lastIndexOf("/")+"/".length());
+                        }
+                    }
                 }else{
                     //no * special wild-card character...
                     
@@ -925,17 +971,61 @@ public class TemplateData {
                 }
                 //if the rootPath still exists
                 File rootFileFold=new File(rootPath.replace("/", sep));
-                if(rootFileFold.exists()){ //*** 
-                    //if there is still matchStr
+                if(rootFileFold.exists()){ 
+                    //if there is still matchStr (must contain * in currentFileFold, before next "/")
                     if(matchesStr.length()>0){
-                        //recursive get the matches
-                        ArrayList<String> subMatches=getIncludeFileMatches(rootPath, matchesStr);
-                        //for each recursive match
-                        for(int r=0;r<subMatches.size();r++){
-                            //if this file isn't already added to the match list
-                            if(!matchedFiles.contains(subMatches.get(r))){
-                                //add this file path to the matched list
-                                matchedFiles.add(subMatches.get(r));
+                         //get the list of files/folders directly under rootFileFold (if any)... filter this list
+                        File[] subFiles = rootFileFold.listFiles();
+                        if(subFiles.length>0){
+                            //if there is a folder separator
+                            String currentFileFold=matchesStr;
+                            if(currentFileFold.indexOf("/")!=-1){
+                                //remove the sub folders from this path
+                                currentFileFold=currentFileFold.substring(0,currentFileFold.indexOf("/"));
+                                //remove the first folder from the path
+                                matchesStr=matchesStr.substring(matchesStr.indexOf("/"));
+                            }else{
+                                //no more folder separators...
+
+                                matchesStr="";
+                            }
+                            ArrayList<String> matchedCurrentFileFoldNames=null;
+                            //currentFileFold = "*SOMETHING" OR
+                            //currentFileFold = "SOMETHING*" OR
+                            //currentFileFold = "SOMETHING*SOMETHING"
+                            String startsWith=currentFileFold.substring(0,currentFileFold.indexOf("*"));
+                            String endsWith=currentFileFold.substring(currentFileFold.lastIndexOf("*")+"*".length());
+                            //if only matching FILE names
+                            if(matchesStr.length()<1){
+                                //get the FILE names that start with ___, end with ___, or both
+                                matchedCurrentFileFoldNames=getFileOrDirNamesMatch(subFiles,"file",startsWith,endsWith);
+                                //for each matched name
+                                for(int m=0;m<matchedCurrentFileFoldNames.size();m++){
+                                    //add this matched file name to the list
+                                    String matchedName=matchedCurrentFileFoldNames.get(m);
+                                    matchedFiles.add(rootFileFold.getPath()+sep+matchedName);
+                                }
+                            }else{
+                                //only matching DIRECTORY names...
+
+                                //get the DIRECTORY names that start with ___, end with ___, or both
+                                matchedCurrentFileFoldNames=getFileOrDirNamesMatch(subFiles,"dir",startsWith,endsWith);
+                                //for each matched name
+                                for(int m=0;m<matchedCurrentFileFoldNames.size();m++){
+                                    //get the matched folder name
+                                    String matchedName=matchedCurrentFileFoldNames.get(m);
+                                    rootPath=rootFileFold.getPath()+sep+matchedName;
+                                    //recursively get the matches under this matched folder name
+                                    ArrayList<String> subMatches=getIncludeFileMatches(rootPath, matchesStr);
+                                    //for each recursive match
+                                    for(int r=0;r<subMatches.size();r++){
+                                        //if this file isn't already added to the match list
+                                        if(!matchedFiles.contains(subMatches.get(r))){
+                                            //add this file path to the matched list
+                                            matchedFiles.add(subMatches.get(r));
+                                        }
+                                    }
+                                }
                             }
                         }
                     }else{
@@ -943,7 +1033,18 @@ public class TemplateData {
                         
                         //if the root is a folder
                         if(rootFileFold.isDirectory()){
-                            //***
+                            //get the list of files/folders directly under rootFileFold (if any)... filter this list
+                           File[] subFiles = rootFileFold.listFiles();
+                           if(subFiles.length>0){
+                                //for each potential match
+                                for(int f=0;f<subFiles.length;f++){
+                                    //if this sub file is NOT a directory (if an entire directory is included, only include its sub-files but NOT sub folders)
+                                    if(subFiles[f].isFile()){
+                                        //add this file to the list of matched files
+                                        matchedFiles.add(subFiles[f].getPath());
+                                    }
+                                }
+                           }
                         }else if(rootFileFold.isFile()){
                             //if this file isn't already added to the match list
                             if(!matchedFiles.contains(rootFileFold.getPath())){
