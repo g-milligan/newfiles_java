@@ -1017,6 +1017,77 @@ public class BuildTemplate {
             mData.mFileContentLookup.put(filePath, fileContent);
         }
     }
+    //exportDir is the root folder under which the export is copied to
+    //outputFilePath is the original path of the file (to copy) under the current project's mTargetDir 
+    private int[] exportOneFile(String outputPrefix,int errFileCount,int skippedFileCount,int fileCount,String outputFilePath,String exportDir){
+        //normalize file path separators
+        outputFilePath=outputFilePath.replace("\\", "/");
+        outputFilePath=outputFilePath.replace("///", "/");
+        outputFilePath=outputFilePath.replace("//", "/");
+        outputFilePath=outputFilePath.replace("/", File.separator);
+        //get the file to export
+        File exportFile=new File(mTargetDir + outputFilePath);
+        //if the new file already exists
+        if (exportFile.exists()){
+            //try to get the file content
+            String exportContent = ""; boolean errorReading=false;
+            exportContent = mFileMgr.readFile(exportFile.getPath());
+            if(exportContent==null){
+                errorReading=true;
+                errFileCount++;
+            }
+            //if the file could be read
+            if(!errorReading){
+                //if the file content is NOT blank
+                if (exportContent.length() > 0){
+                    //make a copy of the export file under the exportDir root
+                    boolean success=mFileMgr.copyFileTo(exportFile, new File(exportDir + outputFilePath));
+                    if(success){
+                        System.out.println(" "+outputPrefix+"FILE EXPORTED: \t" + "..."+(exportDir + outputFilePath).substring(mTargetDir.length()+1));
+                        fileCount++;
+                    }else{
+                        errFileCount++;
+                    }
+                }
+                else
+                {
+                    System.out.println(" "+outputPrefix+"FILE SKIP (BLANK): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
+                    skippedFileCount++;
+                }
+            }
+        }
+        else
+        {
+            System.out.println(" "+outputPrefix+"FILE SKIP (DOES NOT EXIST): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
+            skippedFileCount++;
+        }
+        int[] retCounts = new int[]{errFileCount,skippedFileCount,fileCount};
+        return retCounts;
+    }
+    //create a directory path (for each folder) if they don't already exist
+    private void createDirPath(String rootDirStartPoint,String[] dirs){
+        //MAKE SURE EACH OUTPUT DIRECTORY IS CREATED IF IT DOESN'T ALREADY EXIST 
+        //for each sub directory (that may need to be created)
+        for (int d=0;d<dirs.length;d++){
+            //if the directory is NOT blank
+            String dir=dirs[d].trim();
+            if(dir.length()>0){
+                //if this directory doesn't exist
+                rootDirStartPoint += dir + File.separator;
+                File dirFile=new File(rootDirStartPoint);
+                if (!dirFile.exists()){
+                    try{
+                        //try to create this directory
+                        dirFile.mkdir();
+                    }catch(SecurityException se){
+                        System.out.println("\n Uh oh... failed to create directory --> "+rootDirStartPoint);
+                        se.printStackTrace();
+                        break;
+                    }
+                }
+            }
+        }
+    }
     //write the output files
     private String writeOutputFiles(){return writeOutputFiles("build");} 
     private String writeOutputFiles(String writeType){
@@ -1103,23 +1174,8 @@ public class BuildTemplate {
                             currentDir = exportDir + File.separator;
                         break;
                     }
-                    //MAKE SURE EACH OUTPUT DIRECTORY IS CREATED IF IT DOESN'T ALREADY EXIST
-                    //for each sub directory (that may need to be created)
-                    for (int d=0;d<dirs.length;d++){
-                        //if this directory doesn't exist
-                        currentDir += dirs[d].trim() + File.separator;
-                        File dirFile=new File(currentDir);
-                        if (!dirFile.exists()){
-                            try{
-                                //try to create this directory
-                                dirFile.mkdir();
-                            }catch(SecurityException se){
-                                System.out.println("\n Uh oh... failed to create directory --> "+currentDir);
-                                se.printStackTrace();
-                                break;
-                            }
-                        }
-                    }
+                    //create these directories, if they don't already exist
+                    createDirPath(currentDir,dirs);
                     //append the final \\ at the end of the directory path
                     changedFileDir += File.separator;
                 }
@@ -1171,48 +1227,11 @@ public class BuildTemplate {
                             skippedFileCount++;
                         }
                     break;
-                    case "export": //if exporting a completed project file...
-                        //normalize file path separators
-                        outputFilePath=outputFilePath.replace("\\", "/");
-                        outputFilePath=outputFilePath.replace("///", "/");
-                        outputFilePath=outputFilePath.replace("//", "/");
-                        outputFilePath=outputFilePath.replace("/", File.separator);
-                        //get the file to export
-                        File exportFile=new File(mTargetDir + outputFilePath);
-                        //if the new file already exists
-                        if (exportFile.exists()){
-                            //try to get the file content
-                            String exportContent = ""; boolean errorReading=false;
-                            exportContent = mFileMgr.readFile(exportFile.getPath());
-                            if(exportContent==null){
-                                errorReading=true;
-                                errFileCount++;
-                            }
-                            //if the file could be read
-                            if(!errorReading){
-                                //if the file content is NOT blank
-                                if (exportContent.length() > 0){
-                                    //make a copy of the export file under the exportDir root
-                                    boolean success=mFileMgr.copyFileTo(exportFile, new File(exportDir + outputFilePath));
-                                    if(success){
-                                        System.out.println(" FILE EXPORTED: \t" + "..."+(exportDir + outputFilePath).substring(mTargetDir.length()+1));
-                                        fileCount++;
-                                    }else{
-                                        errFileCount++;
-                                    }
-                                }
-                                else
-                                {
-                                    System.out.println(" FILE SKIP (BLANK): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
-                                    skippedFileCount++;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            System.out.println(" FILE SKIP (DOES NOT EXIST): \t" + "..."+exportFile.getPath().substring(mTargetDir.length()+1));
-                            skippedFileCount++;
-                        }
+                    case "export": //if exporting a completed project file... 
+                        int[] exportCounts=exportOneFile("",errFileCount,skippedFileCount,fileCount,outputFilePath,exportDir);
+                        errFileCount=exportCounts[0];
+                        skippedFileCount=exportCounts[1];
+                        fileCount=exportCounts[2];
                     break;
                 }
             }
@@ -1229,10 +1248,30 @@ public class BuildTemplate {
                     String includeRule=includeRules.get(i);
                     //get all of the files that are matched by this include rule
                     ArrayList<String> matchedFiles = mData.getIncludeFileMatches(mTargetDir, includeRule);
-                    System.out.println(" (" + matchedFiles.size() + ") RULE MATCHE(S) FOR " + includeRule);
+                    System.out.println(" x" + matchedFiles.size() + " MATCHE(S): \"" + includeRule + "\"");
                     //if any files in this target directory match the include rule
                     if(matchedFiles.size()>0){
-                        //***
+                        //for each of the matched files to export
+                        for(int e=0;e<matchedFiles.size();e++){
+                            //get the matched file's path (under mTargetDir)
+                            String outputFilePath = matchedFiles.get(e);
+                            outputFilePath=outputFilePath.substring(mTargetDir.length());
+                            //get the export directory root
+                            String currentDir = exportDir + File.separator;
+                            //get the directory to which this file should be exported
+                            String changedFileDir=new File(outputFilePath).getParent();
+                            changedFileDir=changedFileDir.replace(File.separator, "/");
+                            //get the individual directory names of the target export directory
+                            String[] dirs = changedFileDir.split("/");
+                            //create these individual directories, if they don't already exist
+                            createDirPath(currentDir,dirs);
+                            //try to export this matched file
+                            int[] exportCounts=exportOneFile("   ",errFileCount,skippedFileCount,fileCount,outputFilePath,exportDir);
+                            errFileCount=exportCounts[0];
+                            skippedFileCount=exportCounts[1];
+                            fileCount=exportCounts[2];
+                        }
+                        System.out.println("");
                     }
                 }
             }
