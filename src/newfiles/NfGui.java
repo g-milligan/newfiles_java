@@ -67,6 +67,7 @@ public class NfGui extends Application {
     private void startWebView(){
         //get the web view home page URL
         URL indexPath=getGuiUrl("index.html");
+
         //WEB VIEW EVENTS
         //===============
          //onload... when the dom loads... 
@@ -83,6 +84,13 @@ public class NfGui extends Application {
         //=======================
         mWebEngine.load(indexPath.toExternalForm());
     }
+    //get the width and height of the current computer screen
+    private int getScreenWorkingWidth() {
+        return java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width;
+    }
+    private int getScreenWorkingHeight() {
+        return java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().height;
+    }
     //get the URL path of a GUI resource
     private URL getGuiUrl(String fileName){return getClass().getResource(mStrMgr.mGuiRootDir + fileName);}
     //get the image object for a GUI image resource
@@ -94,8 +102,11 @@ public class NfGui extends Application {
         //start web view, include attach events, configuration, setting load URL
         startWebView();
         // create the scene
+        int windowWidth=getScreenWorkingWidth();windowWidth=(int)(windowWidth*.88); //% of width
+        int windowHeight=getScreenWorkingHeight();windowHeight=(int)(windowHeight*.88); //% of height
         stage.setTitle(mStrMgr.mGuiTitle+" \""+mNewfiles.VERSION_ALIAS+"\" ("+mNewfiles.VERSION_NUMBER+"_"+mNewfiles.PATCH_NUMBER+") | "+mStrMgr.mPandowerxUrl);
-        mScene = new Scene(mWebView,750,500, Color.web("#666970"));
+        mScene = new Scene(mWebView,windowWidth,windowHeight, Color.web("#666970"));
+        //set the scene to the stage
         stage.setScene(mScene); 
         //get icon image(s)
         Image icon32 = getGuiImage("logo_newfiles_32.png"); 

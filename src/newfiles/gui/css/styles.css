@@ -1,1 +1,16 @@
-body{color:#98A21A;background-color:#01131A;}
+/*body*/
+body{font-size:2em;font-family:sans-serif;color:#98A21A;background-color:#01131A;margin:0;padding:0;}
+body *{vertical-align:middle;}
+/*color palette*/
+.fc1,.fc1 *{color:#BC6684;} /*menu bar text*/
+/*loading 1*/
+.loading{display:none;position:fixed;left:0;top:0;width:100%;height:100%;background-color:rgba(0,222,222,.1);}
+.loading.active{display:block;}
+.loading svg{width:15%;height:15%;position:absolute;left:0;right:0;top:0;bottom:0;margin:auto;}
+.loading svg path.track{fill:#00FF01;}
+.loading svg path.runner{fill:#1C5200;}
+/*menu-bar*/
+#menu-bar{position:fixed;left:0;top:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;padding:.2em .5em .1em .5em;line-height:60%;display:block;border-bottom:solid 1px;}
+#menu-bar ul{padding:0;margin:0;display:inline-block;width:100%;line-height:60%;}
+#menu-bar ul li{position:relative;display:inline-block;font-size:48%;font-weight:bold;margin-right:1.5em;line-height:100%;text-transform:uppercase;float:left;}
+#menu-bar ul li:last-child{float:right;margin-right:0;}
