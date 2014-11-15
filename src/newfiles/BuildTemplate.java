@@ -183,7 +183,7 @@ public class BuildTemplate {
     //get a list of tokens that have an influence on filename/paths
     //note: the only way for a token to influence a file name or file path is for it to have its alias inside either the name or path
     private ArrayList<String> getTokensInFilenames(){
-        /*RETURN A LIST OF ALL OF THE TOKENS (WITHIN THE TEMPLATE) THAT HAVE INFLUENCE OVER ANY FILENAME
+        /*RETURN A LIST OF ALL OF THE TOKENS (WITHIN THE TEMPLATE) THAT HAVE INFLUENCE OVER ANY FILENAME / PATH
         Load an ArrayList<[uniqe token name]>
         
         This is an import list of tokens to have if you want to ask the user 
@@ -217,27 +217,66 @@ public class BuildTemplate {
                 //get the file folder
                 dir=mData.getTokenPart("dir", tokenParts);
             }else{
-                //TRY TO FIND A FILENAME TOKEN WITHIN THE TEMPLATE FILE... _filenames.xml DOESN'T INFLUENCE THIS TEMPLATE FILE'S NAME...
-                //for each token belonging to this file
+                //this file's path does NOT get determined in _filenames.xml...
+                
+                //get the tokens for this current file
                 ArrayList<String> tokens = mData.mFileTokensLookup.get(filePath);
-                for(int t=0;t<tokens.size();t++){
-                    //get the token text, eg: <<var:l:something>>
-                    String tokenStr=tokens.get(t);
-                    String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
-                    //get the token alias
-                    String tokenType=mData.getTokenPart("type", tokenParts);
-                    //if the token type is filename
-                    if(tokenType.equals("filename")){
-                        //get the file name
-                        name=mData.getTokenPart("name", tokenParts);
-                        //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
-                        if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
-                            name=""; //no need to check a NON-string literal. It will NOT contain any aliases
+                //if this file is NOT the _filenames.xml file
+                if(!(mUseTemplatePath+File.separator+mStrMgr.mFilenamesXml).equals(filePath)){
+                    //TRY TO FIND A FILENAME TOKEN WITHIN THE TEMPLATE FILE... _filenames.xml DOESN'T INFLUENCE THIS TEMPLATE FILE'S NAME...
+                    //for each token... try to find the filename token in this file, if it exists
+                    for(int t=0;t<tokens.size();t++){
+                        //get the token text, eg: <<var:l:something>>
+                        String tokenStr=tokens.get(t);
+                        String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
+                        //get the token alias
+                        String tokenType=mData.getTokenPart("type", tokenParts);
+                        //if the token type is filename
+                        if(tokenType.equals("filename")){
+                            //get the file name
+                            name=mData.getTokenPart("name", tokenParts);
+                            //if the name is NOT a string literal (non-string literals CANNOT contain aliases)
+                            if (name.indexOf("\"") != 0 && name.indexOf("'") != 0){
+                                name=""; //no need to check a NON-string literal. It will NOT contain any aliases
+                            }
+                            //get the file folder
+                            dir=mData.getTokenPart("dir", tokenParts);
+                            //end the looped search for the filename token inside this file
+                            break;
                         }
-                        //get the file folder
-                        dir=mData.getTokenPart("dir", tokenParts);
-                        //end the looped search for the filename token inside this file
-                        break;
+                    }
+                }else{
+                    //this file IS the _filenames.xml file...
+                    
+                    //get a list of <include> rules (for additional files to include in an export)
+                    ArrayList<String> includeRules = mData.getXmlFilenamesIncludeValues();
+                    //if there are any include rules
+                    if(includeRules.size()>0){
+                        //for each token
+                        for(int t=0;t<tokens.size();t++){
+                            //get the token text, eg: <<var:l:something>>
+                            String tokenStr=tokens.get(t);
+                            String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
+                            //get the token alias
+                            String tokenAlias=mData.getTokenPart("alias", tokenParts);
+                            //if the token has an alias
+                            if(tokenAlias.length()>0){
+                                //get the token's name
+                                String tokenName=mData.getTokenPart("name", mData.mFileAliasesLookup.get(filePath).get(tokenAlias));
+                                //for each include rule, (check to see if this tokenAlias appears in any of the include rules)
+                                for(int i=0;i<includeRules.size();i++){
+                                    //if the include rule contains the token alias
+                                    String includeRule=includeRules.get(i);
+                                    if(includeRule.contains(tokenAlias)){
+                                        //add the token name (associated with this alias) to the list
+                                        //the user will have to input a value for this token in order to determine the file path
+                                        inFileNameTokens.add(tokenName);
+                                        //stop searching for this alias inside include rules
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1243,9 +1282,34 @@ public class BuildTemplate {
             if(includeRules.size()>0){
                 System.out.println("");
                 System.out.println(" INCLUDED WITH EXPORT: \n");
+                //if there are any token aliases being used inside _filenames.xml
+                HashMap<String, String> aliasTokenSts=null;
+                HashMap<String, String> valueAliasPairs=new HashMap<String, String>();
+                if(mData.mFileAliasesLookup.containsKey(mUseTemplatePath+File.separator+mStrMgr.mFilenamesXml)){
+                    //get the aliases and their corresponding token strings
+                    aliasTokenSts=mData.mFileAliasesLookup.get(mUseTemplatePath+File.separator+mStrMgr.mFilenamesXml);
+                    if(aliasTokenSts.size()>0){
+                        //for each alias
+                        for (String aliasStr : aliasTokenSts.keySet()) {
+                            //get the alias string
+                            String tokenStr=aliasTokenSts.get(aliasStr);
+                            //set alias values inside the includeRule
+                            String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
+                            //get the formatted token value
+                            String tokenValue = mData.getFormattedTokenValue(tokenParts);
+                            //if this alias doesn't already have a value (duplicates should already be impossible at this point)
+                            if(!valueAliasPairs.containsKey(aliasStr)){
+                                //add the value/alias pair to the list
+                                valueAliasPairs.put(aliasStr, tokenValue);
+                            }
+                        }
+                   }
+                }
                 //for each include rule
                 for(int i=0;i<includeRules.size();i++){
                     String includeRule=includeRules.get(i);
+                    //if there are any aliases that may need replacing inside this includeRule string, then replace them inside the includeRule
+                    includeRule=getReplacedAliases(includeRule,valueAliasPairs); 
                     //get all of the files that are matched by this include rule
                     ArrayList<String> matchedFiles = mData.getIncludeFileMatches(mTargetDir, includeRule);
                     System.out.println(" x" + matchedFiles.size() + " MATCHE(S): \"" + includeRule + "\"");
