@@ -1,13 +1,19 @@
 /*BODY*/
 body{font-size:2em;font-family:sans-serif;margin:0;padding:0;}
 body *{vertical-align:middle;}
+h1,h2,h3{margin:0;padding:0;}
+h1{text-transform:uppercase;font-size:80%;}
+h2{}
+h3{}
+input[type="text"]{background-color:transparent;border:dashed 1px;width:100%;height:2.5em;line-height:2.5em;font-size:52%;box-sizing:border-box;-moz-box-sizing:border-box;padding:0 .5em;}
+.title{margin-bottom:.3em;}
+.size-controls{height:.5em;margin-bottom:.3em;}
+.resize.width{width:.1em;position:absolute;right:0;top:0;height:100%;box-sizing:border-box;-moz-box-sizing:border-box;cursor:ew-resize;}
 /*COLOR PALETTE*/
 /*main background color*/
 body{background-color:#01131A;} #menu-bar li:hover,#menu-bar li:hover.on{color:#01131A;} 
-/*default text color*/
-body{color:#98A21A;} 
-/*menu bar text color*/
-#menu-bar{color:#BC6684;} #menu-bar li:hover,#menu-bar li.on{background-color:#BC6684;} 
+/*default color*/
+body,input[type="text"],#menu-bar{color:#BC6684;} .resize,#menu-bar li:hover,#menu-bar li.on{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;}
 /*LOADING 1*/
 .loading{display:none;position:fixed;left:0;top:0;width:100%;height:100%;background-color:rgba(0,222,222,.1);}
 .loading.active{display:block;}
@@ -15,13 +21,14 @@ body{color:#98A21A;}
 .loading svg path.track{fill:#00FF01;}
 .loading svg path.runner{fill:#1C5200;}
 /*MENU-BAR*/
-#menu-bar{position:fixed;left:0;top:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;padding:.1em;line-height:60%;display:block;border-bottom:solid 1px;}
+#menu-bar{position:fixed;left:0;top:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;padding:.1em;line-height:60%;display:block;border-bottom:solid .1em;}
 #menu-bar ul{padding:0;margin:0;display:inline-block;width:100%;line-height:60%;}
 #menu-bar ul li{position:relative;cursor:pointer;display:inline-block;font-size:44%;font-weight:bold;padding:.3em 1.5em;line-height:100%;text-transform:uppercase;float:left;}
 #menu-bar ul li:last-child{float:right;margin-right:0;}
 /*CONTENT*/
 #content{display:block;/*border:solid 3px;*/position:fixed;left:0;right:0;top:1em;bottom:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;}
 /*TEMPLATES*/
-#templates{position:absolute;left:0;top:0;bottom:0;margin:auto 0;border:solid 1px;width:20%;height:100%;box-sizing: border-box;-moz-box-sizing:border-box;}
+#templates{position:absolute;left:0;top:0;bottom:0;margin:auto 0;padding:0 .5em;overflow:hidden;width:20%;height:100%;box-sizing: border-box;-moz-box-sizing:border-box;}
+#templates .resize.width{}
 /*WORKSPACE*/
 #workspace{}
