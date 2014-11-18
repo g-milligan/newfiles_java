@@ -6,6 +6,13 @@ jQuery(document).ready(function(){
 	var templatesWrap=contentWrap.find('#templates:first');
 	var workspaceWrap=contentWrap.find('#workspace:first');
 	var temResizeHandle=templatesWrap.find('.resize.width:last');
+	//UPDATE TEMPLATE/FILE/TOKEN LISTING
+	//==================================
+	var updateTemplates=function(){
+		//*** getSvg('folder')
+	};
+	templatesWrap[0]['updateTemplates']=updateTemplates;
+	templatesWrap[0].updateTemplates();
 	//WINDOW READY
 	//=============
 	jQuery(window).ready(function(){
@@ -15,7 +22,7 @@ jQuery(document).ready(function(){
 			'addClasses':false,
 			'axis':'x',
 			'zIndex':999,
-			'stop': function(e,ui) {
+			'stop':function(e,ui){
 				//when the drag stops...
 				
 				//calculate the percentage position where the drag stopped
@@ -54,3 +61,23 @@ jQuery(document).ready(function(){
 		onResize();
 	});
 });
+//gets the contents of a function, eg: function functionName(){/* ...contents... */}
+function getFuncStr(functionName){
+	var functionContent = '';
+	//if this function exists
+	if(window.hasOwnProperty(functionName)){
+		//get code inside the function object
+		functionContent = window[functionName];
+		functionContent = functionContent.toString();
+		//strip off the function string
+		var startCode = '{/*';var endCode = '*/}';
+		//safari tries to be helpful by inserting a ';' at the end of the function code if there is not already a ';'
+		if (functionContent.lastIndexOf(endCode) == -1) {endCode='*/;}';}
+		//strip off everything left of, and including startCode
+		functionContent = functionContent.substring(functionContent.indexOf(startCode) + startCode.length);
+		//strip off everything right of, and including endCode
+		functionContent = functionContent.substring(0, functionContent.lastIndexOf(endCode));
+		functionContent = functionContent.trim();
+	}
+	return functionContent;
+}
