@@ -1,18 +1,19 @@
 jQuery(document).ready(function(){
 	//GET KEY ELEMENTS
 	//================
-	var menuBarWrap=jQuery('#menu-bar:first');
-	var contentWrap=jQuery('#content:first');	
-	var templatesWrap=contentWrap.find('#templates:first');
-	var workspaceWrap=contentWrap.find('#workspace:first');
-	var temResizeHandle=templatesWrap.find('.resize.width:last');
+	var bodyElem=jQuery('body:first');
+	var menuBarWrap=bodyElem.children('#menu-bar:first');
+	var contentWrap=bodyElem.children('#content:first');	
+	var templatesWrap=contentWrap.children('#templates:first');
+	var workspaceWrap=contentWrap.children('#workspace:first');
+	var temResizeHandle=templatesWrap.children('.resize.width:last');
 	//UPDATE TEMPLATE/FILE/TOKEN LISTING
 	//==================================
 	var updateTemplates=function(){
 		//*** getSvg('folder')
 	};
-	templatesWrap[0]['updateTemplates']=updateTemplates;
-	templatesWrap[0].updateTemplates();
+	bodyElem[0]['updateTemplates']=updateTemplates;
+	bodyElem[0].updateTemplates();
 	//WINDOW READY
 	//=============
 	jQuery(window).ready(function(){
