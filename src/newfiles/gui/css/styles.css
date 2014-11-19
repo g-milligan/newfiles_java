@@ -6,7 +6,7 @@ h1{text-transform:uppercase;font-size:80%;}
 h2{}
 h3{}
 input[type="text"]{background-color:transparent;border:dashed 1px;width:100%;height:2em;line-height:2em;font-size:50%;box-sizing:border-box;-moz-box-sizing:border-box;padding:0 .5em;}
-.title{margin-bottom:.3em;}
+.title{margin-bottom:.3em;white-space:nowrap;}
 .title h1{display:inline-block;}
 .title .options{position:relative;z-index:999;display:inline-block;width:.6em;height:.9em;cursor:pointer;}
 .title .options .arrow{position:relative;width:.4em;height:.4em;padding:.1em;display:block;}
@@ -51,6 +51,6 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates header > div,#templates .content{padding:0 .4em 0 .2em;}
 #templates header > div.size-controls{padding:0 .1em;}
 #templates .content{box-sizing:border-box;-moz-box-sizing:border-box;display:block;width:100%;height:100%;padding-top:.2em;padding-bottom:.2em;}
-#templates .content .ls{width:100%;height:100%;padding:.1em;padding-left:0;overflow:auto;display:block;box-sizing:border-box;-moz-box-sizing:border-box;border:solid 1px;border-left:none;}
+#templates .content > nav.ls{width:100%;height:100%;padding:.1em;padding-left:0;overflow:auto;display:block;box-sizing:border-box;-moz-box-sizing:border-box;border:solid 1px;border-left:none;}
 /*WORKSPACE*/
 #workspace{left:initial;right:0;width:75%;}

@@ -51,6 +51,105 @@
             </header>
             <div class="content">
             	<nav class="ls">
+                	<ul class="ls folders">
+                    	<li>Demos/ListTokenDemo
+                        	<ul class="ls files">
+                            	<li>fileA.css</li>
+                                <li>fileB.phtml</li>
+                                <li>fileC.php
+                                	<ul class="tokens">
+                                    	<li>filename:l:path/to/file:.</li>
+                                        <li>var:u:some var</li>
+                                        <li>list:some list</li>
+                                    </ul>
+                                </li>
+                                <li>fileD.js</li>
+                                <li>fileE.html
+                                	<ul class="tokens">
+                                    	<li>filename:l:path/to/file:.</li>
+                                        <li>var:u:some var</li>
+                                        <li>list:some list</li>
+                                    </ul>
+                                </li>
+                                <li>fileF.txt</li>
+                            </ul>
+                            <ul class="includes">
+                            	<li>(3) include file rule(s)</li>
+                                <li>test/*/allFiles</li>
+                                <li>[css]/stuff*yep/sub.css</li>
+                                <li>[css]/includethis.*</li>
+                            </ul>
+                            <ul class="hidden files">
+                            	<li>(3) hidden file(s)</li>
+                            	<li>_file1.css</li>
+                                <li>_file2.phtml</li>
+                                <li>_file3.php</li>
+                            </ul>
+                        </li>
+                        <li>Demos/TestInclude
+                        	<ul class="ls files">
+                            	<li>fileA.css</li>
+                                <li>fileB.phtml</li>
+                            </ul>
+                            <ul class="includes">
+                            	<li>(0) include file rule(s)</li>
+                            </ul>
+                            <ul class="hidden files">
+                            	<li>(1) hidden file(s)</li>
+                            	<li>_file1.css</li>
+                            </ul>
+                        </li>
+                        <li>Demos/TestVarOptions
+                        	<ul class="ls files">
+                            	<li>fileA.css</li>
+                                <li>fileF.txt</li>
+                            </ul>
+                            <ul class="includes">
+                            	<li>(1) include file rule(s)</li>
+                                <li>test/*/allFiles</li>
+                            </ul>
+                            <ul class="hidden files">
+                            	<li>(0) hidden file(s)</li>
+                            </ul>
+                        </li>
+                        <li>Magento/MageStarterKit
+                        	<ul class="ls files">
+                            	<li>fileA.css</li>
+                                <li>fileB.phtml</li>
+                                <li>fileC.php
+                                	<ul class="tokens">
+                                    	<li>filename:l:path/to/file:.</li>
+                                        <li>var:u:some var</li>
+                                        <li>list:some list</li>
+                                    </ul>
+                                </li>
+                                <li>fileD.js</li>
+                                <li>fileE.html
+                                	<ul class="tokens">
+                                    	<li>filename:l:path/to/file:.</li>
+                                        <li>var:u:some var</li>
+                                        <li>list:some list</li>
+                                    </ul>
+                                </li>
+                                <li>fileF.txt</li>
+                            </ul>
+                            <ul class="includes">
+                            	<li>(2) include file rule(s)</li>
+                                <li>[css]/stuff*yep/sub.css</li>
+                                <li>[css]/includethis.*</li>
+                            </ul>
+                            <ul class="hidden files">
+                            	<li>(2) hidden file(s)</li>
+                            	<li>_file1.css</li>
+                                <li>_file2.phtml</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="hidden folders">
+                    	<li>(2) hidden template(s)</li>
+                        <li>Demos/_HiddenFolder</li>
+                        <li>Demos/_AnotherTemplate</li>
+                    </ul>
                 </nav>
             </div>
             <div class="resize width"></div>

@@ -5,6 +5,8 @@ jQuery(document).ready(function(){
 	var menuBarWrap=bodyElem.children('#menu-bar:first');
 	var contentWrap=bodyElem.children('#content:first');	
 	var templatesWrap=contentWrap.children('#templates:first');
+	var temHeaderWrap=templatesWrap.children('header:first');
+	var temContentWrap=templatesWrap.children('.content:last');
 	var workspaceWrap=contentWrap.children('#workspace:first');
 	var temResizeHandle=templatesWrap.children('.resize.width:last');
 	//UPDATE TEMPLATE/FILE/TOKEN LISTING
@@ -44,11 +46,15 @@ jQuery(document).ready(function(){
 		//=============
 		//do stuff on window resize or window ready
 		var onResize=function(){
+			var windowHeight=jQuery(window).outerHeight();
 			//make sure the menu-bar and content share the space exactly
 			var menuBarOffset=menuBarWrap.outerHeight();
-			var windowHeight=jQuery(window).outerHeight();
 			contentWrap.css('top', menuBarOffset+'px');
 			contentWrap.css('height', (windowHeight-menuBarOffset)+'px');
+			//make sure the templates header and the templates content share the space exactly
+			var temHeaderHeight=temHeaderWrap.outerHeight();
+			var contentWrapHeight=contentWrap.innerHeight();
+			temContentWrap.css('height',(contentWrapHeight-temHeaderHeight)+'px');
 		};
 		var resize_timeout;
 		jQuery(window).resize(function(){
