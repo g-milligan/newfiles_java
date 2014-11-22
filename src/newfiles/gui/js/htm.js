@@ -59,7 +59,7 @@ function htm_template_dir(json){
 			htm+='</ul>';
 			//==HIDDEN FILES HTML==
 			//start hidden files for this directory
-			htm+='<ul class="includes">';
+			htm+='<ul class="hidden files">';
 			//***
 			//end hidden files for this directory
 			htm+='</ul>';
@@ -113,7 +113,7 @@ function htm_template_file(json){
 			//==TOKENS LIST HTML==
 			htm+=htm_template_tokens(tokens);
 			//end file item
-			htm+='<li class="'+openClass+hasTokensClass+'">';
+			htm+='</li>';
 		}
 	}
 	return htm;

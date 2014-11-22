@@ -16,10 +16,53 @@ jQuery(document).ready(function(){
 		//******
 		//*** getSvg('folder')
 		dirs=[
-			{'path':'Demos/ListTokenDemo'},
-			{'path':'Demos/TestInclude'},
-			{'path':'Demos/TestVarOptions'},
-			{'path':'Magento/MageStarterKit'}
+			{'path':'Demos/ListTokenDemo','ls':
+				[
+					{'name':'fileA.css'},
+					{'name':'fileB.phtml','tokens':
+						[
+							'filename:l:path/to/file:.',
+							'var:u:some var',
+							'list:some list'
+						]
+					},
+					{'name':'fileC.php'},
+					{'name':'fileD.js','tokens':
+						[
+							'filename:l:path/to/file:.',
+							'var:u:some var',
+							'list:some list'
+						]
+					},
+					{'name':'fileE.html'},
+					{'name':'fileF.txt'}
+				]
+			},
+			{'path':'Demos/TestInclude','ls':
+				[
+					{'name':'fileA.css'},
+					{'name':'fileB.phtml'}
+				]
+			},
+			{'path':'Demos/TestVarOptions','ls':
+				[
+					{'name':'fileA.css'},
+					{'name':'fileF.txt'}
+				]
+			},
+			{'path':'Magento/MageStarterKit','ls':
+				[
+					{'name':'fileA.css'},
+					{'name':'fileB.phtml'},
+					{'name':'fileC.php','tokens':
+						[
+							'filename:l:path/to/file:.',
+							'var:u:some var',
+							'list:some list'
+						]
+					}
+				]
+			}
 		];
 		var htm=getHtm('template_dirs',dirs);
 		temLsWrap.append(htm);
