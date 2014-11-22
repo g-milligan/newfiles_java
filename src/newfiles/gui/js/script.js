@@ -7,12 +7,23 @@ jQuery(document).ready(function(){
 	var templatesWrap=contentWrap.children('#templates:first');
 	var temHeaderWrap=templatesWrap.children('header:first');
 	var temContentWrap=templatesWrap.children('.content:last');
+	var temLsWrap=temContentWrap.children('nav.ls:first');
 	var workspaceWrap=contentWrap.children('#workspace:first');
 	var temResizeHandle=templatesWrap.children('.resize.width:last');
 	//UPDATE TEMPLATE/FILE/TOKEN LISTING
 	//==================================
 	var updateTemplates=function(){
+		//******
 		//*** getSvg('folder')
+		dirs=[
+			{'path':'Demos/ListTokenDemo'},
+			{'path':'Demos/TestInclude'},
+			{'path':'Demos/TestVarOptions'},
+			{'path':'Magento/MageStarterKit'}
+		];
+		var htm=getHtm('template_dirs',dirs);
+		temLsWrap.append(htm);
+		//******
 	};
 	bodyElem[0]['updateTemplates']=updateTemplates;
 	bodyElem[0].updateTemplates();
