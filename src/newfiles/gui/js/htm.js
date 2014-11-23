@@ -45,9 +45,10 @@ function htm_template_dir(json){
 			htm+='<li class="'+openClass+hasFilesClass+'">';
 			//the main directory path html
             htm+='<span class="dir">';
-            htm+='<span class="opened-closed"></span>';
+            htm+='<span class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
+			htm+='<span class="icon">'+getSvg('folder')+'</span>';
             htm+='<span class="path">'+json.path+'</span>';
-            htm+='<span class="menu-btn"></span>';
+            htm+='<span class="menu-btn">'+getSvg('cog')+'</span>';
             htm+='</span>';
 			//==FILE LIST HTML==
 			htm+=htm_template_ls(ls);
@@ -105,10 +106,10 @@ function htm_template_file(json){
 			htm+='<li class="'+openClass+hasTokensClass+'">';
 			//the main directory path html
 			htm+='<span class="file">';
-			htm+='<span class="opened-closed"></span>';
+            htm+='<span class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
 			htm+='<span class="on-off on"></span>';
 			htm+='<span class="name">'+json.name+'</span>';
-			htm+='<span class="menu-btn"></span>';
+			htm+='<span class="menu-btn">'+getSvg('cog')+'</span>';
 			htm+='</span>';
 			//==TOKENS LIST HTML==
 			htm+=htm_template_tokens(tokens);

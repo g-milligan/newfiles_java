@@ -59,5 +59,17 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates .content nav.ls ul{margin:0;padding:0;display:block;}
 #templates .content nav.ls ul ul{padding-left:2em;}
 #templates .content nav.ls ul li{list-style:none;}
+
+#templates nav.ls > ul.ls.folders{}
+#templates nav.ls .dir{}
+#templates nav.ls .icon{display:inline-block;width:1.3em;height:1.3em;margin-right:.2em;}
+#templates nav.ls .opened-closed{display:inline-block;width:.7em;height:.7em;margin-right:.2em;cursor:pointer;padding:.3em;}
+#templates nav.ls .menu-btn{display:inline-block;width:.9em;height:.9em;margin-left:.2em;padding:.1em;cursor:pointer;}
+#templates nav.ls .opened > .dir .closed,#templates nav.ls .closed > .dir .opened,
+#templates nav.ls .opened > .file .closed,#templates nav.ls .closed > .file .opened{display:none;}
+#templates nav.ls .closed > .dir .closed,#templates nav.ls .opened > .dir .opened,
+#templates nav.ls .closed > .file .closed,#templates nav.ls .opened > .file .opened{display:inline-block;}
+
+#templates nav.ls > ul.hidden.folders{}
 /*WORKSPACE*/
 #workspace{left:initial;right:0;width:75%;}
