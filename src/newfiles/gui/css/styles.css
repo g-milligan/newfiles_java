@@ -68,6 +68,7 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates nav.ls .token{white-space:nowrap;}
 #templates nav.ls .include{white-space:nowrap;opacity:.8;}
 #templates nav.ls .hid{white-space:nowrap;opacity:.8;}
+#templates nav.ls .hid-templates{white-space:nowrap;}
 #templates nav.ls .icon{display:inline-block;width:1.3em;height:1.3em;margin-right:.2em;}
 #templates nav.ls .opened-closed{display:inline-block;width:.7em;height:.7em;margin-right:.1em;cursor:pointer;padding:.3em;}
 #templates nav.ls .no-tokens > span .opened-closed,
@@ -79,12 +80,14 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates nav.ls .opened > .dir .closed,#templates nav.ls .closed > .dir .opened,
 #templates nav.ls .opened > .file .closed,#templates nav.ls .closed > .file .opened,
 #templates nav.ls .opened > .include .closed,#templates nav.ls .closed > .include .opened,
-#templates nav.ls .opened > .hidden .closed,#templates nav.ls .closed > .hidden .opened
+#templates nav.ls .opened > .hidden .closed,#templates nav.ls .closed > .hidden .opened,
+#templates nav.ls .opened > .hid-templates .closed,#templates nav.ls .closed > .hid-templates .opened
 {display:none;}
 #templates nav.ls .closed > .dir .closed,#templates nav.ls .opened > .dir .opened,
 #templates nav.ls .closed > .file .closed,#templates nav.ls .opened > .file .opened,
 #templates nav.ls .closed > .include .closed,#templates nav.ls .opened > .include .opened,
-#templates nav.ls .closed > .hidden .closed,#templates nav.ls .opened > .hidden .opened
+#templates nav.ls .closed > .hidden .closed,#templates nav.ls .opened > .hidden .opened,
+#templates nav.ls .closed > .hid-templates .closed,#templates nav.ls .opened > .hid-templates .opened
 {display:inline-block;width:inherit;}
 #templates nav.ls .token .start-tag,#templates nav.ls .token .end-tag{display:inline-block;width:1em;height:1em;opacity:.7;}
 #templates nav.ls ul.ls.folders > li.opened{margin-bottom:1em;}
@@ -94,6 +97,6 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 
 #templates nav.ls .intro{font-style:italic;}
 
-#templates nav.ls > ul.hidden.folders{}
+#templates nav.ls > ul.hidden.folders{opacity:.8;}
 /*WORKSPACE*/
 #workspace{left:initial;right:0;width:75%;}

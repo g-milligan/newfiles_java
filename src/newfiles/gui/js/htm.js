@@ -10,19 +10,51 @@ function getHtm(htmName,json){
 	return htm;
 }
 //get template listing html 
-function htm_template_dirs(dirs){
+function htm_template_dirs(json){
 	var htm='';
+	//get the template directories array
+	var dirs=[];
+	var hidden=[];
+	if(json!=undefined){
+		if(json.hasOwnProperty('dirs')){dirs=json.dirs;}
+		if(json.hasOwnProperty('hidden')){hidden=json.hidden;}
+	}
 	//start dir listing
 	htm+='<ul class="ls folders">';
-	//if the list was provided
-	if(dirs!=undefined){
-		for(var d=0;d<dirs.length;d++){
-			//get the html for one template dir
-			htm+=htm_template_dir(dirs[d]);
-		}
+	//for each template directory
+	for(var d=0;d<dirs.length;d++){
+		//get the html for one template dir
+		htm+=htm_template_dir(dirs[d]);
 	}
 	//end dir listing
 	htm+='</ul>';
+	//==HIDDEN TEMPLATES==
+	htm+='<ul class="hidden folders">';
+	//if there are any hidden directories
+	var hasDirsClass='no-dirs';numDirs=0;
+	if(hidden.length>0){hasDirsClass='has-dirs';numDirs=hidden.length;}
+	htm+='<li class="closed '+hasDirsClass+'">';
+	//==HID TEMPLATES HEAD==
+	htm+='<span class="hid-templates">';
+    htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
+	htm+='<span class="icon">'+getSvg('hidden')+'</span>';
+	htm+='<span class="intro">(<span class="count">'+numDirs+'</span>) hidden template(s)</span>';
+	htm+='</span>';
+	htm+='<ul>';
+	//for each hidden directory
+	for(var h=0;h<hidden.length;h++){
+		//get the html for one hidden template dir
+		htm+=htm_template_hiddir(hidden[h]);
+	}
+	//end dir listing
+	htm+='</ul></li></ul>';
+	return htm;
+}
+//get hidden template name html 
+function htm_template_hiddir(path){
+	var htm='';
+	//==HID TEMPLATE ITEM HTML==
+	htm+='<li>'+path+'</li>';
 	return htm;
 }
 //get the html for a template directory
@@ -140,7 +172,6 @@ function htm_template_token(tokenStr){
 	htm+='<span class="start-tag">'+getSvg('lcarrot')+getSvg('lcarrot')+'</span>';
 	htm+='<span class="str">'+tokenStr+'</span>';
 	htm+='<span class="end-tag">'+getSvg('rcarrot')+getSvg('rcarrot')+'</span>';
-	htm+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
 	htm+='</span>';
 	htm+='</li>';
 	return htm;
@@ -162,10 +193,12 @@ function htm_template_includes(includes){
 	htm+='</span>';
 	htm+='<ul>';
 	//INCLUDES LIST==
-	//for each include
-	for(var i=0;i<includes.length;i++){
-		//get the html for one include
-		htm+=htm_template_include(includes[i]);
+	if(includes!=undefined){
+		//for each include
+		for(var i=0;i<includes.length;i++){
+			//get the html for one include
+			htm+=htm_template_include(includes[i]);
+		}
 	}
 	//end includes listing for this directory
 	htm+='</ul></li></ul>';
@@ -195,10 +228,12 @@ function htm_template_hidfiles(files){
 	htm+='</span>';
 	htm+='<ul>';
 	//HIDDEN FILES LIST==
-	//for each hidden file
-	for(var f=0;f<files.length;f++){
-		//get the html for one hidden file
-		htm+=htm_template_hidfile(files[f]);
+	if(files!=undefined){
+		//for each hidden file
+		for(var f=0;f<files.length;f++){
+			//get the html for one hidden file
+			htm+=htm_template_hidfile(files[f]);
+		}
 	}
 	//end hidden files listing
 	htm+='</ul></li></ul>';
