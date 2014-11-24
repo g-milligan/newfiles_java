@@ -23,9 +23,9 @@ li.parent ul li{font-size:95%;text-transform:none;}
 svg{display:inline-block;width:100%;height:100%;}
 /*COLOR PALETTE*/
 /*main background color*/
-body,.title .options ul li:hover,li.parent ul li:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li{color:#01131A;} div:hover > svg *{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
+body,.title .options ul li:hover,li.parent ul li:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
 /*default color*/
-body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *{fill:#BC6684;}
+body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *{fill:#BC6684;}
 /*SCROLLBARS*/
 ::-webkit-scrollbar{width:.28em;height:.28em}
 ::-webkit-scrollbar-track{background-color:transparent;border:none;}
@@ -57,18 +57,42 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates .content{box-sizing:border-box;-moz-box-sizing:border-box;display:block;width:100%;height:100%;padding-top:.2em;padding-bottom:.2em;}
 #templates .content > nav.ls{width:100%;height:100%;padding:.1em;padding-left:0;overflow:auto;display:block;box-sizing:border-box;-moz-box-sizing:border-box;font-size:54%;}
 #templates .content nav.ls ul{margin:0;padding:0;display:block;}
-#templates .content nav.ls ul ul{padding-left:2em;}
+#templates .content nav.ls ul ul{padding-left:1em;}
+#templates .content nav.ls ul ul ul{padding-left:2.5em;font-size:92%;opacity:.8;}
 #templates .content nav.ls ul li{list-style:none;}
+#templates .content nav.ls ul li.off{opacity:.5;}
 
 #templates nav.ls > ul.ls.folders{}
-#templates nav.ls .dir{}
+#templates nav.ls .dir{white-space:nowrap;}
+#templates nav.ls .file{white-space:nowrap;}
+#templates nav.ls .token{white-space:nowrap;}
+#templates nav.ls .include{white-space:nowrap;opacity:.8;}
+#templates nav.ls .hid{white-space:nowrap;opacity:.8;}
 #templates nav.ls .icon{display:inline-block;width:1.3em;height:1.3em;margin-right:.2em;}
-#templates nav.ls .opened-closed{display:inline-block;width:.7em;height:.7em;margin-right:.2em;cursor:pointer;padding:.3em;}
+#templates nav.ls .opened-closed{display:inline-block;width:.7em;height:.7em;margin-right:.1em;cursor:pointer;padding:.3em;}
+#templates nav.ls .no-tokens > span .opened-closed,
+#templates nav.ls .no-includes > span .opened-closed,
+#templates nav.ls .no-files > span .opened-closed{visibility:hidden;}
 #templates nav.ls .menu-btn{display:inline-block;width:.9em;height:.9em;margin-left:.2em;padding:.1em;cursor:pointer;}
+#templates nav.ls .dir .path{display:inline-block;}
+#templates nav.ls .on-off{display:inline-block;width:.9em;height:.9em;padding:.1em;margin-right:.2em;cursor:pointer;}
 #templates nav.ls .opened > .dir .closed,#templates nav.ls .closed > .dir .opened,
-#templates nav.ls .opened > .file .closed,#templates nav.ls .closed > .file .opened{display:none;}
+#templates nav.ls .opened > .file .closed,#templates nav.ls .closed > .file .opened,
+#templates nav.ls .opened > .include .closed,#templates nav.ls .closed > .include .opened,
+#templates nav.ls .opened > .hidden .closed,#templates nav.ls .closed > .hidden .opened
+{display:none;}
 #templates nav.ls .closed > .dir .closed,#templates nav.ls .opened > .dir .opened,
-#templates nav.ls .closed > .file .closed,#templates nav.ls .opened > .file .opened{display:inline-block;}
+#templates nav.ls .closed > .file .closed,#templates nav.ls .opened > .file .opened,
+#templates nav.ls .closed > .include .closed,#templates nav.ls .opened > .include .opened,
+#templates nav.ls .closed > .hidden .closed,#templates nav.ls .opened > .hidden .opened
+{display:inline-block;width:inherit;}
+#templates nav.ls .token .start-tag,#templates nav.ls .token .end-tag{display:inline-block;width:1em;height:1em;opacity:.7;}
+#templates nav.ls ul.ls.folders > li.opened{margin-bottom:1em;}
+#templates nav.ls .token .start-tag svg,#templates nav.ls .token .end-tag svg{display:inline-block;width:50%;}
+#templates nav.ls .token .start-tag{margin-right:.2em;}
+#templates nav.ls .token .end-tag{margin-left:.2em;}
+
+#templates nav.ls .intro{font-style:italic;}
 
 #templates nav.ls > ul.hidden.folders{}
 /*WORKSPACE*/

@@ -16,7 +16,9 @@ jQuery(document).ready(function(){
 		//******
 		//*** getSvg('folder')
 		dirs=[
-			{'path':'Demos/ListTokenDemo','ls':
+			{
+				'path':'Demos/ListTokenDemo',
+				'ls':
 				[
 					{'name':'fileA.css'},
 					{'name':'fileB.phtml','tokens':
@@ -36,6 +38,16 @@ jQuery(document).ready(function(){
 					},
 					{'name':'fileE.html'},
 					{'name':'fileF.txt'}
+				],
+				'includes':
+				[
+				 	'test/*/allFiles',
+					'[css]/stuff*yep/sub.css',
+					'[css]/includethis.*'
+				],
+				'hidden':
+				[
+				 	'_file1.css','_file2.phtml','_file3.php'
 				]
 			},
 			{'path':'Demos/TestInclude','ls':
