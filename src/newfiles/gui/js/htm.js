@@ -135,7 +135,7 @@ function htm_template_file(json){
 			//the main directory path html
 			htm+='<span class="file">';
             htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
-			htm+='<span title="on/off" class="on-off on">'+getSvg('file')+'</span>';
+			htm+='<span title="on/off" class="on-off">'+getSvg('file')+'</span>';
 			htm+='<span class="name">'+json.name+'</span>';
 			htm+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
 			htm+='</span>';

@@ -56,12 +56,14 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates header > div.size-controls{padding:0 .1em;}
 #templates .content{box-sizing:border-box;-moz-box-sizing:border-box;display:block;width:100%;height:100%;padding-top:.2em;padding-bottom:.2em;}
 #templates .content > nav.ls{width:100%;height:100%;padding:.1em;padding-left:0;overflow:auto;display:block;box-sizing:border-box;-moz-box-sizing:border-box;font-size:54%;}
-#templates .content nav.ls ul{margin:0;padding:0;display:block;}
+#templates .content nav.ls ul{margin:0;padding:0;}
 #templates .content nav.ls ul ul{padding-left:1em;}
-#templates .content nav.ls ul ul ul{padding-left:2.5em;font-size:92%;opacity:.8;}
+#templates .content nav.ls ul ul ul{padding-left:3.5em;font-size:92%;opacity:.8;}
 #templates .content nav.ls ul li{list-style:none;}
-#templates .content nav.ls ul li.off{opacity:.5;}
+#templates .content nav.ls ul li.off{opacity:.4;text-decoration:line-through;}
 
+#templates li.closed > ul{display:none;}
+#templates li.opened > ul{display:block;}
 #templates nav.ls > ul.ls.folders{}
 #templates nav.ls .dir{white-space:nowrap;}
 #templates nav.ls .file{white-space:nowrap;}
@@ -77,17 +79,19 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates nav.ls .menu-btn{display:inline-block;width:.9em;height:.9em;margin-left:.2em;padding:.1em;cursor:pointer;}
 #templates nav.ls .dir .path{display:inline-block;}
 #templates nav.ls .on-off{display:inline-block;width:.9em;height:.9em;padding:.1em;margin-right:.2em;cursor:pointer;}
-#templates nav.ls .opened > .dir .closed,#templates nav.ls .closed > .dir .opened,
-#templates nav.ls .opened > .file .closed,#templates nav.ls .closed > .file .opened,
-#templates nav.ls .opened > .include .closed,#templates nav.ls .closed > .include .opened,
-#templates nav.ls .opened > .hidden .closed,#templates nav.ls .closed > .hidden .opened,
-#templates nav.ls .opened > .hid-templates .closed,#templates nav.ls .closed > .hid-templates .opened
+#templates nav.ls .opened > .dir span.closed,#templates nav.ls .closed > .dir span.opened,
+#templates nav.ls .opened > .file span.closed,#templates nav.ls .closed > .file span.opened,
+#templates nav.ls .opened > .include span.closed,#templates nav.ls .closed > .include span.opened,
+#templates nav.ls .opened > .hid span.closed,#templates nav.ls .closed > .hid span.opened,
+/*#templates nav.ls .opened > .hidden span.closed,#templates nav.ls .closed > .hidden span.opened,*/
+#templates nav.ls .opened > .hid-templates span.closed,#templates nav.ls .closed > .hid-templates span.opened
 {display:none;}
-#templates nav.ls .closed > .dir .closed,#templates nav.ls .opened > .dir .opened,
-#templates nav.ls .closed > .file .closed,#templates nav.ls .opened > .file .opened,
-#templates nav.ls .closed > .include .closed,#templates nav.ls .opened > .include .opened,
-#templates nav.ls .closed > .hidden .closed,#templates nav.ls .opened > .hidden .opened,
-#templates nav.ls .closed > .hid-templates .closed,#templates nav.ls .opened > .hid-templates .opened
+#templates nav.ls .closed > .dir span.closed,#templates nav.ls .opened > .dir span.opened,
+#templates nav.ls .closed > .file span.closed,#templates nav.ls .opened > .file span.opened,
+#templates nav.ls .closed > .include span.closed,#templates nav.ls .opened > .include span.opened,
+#templates nav.ls .closed > .hid span.closed,#templates nav.ls .opened > .hid span.opened,
+/*#templates nav.ls .closed > .hidden span.closed,#templates nav.ls .opened > .hidden span.opened,*/
+#templates nav.ls .closed > .hid-templates span.closed,#templates nav.ls .opened > .hid-templates span.opened
 {display:inline-block;width:inherit;}
 #templates nav.ls .token .start-tag,#templates nav.ls .token .end-tag{display:inline-block;width:1em;height:1em;opacity:.7;}
 #templates nav.ls ul.ls.folders > li.opened{margin-bottom:1em;}
@@ -97,6 +101,7 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 
 #templates nav.ls .intro{font-style:italic;}
 
-#templates nav.ls > ul.hidden.folders{opacity:.8;}
+#templates .content nav.ls ul.hidden.files{margin-top:1em;}
+#templates nav.ls > ul.hidden.folders{opacity:.8;margin-top:1em;}
 /*WORKSPACE*/
 #workspace{left:initial;right:0;width:75%;}

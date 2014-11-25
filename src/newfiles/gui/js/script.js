@@ -87,6 +87,43 @@ jQuery(document).ready(function(){
 		var htm=getHtm('template_dirs',json);
 		temLsWrap.append(htm);
 		//******
+		//==ADD JS EVENTS TO NEW ELEMENTS==
+		//add opened-closed toggle events (to elements that don't already have events added)
+		var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
+		//mark these elements as having the events attached
+		openCloseElems.addClass('evs');
+		openCloseElems.click(function(){
+			//get the parent li wrapper
+			var parentLi=jQuery(this).parents('li:first');
+			//if currently closed
+			if(parentLi.hasClass('closed')){
+				//open it
+				parentLi.removeClass('closed');
+				parentLi.addClass('opened');
+			}else{
+				//currently open, so close it
+				parentLi.addClass('closed');
+				parentLi.removeClass('opened');
+			}
+		});
+		//add on-off toggle events (to elements that don't already have events added)
+		var onOffElems=temLsWrap.find('.on-off').not('.evs');
+		//mark these elements as having the events attached
+		onOffElems.addClass('evs');
+		onOffElems.click(function(){
+			//get the parent li wrapper
+			var parentLi=jQuery(this).parents('li:first');
+			//if currently on
+			if(parentLi.hasClass('on')){
+				//turn it off
+				parentLi.removeClass('on');
+				parentLi.addClass('off');
+			}else{
+				//currently off, so turn it on
+				parentLi.addClass('on');
+				parentLi.removeClass('off');
+			}
+		});
 	};
 	bodyElem[0]['updateTemplates']=updateTemplates;
 	bodyElem[0].updateTemplates();
