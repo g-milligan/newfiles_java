@@ -56,6 +56,14 @@ jQuery(document).ready(function(){
 					[
 						{'name':'fileA.css'},
 						{'name':'fileB.phtml'}
+					],
+					'includes':
+					[
+						'test/*/allFiles'
+					],
+					'hidden':
+					[
+						'_file1.css'
 					]
 				},
 				{'path':'Demos/TestVarOptions','ls':

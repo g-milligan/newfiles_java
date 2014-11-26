@@ -76,7 +76,8 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates nav.ls .no-tokens > span .opened-closed,
 #templates nav.ls .no-includes > span .opened-closed,
 #templates nav.ls .no-files > span .opened-closed{visibility:hidden;}
-#templates nav.ls .menu-btn{display:inline-block;width:.9em;height:.9em;margin-left:.2em;padding:.1em;cursor:pointer;}
+#templates nav.ls .menu-btn{display:inline-block;width:.9em;height:.9em;margin-left:.2em;padding:.1em;cursor:pointer;visibility:hidden;}
+#templates nav.ls span:hover > .menu-btn{visibility:visible;}
 #templates nav.ls .dir .path{display:inline-block;}
 #templates nav.ls .on-off{display:inline-block;width:.9em;height:.9em;padding:.1em;margin-right:.2em;cursor:pointer;}
 #templates nav.ls .opened > .dir span.closed,#templates nav.ls .closed > .dir span.opened,

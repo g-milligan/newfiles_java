@@ -9,6 +9,24 @@ function getHtm(htmName,json){
 	}
 	return htm;
 }
+//get the hidden template label
+function htm_hidden_dirs_label(numDirs){
+	var label='';
+	if(numDirs!=undefined){
+		switch(numDirs){
+			case 0:
+				label=label='(<span class="count">'+numDirs+'</span>) hidden templates';
+			break;
+			case 1:
+				label='(<span class="count">'+numDirs+'</span>) hidden template';
+			break;
+			default: //more than one hidden template
+				label='(<span class="count">'+numDirs+'</span>) hidden templates';
+			break;
+		}
+	}
+	return label;
+}
 //get template listing html 
 function htm_template_dirs(json){
 	var htm='';
@@ -38,7 +56,7 @@ function htm_template_dirs(json){
 	htm+='<span class="hid-templates">';
     htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
 	htm+='<span class="icon">'+getSvg('hidden')+'</span>';
-	htm+='<span class="intro">(<span class="count">'+numDirs+'</span>) hidden template(s)</span>';
+	htm+='<span class="intro">'+htm_hidden_dirs_label(numDirs)+'</span>';
 	htm+='</span>';
 	htm+='<ul>';
 	//for each hidden directory
@@ -176,6 +194,24 @@ function htm_template_token(tokenStr){
 	htm+='</li>';
 	return htm;
 }
+//get the include rules label
+function htm_includes_label(numInc){
+	var label='';
+	if(numInc!=undefined){
+		switch(numInc){
+			case 0:
+				label=label='(<span class="count">'+numInc+'</span>) include rules';
+			break;
+			case 1:
+				label='(<span class="count">'+numInc+'</span>) include rule';
+			break;
+			default: //more than one
+				label='(<span class="count">'+numInc+'</span>) include rules';
+			break;
+		}
+	}
+	return label;
+}
 //get file listing html 
 function htm_template_includes(includes){
 	var htm='';
@@ -189,7 +225,7 @@ function htm_template_includes(includes){
 	htm+='<span class="include">';
     htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
 	htm+='<span class="icon">'+getSvg('paperclip')+'</span>';
-	htm+='<span class="intro">(<span class="count">'+numInc+'</span>) include rule(s)</span>';
+	htm+='<span class="intro">'+htm_includes_label(numInc)+'</span>';
 	htm+='</span>';
 	htm+='<ul>';
 	//INCLUDES LIST==
@@ -211,6 +247,24 @@ function htm_template_include(includeStr){
 	htm+='<li>'+includeStr+'</li>';
 	return htm;
 }
+//get the hidden files label
+function htm_hidden_files_label(numFiles){
+	var label='';
+	if(numFiles!=undefined){
+		switch(numFiles){
+			case 0:
+				label=label='(<span class="count">'+numFiles+'</span>) hidden files';
+			break;
+			case 1:
+				label='(<span class="count">'+numFiles+'</span>) hidden file';
+			break;
+			default: //more than one
+				label='(<span class="count">'+numFiles+'</span>) hidden files';
+			break;
+		}
+	}
+	return label;
+}
 //get file listing html 
 function htm_template_hidfiles(files){
 	var htm='';
@@ -224,7 +278,7 @@ function htm_template_hidfiles(files){
 	htm+='<span class="hid">';
     htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
 	htm+='<span class="icon">'+getSvg('hidden')+'</span>';
-	htm+='<span class="intro">(<span class="count">'+numFiles+'</span>) hidden files(s)</span>';
+	htm+='<span class="intro">'+htm_hidden_files_label(numFiles)+'</span>';
 	htm+='</span>';
 	htm+='<ul>';
 	//HIDDEN FILES LIST==
