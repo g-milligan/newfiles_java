@@ -1,6 +1,5 @@
 jQuery(document).ready(function(){
-	//GET KEY ELEMENTS
-	//================
+	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
 	var menuBarWrap=bodyElem.children('#menu-bar:first');
 	var contentWrap=bodyElem.children('#content:first');	
@@ -10,89 +9,128 @@ jQuery(document).ready(function(){
 	var temLsWrap=temContentWrap.children('nav.ls:first');
 	var workspaceWrap=contentWrap.children('#workspace:first');
 	var temResizeHandle=templatesWrap.children('.resize.width:last');
-	//UPDATE TEMPLATE/FILE/TOKEN LISTING
-	//==================================
+	//==INTERNAL FUNCTIONS==
+	//function to save inline style rules, remove them, but allow them to be restored later
+	var saveRemoveInlineStyles=function(elem,targetRulesArray){
+		//if currently has a style attribute
+		var styleAttr=elem.attr('style');
+		if(styleAttr!=undefined){
+			if(typeof styleAttr=='string'&&styleAttr.length>0){
+				//for each style rule
+				var hasWidth=false;
+				var styleAttrArray=styleAttr.split(';');
+				for(var r=0;r<styleAttrArray.length;r++){
+					//if there is a key/val dual style part
+					var keyVal=styleAttrArray[r].split(':');
+					if(keyVal.length>1){
+						var key=keyVal[0].trim();key=key.toLowerCase();
+						var val=keyVal[1].trim();val=val.toLowerCase();
+						//for each target rule
+						for(var t=0;t<targetRulesArray.length;t++){
+							//if this is a target value 
+							if(key.indexOf(targetRulesArray[t])!=-1){
+								//preserve this target value 
+								//so that when the element is re-pinned, the rule can be restored
+								if(!elem[0].hasOwnProperty('restoreStyles')){
+									//set the property
+									elem[0]['restoreStyles']=[];
+								}
+								//push the style value into the array of styles to preserve
+								elem[0].restoreStyles.push({'key':key,'val':val});
+								//remove this style value for now
+								elem.css(key,'');
+							}
+						}
+					}
+				}
+			}
+		}
+	};
+	//restores the inline styles that were removed by saveRemoveInlineStyles()
+	var restoreInlineStyles=function(elem){
+		//if any styles should be restored
+		if(elem[0].hasOwnProperty('restoreStyles')){
+			//for each rule to restore
+			for(var r=0;r<elem[0].restoreStyles.length;r++){
+				//get the rule
+				var rule=elem[0].restoreStyles[r];
+				//restore the rule
+				elem.css(rule.key,rule.val);
+			}
+		}
+	};
+	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
+	//size controls
+	var sizeCtlsWraps=bodyElem.find('.size-controls');
+	//pin/un-pin column
+	var pinElems=sizeCtlsWraps.children('.pin');
+	pinElems.click(function(){
+		//get the parent element that is affected by pinned/unpinned state
+		var parentPinElem=jQuery(this).parents('.pinned-unpinned:first');
+		//get the elements that share the space with the pinned-unpinned element
+		var rowWrap=parentPinElem.parent();
+		var spaceShareElems=rowWrap.children().not(parentPinElem);
+		//if the parent element doesn't already have the hover event
+		if(!parentPinElem.hasClass('evs')){
+			parentPinElem.addClass('evs');
+			//add the hover event
+			var slider_timeout;
+			parentPinElem.hover(function(){
+				//if unpinned
+				if(parentPinElem.hasClass('unpinned')){
+					//after a delay
+					slider_timeout=setTimeout(function(){
+						//remove slide-in class on hover
+						rowWrap.removeClass('slide-in');
+						rowWrap.addClass('slide-out');
+					}, 400);
+				}
+			},function(){
+				//add slide-in class on hover out
+				clearTimeout(slider_timeout);
+				//if unpinned
+				if(parentPinElem.hasClass('unpinned')){
+					rowWrap.addClass('slide-in');
+				}else{rowWrap.removeClass('slide-in');}
+				rowWrap.removeClass('slide-out');
+			});
+		}
+		//if currently pinned
+		if(parentPinElem.hasClass('pinned')){
+			//then unpin
+			rowWrap.addClass('slide-view');
+			parentPinElem.removeClass('pinned');
+			parentPinElem.addClass('unpinned');
+			//remove width style rules so that they can be restored later
+			saveRemoveInlineStyles(parentPinElem, ['width']);
+			//do the same for the other elements that share the space with parentPinElem
+			spaceShareElems.each(function(){
+				//remove width style rules so that they can be restored later
+				saveRemoveInlineStyles(jQuery(this), ['width']);
+			});
+		}else{
+			//NOT pinned...
+			
+			//then pin
+			rowWrap.removeClass('slide-view');
+			rowWrap.removeClass('slide-in');
+			rowWrap.removeClass('slide-out');
+			parentPinElem.removeClass('unpinned');
+			parentPinElem.addClass('pinned');
+			//restore inline styles
+			restoreInlineStyles(parentPinElem);
+			//do the same for the other elements that share the space with parentPinElem
+			spaceShareElems.each(function(){
+				//restore width style rules
+				restoreInlineStyles(jQuery(this));
+			});
+		}
+	});
+	
+	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
 	var updateTemplates=function(){
 		//******
-		//*** getSvg('folder')
-		json={
-			'dirs':
-			[
-				{
-					'path':'Demos/ListTokenDemo',
-					'ls':
-					[
-						{'name':'fileA.css'},
-						{'name':'fileB.phtml','tokens':
-							[
-								'filename:l:path/to/file:.',
-								'var:u:some var',
-								'list:some list'
-							]
-						},
-						{'name':'fileC.php'},
-						{'name':'fileD.js','tokens':
-							[
-								'filename:l:path/to/file:.',
-								'var:u:some var',
-								'list:some list'
-							]
-						},
-						{'name':'fileE.html'},
-						{'name':'fileF.txt'}
-					],
-					'includes':
-					[
-						'test/*/allFiles',
-						'[css]/stuff*yep/sub.css',
-						'[css]/includethis.*'
-					],
-					'hidden':
-					[
-						'_file1.css','_file2.phtml','_file3.php'
-					]
-				},
-				{'path':'Demos/TestInclude','ls':
-					[
-						{'name':'fileA.css'},
-						{'name':'fileB.phtml'}
-					],
-					'includes':
-					[
-						'test/*/allFiles'
-					],
-					'hidden':
-					[
-						'_file1.css'
-					]
-				},
-				{'path':'Demos/TestVarOptions','ls':
-					[
-						{'name':'fileA.css'},
-						{'name':'fileF.txt'}
-					]
-				},
-				{'path':'Magento/MageStarterKit','ls':
-					[
-						{'name':'fileA.css'},
-						{'name':'fileB.phtml'},
-						{'name':'fileC.php','tokens':
-							[
-								'filename:l:path/to/file:.',
-								'var:u:some var',
-								'list:some list'
-							]
-						}
-					]
-				}
-			],
-			'hidden':
-			[
-			 	'Demos/_HiddenFolder',
-				'Demos/_AnotherTemplate'
-			]
-		};
-		var htm=getHtm('template_dirs',json);
+		var htm=getHtm('template_dirs',sample_json_templates());
 		temLsWrap.append(htm);
 		//******
 		//==ADD JS EVENTS TO NEW ELEMENTS==
@@ -135,11 +173,9 @@ jQuery(document).ready(function(){
 	};
 	bodyElem[0]['updateTemplates']=updateTemplates;
 	bodyElem[0].updateTemplates();
-	//WINDOW READY
-	//=============
+	//==WINDOW READY==
 	jQuery(window).ready(function(){
-		//TEMPLATES RESIZE 
-		//================
+		//==TEMPLATES RESIZE==
 		temResizeHandle.draggable({
 			'addClasses':false,
 			'axis':'x',
@@ -161,8 +197,7 @@ jQuery(document).ready(function(){
 				temResizeHandle.removeAttr('style');
 			}
 		});
-		//WINDOW RESIZE
-		//=============
+		//==WINDOW RESIZE==
 		//do stuff on window resize or window ready
 		var onResize=function(){
 			var windowHeight=jQuery(window).outerHeight();
