@@ -60,7 +60,7 @@ jQuery(document).ready(function(){
 		}
 	};
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
-	//size controls
+	//SIZE CONTROLS (EG: PIN/UNPIN)
 	var sizeCtlsWraps=bodyElem.find('.size-controls');
 	//pin/un-pin column
 	var pinElems=sizeCtlsWraps.children('.pin');
@@ -126,7 +126,71 @@ jQuery(document).ready(function(){
 			});
 		}
 	});
-	
+	//SEARCH BOXES
+	var searchWraps=contentWrap.find('.search');
+	searchWraps.each(function(){
+		var searchWrap=jQuery(this);
+		var searchInput=searchWrap.children('input:first');
+		var searchBtn=searchWrap.children('.search-btn:last');
+		//get the default text for this search field
+		var defaultTxt=searchInput.attr('value');
+		var origTxt=defaultTxt;
+		defaultTxt=defaultTxt.trim();defaultTxt=defaultTxt.toLowerCase();
+		//add the search image to the searchBtn
+		searchBtn.html(getSvg('search'));
+		//search button click event
+		searchBtn.click(function(){
+			//if the current text is the default text OR blank
+			var currentTxt=searchInput.val();
+			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+			if(currentTxt==defaultTxt||currentTxt.length<1){
+				//clear the default text and set focus
+				searchInput.val('');
+				searchInput.focus();
+			}else{
+				//current text is NOT the default NOR blank...
+				
+				//***
+			}
+		});
+		//search input events
+		searchInput.blur(function(){
+			//if the current text is the default text OR blank
+			var currentTxt=searchInput.val();
+			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+			if(currentTxt==defaultTxt||currentTxt.length<1){
+				//restore the default text
+				searchInput.val(origTxt);
+				searchWrap.removeClass('text-entered');
+			}
+		});
+		var gotFocus=function(){
+			//if the current text is the default text
+			var currentTxt=searchInput.val();
+			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+			if(currentTxt==defaultTxt){
+				//clear text
+				searchInput.val('');
+			}
+		};
+		if(searchInput.focusin){
+			searchInput.focusin(function(){gotFocus();});
+		}else{
+			searchInput.click(function(){gotFocus();});
+		}
+		searchInput.keyup(function(){
+			//if the current text is NOT the default text OR blank
+			var currentTxt=searchInput.val();
+			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+			if(currentTxt!=defaultTxt&&currentTxt.length>0){
+				//add the text entered class
+				searchWrap.addClass('text-entered');
+			}else{
+				//default text OR blank
+				searchWrap.removeClass('text-entered');
+			}
+		});
+	});
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
 	var updateTemplates=function(){
 		//******
