@@ -97,14 +97,12 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates nav.ls .opened > .file span.closed,#templates nav.ls .closed > .file span.opened,
 #templates nav.ls .opened > .include span.closed,#templates nav.ls .closed > .include span.opened,
 #templates nav.ls .opened > .hid span.closed,#templates nav.ls .closed > .hid span.opened,
-/*#templates nav.ls .opened > .hidden span.closed,#templates nav.ls .closed > .hidden span.opened,*/
 #templates nav.ls .opened > .hid-templates span.closed,#templates nav.ls .closed > .hid-templates span.opened
 {display:none;}
 #templates nav.ls .closed > .dir span.closed,#templates nav.ls .opened > .dir span.opened,
 #templates nav.ls .closed > .file span.closed,#templates nav.ls .opened > .file span.opened,
 #templates nav.ls .closed > .include span.closed,#templates nav.ls .opened > .include span.opened,
 #templates nav.ls .closed > .hid span.closed,#templates nav.ls .opened > .hid span.opened,
-/*#templates nav.ls .closed > .hidden span.closed,#templates nav.ls .opened > .hidden span.opened,*/
 #templates nav.ls .closed > .hid-templates span.closed,#templates nav.ls .opened > .hid-templates span.opened
 {display:inline-block;width:inherit;}
 #templates nav.ls .token .start-tag,#templates nav.ls .token .end-tag{display:inline-block;width:1em;height:1em;opacity:.7;}
@@ -112,6 +110,10 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates nav.ls .token .start-tag svg,#templates nav.ls .token .end-tag svg{display:inline-block;width:50%;}
 #templates nav.ls .token .start-tag{margin-right:.2em;}
 #templates nav.ls .token .end-tag{margin-left:.2em;}
+#templates nav.ls .token .part,#templates nav.ls .token .sep{display:inline-block;}
+#templates nav.ls .token .sep{width:1em;height:1em;}
+#templates nav.ls .token .sep.after_name.before_alias{padding:0 .3em;}
+#templates nav.ls .token .part.alias{font-weight:bold;padding-right:.3em;}
 
 #templates nav.ls .intro{font-style:italic;}
 

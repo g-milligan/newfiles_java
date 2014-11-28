@@ -9,17 +9,17 @@ function sample_json_templates(){
 					{'name':'fileA.css'},
 					{'name':'fileB.phtml','tokens':
 						[
-							'filename:l:path/to/file:.',
-							'var:u:some var',
-							'list:some list'
+						 	{'type':'filename','casing':'l','path':'path/to/file','name':'.'},
+							{'type':'var','casing':'u','name':'some var','alias':'[myalias]'},
+							{'type':'list','name':'some list'}
 						]
 					},
 					{'name':'fileC.php'},
 					{'name':'fileD.js','tokens':
 						[
-							'filename:l:path/to/file:.',
-							'var:u:some var',
-							'list:some list'
+						 	{'type':'filename','casing':'l','path':'path/to/file','name':'.'},
+							{'type':'var','casing':'u','name':'some var','alias':'[myalias]'},
+							{'type':'list','name':'some list'}
 						]
 					},
 					{'name':'fileE.html'},
@@ -62,9 +62,9 @@ function sample_json_templates(){
 					{'name':'fileB.phtml'},
 					{'name':'fileC.php','tokens':
 						[
-							'filename:l:path/to/file:.',
-							'var:u:some var',
-							'list:some list'
+						 	{'type':'filename','casing':'l','path':'path/to/file','name':'.'},
+							{'type':'var','casing':'u','name':'some var'},
+							{'type':'list','name':'some list'}
 						]
 					}
 				]

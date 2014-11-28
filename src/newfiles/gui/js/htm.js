@@ -182,13 +182,47 @@ function htm_template_tokens(tokens){
 	return htm;
 }
 //get token html 
-function htm_template_token(tokenStr){
+function htm_template_token(json){
 	var htm='';
 	//==TOKEN ITEM HTML==
 	htm+='<li>';
 	htm+='<span class="token">';
 	htm+='<span class="start-tag">'+getSvg('lcarrot')+getSvg('lcarrot')+'</span>';
-	htm+='<span class="str">'+tokenStr+'</span>';
+	htm+='<span class="str">';
+	var aliasSep='';var colonSep='';
+	var partIndex=0;var lastKey='';
+	//for each token part
+	for (var partKey in json){
+		//if key is an actual property of an object, (not from the prototype)
+		if (json.hasOwnProperty(partKey)){
+			//if NOT the first part
+			if(partIndex>0){
+				//separator class
+				var sepClass='after_'+lastKey+' before_'+partKey;
+				//figure out which separator image to use based on the class
+				var imgSvg='';
+				switch(sepClass){
+					case 'after_name before_alias':
+						if(aliasSep==''){aliasSep=getSvg('alias');}
+						imgSvg=aliasSep;
+					break;
+					default:
+						if(colonSep==''){colonSep=getSvg('colon');}
+						imgSvg=colonSep;
+					break;
+				}
+				//write the separator html
+				htm+='<span class="sep '+sepClass+'">'+imgSvg+'</span>';
+			}
+			//write the token part html
+			htm+='<span class="part '+partKey+'">';
+			htm+=json[partKey];
+			htm+='</span>';
+			//next part
+			partIndex++;lastKey=partKey;
+		}
+	}
+	htm+='</span>';
 	htm+='<span class="end-tag">'+getSvg('rcarrot')+getSvg('rcarrot')+'</span>';
 	htm+='</span>';
 	htm+='</li>';
