@@ -132,14 +132,16 @@ jQuery(document).ready(function(){
 		var searchWrap=jQuery(this);
 		var searchInput=searchWrap.children('input:first');
 		var searchBtn=searchWrap.children('.search-btn:last');
+		var clearBtn=searchWrap.children('.clear-btn:last');
 		//get the default text for this search field
 		var defaultTxt=searchInput.attr('value');
 		var origTxt=defaultTxt;
 		defaultTxt=defaultTxt.trim();defaultTxt=defaultTxt.toLowerCase();
-		//add the search image to the searchBtn
+		//add the button images
 		searchBtn.html(getSvg('search'));
+		clearBtn.html(getSvg('x'));
 		//search button click event
-		searchBtn.click(function(){
+		var doSearch=function(){
 			//if the current text is the default text OR blank
 			var currentTxt=searchInput.val();
 			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
@@ -152,7 +154,16 @@ jQuery(document).ready(function(){
 				
 				//***
 			}
-		});
+		};
+		searchBtn.click(function(){doSearch();});
+		var clearTxt=function(){
+			//clear the text and set focus
+			searchInput.val('');
+			searchInput.focus();
+			searchWrap.removeClass('text-entered');
+		};
+		//clear button click event
+		clearBtn.click(function(){clearTxt();});
 		//search input events
 		searchInput.blur(function(){
 			//if the current text is the default text OR blank
@@ -178,16 +189,27 @@ jQuery(document).ready(function(){
 		}else{
 			searchInput.click(function(){gotFocus();});
 		}
-		searchInput.keyup(function(){
-			//if the current text is NOT the default text OR blank
-			var currentTxt=searchInput.val();
-			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
-			if(currentTxt!=defaultTxt&&currentTxt.length>0){
-				//add the text entered class
-				searchWrap.addClass('text-entered');
-			}else{
-				//default text OR blank
-				searchWrap.removeClass('text-entered');
+		searchInput.keyup(function(e){
+			switch(e.keyCode){
+				case 27: //escape key pressed
+					e.preventDefault();
+					clearTxt();
+				break;
+				case 13: //enter key pressed
+					e.preventDefault();
+					doSearch();
+				default: //another key pressed, eg: a, b, c
+					//if the current text is NOT the default text OR blank
+					var currentTxt=searchInput.val();
+					currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+					if(currentTxt!=defaultTxt&&currentTxt.length>0){
+						//add the text entered class
+						searchWrap.addClass('text-entered');
+					}else{
+						//default text OR blank
+						searchWrap.removeClass('text-entered');
+					}
+				break;
 			}
 		});
 	});

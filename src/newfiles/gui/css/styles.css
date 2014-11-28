@@ -23,14 +23,16 @@ li.parent ul li{font-size:95%;text-transform:none;}
 svg{display:inline-block;width:100%;height:100%;}
 .search{position:relative;}
 .search input{padding-right:2.3em;opacity:.7;font-style:italic;}
-.search.text-entered input{opacity:1;font-style:normal;} 
-.search .search-btn{opacity:.5;width:2.3em;height:100%;position:absolute;right:.8em;font-size:50%;top:0;left:auto;bottom:0;cursor:pointer;border:solid .2em transparent;box-sizing:border-box;-moz-box-sizing:border-box;}
+.search.text-entered input{opacity:1;font-style:normal;padding-left:1.5em;} 
+.search .search-btn,.search .clear-btn{opacity:.5;width:2.3em;height:100%;position:absolute;right:.8em;font-size:50%;top:0;left:auto;bottom:0;cursor:pointer;border:solid .2em transparent;box-sizing:border-box;-moz-box-sizing:border-box;}
+.search .clear-btn{right:initial;left:.4em;display:none;width:1.5em;font-size:50%;}
+.search.text-entered .clear-btn{display:block;opacity:.7;}
 .search.text-entered .search-btn{opacity:1;}
 /*COLOR PALETTE*/
 /*main background color*/
 body,.title .options ul li:hover,li.parent ul li:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
 /*default color*/
-body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *{fill:#BC6684;}
+body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover,.search .clear-btn:hover{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *{fill:#BC6684;}
 /*SCROLLBARS*/
 ::-webkit-scrollbar{width:.28em;height:.28em}
 ::-webkit-scrollbar-track{background-color:transparent;border:none;}
