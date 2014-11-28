@@ -127,6 +127,18 @@ jQuery(document).ready(function(){
 		}
 	});
 	//SEARCH BOXES
+	//internal function to sanitize the search string
+	var sanitizeSearchStr=function(str){
+		//case insensitive
+		str=str.trim();
+		str=str.toLowerCase();
+		//remove certain strings
+		str=replaceAll(str,'   ',' ');
+		str=replaceAll(str,'  ',' ');
+		
+		return str;
+	};
+	//get the search wraps
 	var searchWraps=contentWrap.find('.search');
 	searchWraps.each(function(){
 		var searchWrap=jQuery(this);
@@ -136,15 +148,17 @@ jQuery(document).ready(function(){
 		//get the default text for this search field
 		var defaultTxt=searchInput.attr('value');
 		var origTxt=defaultTxt;
-		defaultTxt=defaultTxt.trim();defaultTxt=defaultTxt.toLowerCase();
+		defaultTxt=sanitizeSearchStr(defaultTxt);
 		//add the button images
 		searchBtn.html(getSvg('search'));
 		clearBtn.html(getSvg('x'));
 		//search button click event
 		var doSearch=function(){
+			searchWrap.addClass('do-search');
+			setTimeout(function(){searchWrap.removeClass('do-search');},200);
 			//if the current text is the default text OR blank
 			var currentTxt=searchInput.val();
-			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+			currentTxt=sanitizeSearchStr(currentTxt);
 			if(currentTxt==defaultTxt||currentTxt.length<1){
 				//clear the default text and set focus
 				searchInput.val('');
@@ -152,7 +166,14 @@ jQuery(document).ready(function(){
 			}else{
 				//current text is NOT the default NOR blank...
 				
-				//***
+				//perform the search a different way depending on which search box is being searched
+				switch(searchWrap.attr('name')){
+					case 'templates': //searching templates
+						//*** temLsWrap
+					break;
+					default:
+					break;
+				}
 			}
 		};
 		searchBtn.click(function(){doSearch();});
@@ -168,7 +189,7 @@ jQuery(document).ready(function(){
 		searchInput.blur(function(){
 			//if the current text is the default text OR blank
 			var currentTxt=searchInput.val();
-			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+			currentTxt=sanitizeSearchStr(currentTxt);
 			if(currentTxt==defaultTxt||currentTxt.length<1){
 				//restore the default text
 				searchInput.val(origTxt);
@@ -178,7 +199,7 @@ jQuery(document).ready(function(){
 		var gotFocus=function(){
 			//if the current text is the default text
 			var currentTxt=searchInput.val();
-			currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+			currentTxt=sanitizeSearchStr(currentTxt);
 			if(currentTxt==defaultTxt){
 				//clear text
 				searchInput.val('');
@@ -201,7 +222,7 @@ jQuery(document).ready(function(){
 				default: //another key pressed, eg: a, b, c
 					//if the current text is NOT the default text OR blank
 					var currentTxt=searchInput.val();
-					currentTxt=currentTxt.trim();currentTxt=currentTxt.toLowerCase();
+					currentTxt=sanitizeSearchStr(currentTxt);
 					if(currentTxt!=defaultTxt&&currentTxt.length>0){
 						//add the text entered class
 						searchWrap.addClass('text-entered');
@@ -308,6 +329,19 @@ jQuery(document).ready(function(){
 		onResize();
 	});
 });
+//generic replace all function
+function replaceAll(theStr, charToReplace, replaceWith) {
+    if(theStr != undefined){
+        if(charToReplace==undefined){charToReplace='';}
+        if(replaceWith==undefined){replaceWith='';}
+        if(charToReplace!=replaceWith){
+            while(theStr.indexOf(charToReplace)!=-1){
+                theStr=theStr.replace(charToReplace,replaceWith);
+            }
+        }
+    }else{theStr='';}
+    return theStr;
+};
 //gets the contents of a function, eg: function functionName(){/* ...contents... */}
 function getFuncStr(functionName){
 	var functionContent = '';
