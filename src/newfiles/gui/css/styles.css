@@ -60,7 +60,7 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 /*TEMPLATES*/
 #templates,#workspace{position:absolute;left:0;top:0;bottom:0;margin:auto 0;width:25%;height:100%;box-sizing:border-box;-moz-box-sizing:border-box;}
 #templates.unpinned .resize.width{display:none;}
-#templates.unpinned{border-right:solid .1em;width:1.1em;}
+#templates.unpinned{border-right:dashed .1em;width:1.1em;}
 .slide-view > #workspace{width:100%;padding-left:1.1em;}
 .slide-in #templates.unpinned *{display:none;}
 .slide-out #templates.unpinned{width:25%;}
