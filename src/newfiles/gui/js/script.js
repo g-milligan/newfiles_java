@@ -152,6 +152,19 @@ jQuery(document).ready(function(){
 		//add the button images
 		searchBtn.html(getSvg('search'));
 		clearBtn.html(getSvg('x'));
+		//get the elements whose inner text should be searched
+		var getSearchElems=function(type){
+			var elems;
+			switch(type){
+				case 'templates':
+					elems=temLsWrap.find('.dir > .path,.file > .name,.token .str > .part.path,.token .str > .part.name');
+				break;
+				default:
+					
+				break;
+			}
+			return elems;
+		};
 		//search button click event
 		var doSearch=function(){
 			searchWrap.addClass('do-search');
@@ -166,14 +179,25 @@ jQuery(document).ready(function(){
 			}else{
 				//current text is NOT the default NOR blank...
 				
-				//perform the search a different way depending on which search box is being searched
-				switch(searchWrap.attr('name')){
-					case 'templates': //searching templates
-						//*** temLsWrap
-					break;
-					default:
-					break;
-				}
+				//get the searchType indicator for the search that needs to be conducted
+				var searchType=searchWrap.attr('name');
+				//get the elements whose inner text should be searched, depending on searchType
+				var searchElems=getSearchElems(searchType);
+				//for each element to search
+				searchElems.each(function(){
+					//get the inner text of this element
+					var thisTxt=jQuery(this).text();
+					var origTxt=thisTxt;
+					//remove inner html (if a previous search had been conducted that left highlight html in this text)
+					jQuery(this).html(origTxt);
+					//normalize the inner text (casing, etc...)
+					thisTxt=sanitizeSearchStr(thisTxt);
+					//if any part of this inner text matches the text being searched
+					if(thisTxt.indexOf(currentTxt)!=-1){
+						var newTxt=thisTxt;
+						//*** figure out what text to wrap in <found></found> tags
+					}
+				});
 			}
 		};
 		searchBtn.click(function(){doSearch();});
