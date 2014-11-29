@@ -198,6 +198,7 @@ jQuery(document).ready(function(){
 		var scrollToHighlight=function(elem){
 			var scrollElem=getScrollElem(searchType);
 			if(scrollElem!=undefined){
+				//==VERTICAL==
 				//get the element's position and the view window bounds of the current sroll
 				var elemTop=elem.position().top;
 				var scrollTop=scrollElem.scrollTop();
@@ -213,6 +214,8 @@ jQuery(document).ready(function(){
 						scrollElem.scrollTop(elemTop); //scroll down to the element
 					}
 				}
+				//==HORIZONTAL==
+				//***
 			}
 		};
 		//hightlight the next found search match
@@ -382,8 +385,15 @@ jQuery(document).ready(function(){
 						//at least one found
 						foundCurrentElem.text('1');
 						foundTotalElem.text(foundIndex+'');
+						//if only one found
+						if(foundIndex==1){
+							foundCountWrap.addClass('atLast');
+						}else{
+							foundCountWrap.removeClass('atLast');
+						}
 					}else{
 						//no matches found
+						foundCountWrap.addClass('atLast');
 						foundCurrentElem.text('0');
 						foundTotalElem.text('0');
 					}
@@ -406,6 +416,7 @@ jQuery(document).ready(function(){
 				foundCurrentElem.text('-');
 				foundTotalElem.text('-');
 				searchWrap.removeClass('results');
+				foundCountWrap.removeClass('atLast');
 				//get the elements whose inner text should be searched, depending on searchType
 				var searchElems=getSearchElems(searchType);
 				//for each search element that contains a <found> element

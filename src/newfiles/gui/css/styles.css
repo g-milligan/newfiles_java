@@ -30,7 +30,7 @@ svg{display:inline-block;width:100%;height:100%;}
 .search.text-entered .search-btn{opacity:1;}
 found{background-color:#ffffc0;border-radius:.2em;color:#685C00;text-shadow:0 0px 10px rgba(255,125,0,.5);display:inline-block;line-height:inherit;font-style:normal;opacity:.2;
 	-webkit-transition:all .1s linear;-moz-transition:all .1s linear;-ms-transition:all .1s linear;-o-transition:all .1s linear;transition:all .1s linear;}
-.search .found-count{font-weight:bold;border:solid .15em transparent;display:none;position:absolute;right:-2.5em;top:0;padding:.3em;border-radius:.3em;box-shadow:-5px 5px 10px rgba(0,0,0,0.8);font-size:48%;z-index:993;background-color:yellow;color:#000;text-shadow:0 1px 2px rgba(0,0,0,.4);
+.search .found-count{font-weight:bold;border:solid .15em transparent;display:none;position:absolute;right:-3em;top:0;padding:.3em;border-radius:.3em;box-shadow:-5px 5px 10px rgba(0,0,0,0.8);font-size:48%;z-index:993;background-color:yellow;color:#000;text-shadow:0 1px 2px rgba(0,0,0,.4);
 	-webkit-transition:all .3s linear;-moz-transition:all .3s linear;-ms-transition:all .3s linear;-o-transition:all .3s linear;transition:all .3s linear;}
 .search .found-count.atLast{font-style:italic;}
 .search.results .found-count{display:block;white-space:nowrap;}
@@ -38,7 +38,7 @@ found{background-color:#ffffc0;border-radius:.2em;color:#685C00;text-shadow:0 0p
 .search .found-count .current:after{content:"/";display:inline-block;padding-left:.3em;}
 .search .found-count .total{display:inline-block;white-space:nowrap;}
 found.glow{opacity:1;background-color:#ffff27;padding:0 .3em;box-shadow:0 0 .5em rgba(255,255,0,.7);}
-found.highlight{background-color:yellow;color:#000;font-weight:bold;font-style:italic;box-shadow:0 0 1em rgba(255,255,0,.8);padding-right:.4em;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+found.highlight{background-color:yellow;color:#000;font-weight:bold;font-style:italic;padding-right:.4em;text-shadow:0 1px 2px rgba(0,0,0,.4);}
 found.highlight:before,found.highlight:after{font-style:normal;opacity:.5;}
 found.highlight:before{content:"[ ";}
 found.highlight:after{content:" ]";}
