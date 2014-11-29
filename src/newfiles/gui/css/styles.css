@@ -30,6 +30,13 @@ svg{display:inline-block;width:100%;height:100%;}
 .search.text-entered .search-btn{opacity:1;}
 found{background-color:#ffffc0;border-radius:.2em;color:#685C00;text-shadow:0 0px 10px rgba(255,125,0,.5);display:inline-block;line-height:inherit;font-style:normal;opacity:.2;
 	-webkit-transition:all .1s linear;-moz-transition:all .1s linear;-ms-transition:all .1s linear;-o-transition:all .1s linear;transition:all .1s linear;}
+.search .found-count{font-weight:bold;border:solid .15em transparent;display:none;position:absolute;right:-2.5em;top:0;padding:.3em;border-radius:.3em;box-shadow:-5px 5px 10px rgba(0,0,0,0.8);font-size:48%;z-index:993;background-color:yellow;color:#000;text-shadow:0 1px 2px rgba(0,0,0,.4);
+	-webkit-transition:all .3s linear;-moz-transition:all .3s linear;-ms-transition:all .3s linear;-o-transition:all .3s linear;transition:all .3s linear;}
+.search .found-count.atLast{font-style:italic;}
+.search.results .found-count{display:block;white-space:nowrap;}
+.search .found-count .current{display:inline-block;white-space:nowrap;}
+.search .found-count .current:after{content:"/";display:inline-block;padding-left:.3em;}
+.search .found-count .total{display:inline-block;white-space:nowrap;}
 found.glow{opacity:1;background-color:#ffff27;padding:0 .3em;box-shadow:0 0 .5em rgba(255,255,0,.7);}
 found.highlight{background-color:yellow;color:#000;font-weight:bold;font-style:italic;box-shadow:0 0 1em rgba(255,255,0,.8);padding-right:.4em;text-shadow:0 1px 2px rgba(0,0,0,.4);}
 found.highlight:before,found.highlight:after{font-style:normal;opacity:.5;}
@@ -37,9 +44,9 @@ found.highlight:before{content:"[ ";}
 found.highlight:after{content:" ]";}
 /*COLOR PALETTE*/
 /*main background color*/
-body,.title .options ul li:hover,li.parent ul li:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
+body,.title .options ul li:hover,li.parent ul li:hover,.search .found-count.atLast{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
 /*default color*/
-body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *{fill:#BC6684;}
+body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover,.search .found-count.atLast{color:#BC6684;} .folder:hover,.pin:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul,.search .found-count.atLast{border-color:#BC6684;} svg *{fill:#BC6684;}
 /*SCROLLBARS*/
 ::-webkit-scrollbar{width:.28em;height:.28em}
 ::-webkit-scrollbar-track{background-color:transparent;border:none;}

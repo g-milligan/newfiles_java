@@ -147,6 +147,9 @@ jQuery(document).ready(function(){
 		var searchInput=searchWrap.children('input:first');
 		var searchBtn=searchWrap.children('.search-btn:last');
 		var clearBtn=searchWrap.children('.clear-btn:last');
+		var foundCountWrap=searchWrap.children('.found-count:last');
+		var foundCurrentElem=foundCountWrap.children('.current:first');
+		var foundTotalElem=foundCountWrap.children('.total:last');
 		//get the default text for this search field
 		var defaultTxt=searchInput.attr('value');
 		var origTxt=defaultTxt;
@@ -161,7 +164,7 @@ jQuery(document).ready(function(){
 			var elems;
 			switch(type){
 				case 'templates':
-					elems=temLsWrap.find('.dir > .path,.file > .name,.token .str > .part.path,.token .str > .part.name');
+					elems=temLsWrap.find('.dir > .path,.file > .name,.token .str > .part.path,.token .str > .part.name,.token .str > .part.alias');
 				break;
 				default:
 					
@@ -240,6 +243,17 @@ jQuery(document).ready(function(){
 					//add the highlight to the next found
 					highlightedElems.removeClass('highlight');
 					nextElem.addClass('highlight');
+					//update the current count number
+					var currentCount=nextElem.attr('name');
+					currentCount=parseInt(currentCount);currentCount++;
+					foundCurrentElem.text(currentCount+'');
+					//if at the last count
+					if(foundCurrentElem.text()==foundTotalElem.text()){
+						foundCountWrap.addClass('atLast');
+					}else{
+						foundCountWrap.removeClass('atLast');
+					}
+					//indicate the move happened
 					didIt=true;
 					//scroll to the highlighted element, if outside of curent scroll
 					scrollToHighlight(nextElem);
@@ -275,6 +289,17 @@ jQuery(document).ready(function(){
 					//add the highlight to the next found
 					highlightedElems.removeClass('highlight');
 					nextElem.addClass('highlight');
+					//update the current count number
+					var currentCount=nextElem.attr('name');
+					currentCount=parseInt(currentCount);currentCount++;
+					foundCurrentElem.text(currentCount+'');
+					//if at the last count
+					if(foundCurrentElem.text()==foundTotalElem.text()){
+						foundCountWrap.addClass('atLast');
+					}else{
+						foundCountWrap.removeClass('atLast');
+					}
+					//indicate the move happened
 					didIt=true;
 					//scroll to the highlighted element, if outside of curent scroll
 					scrollToHighlight(nextElem);
@@ -335,7 +360,12 @@ jQuery(document).ready(function(){
 							var foundElems=jQuery(this).children('found');
 							foundElems.each(function(){
 								//highlight the first found
-								if(foundIndex==0){jQuery(this).addClass('highlight');}
+								if(foundIndex==0){
+									//highlight
+									jQuery(this).addClass('highlight');
+									//make sure this first found element is scrolled into view
+									scrollToHighlight(jQuery(this));
+								}
 								//add index number to found element
 								jQuery(this).attr('name',foundIndex);
 								foundIndex++;
@@ -347,6 +377,17 @@ jQuery(document).ready(function(){
 							highlightDelay+=30;
 						}
 					});
+					//show the found count
+					if(foundIndex>0){
+						//at least one found
+						foundCurrentElem.text('1');
+						foundTotalElem.text(foundIndex+'');
+					}else{
+						//no matches found
+						foundCurrentElem.text('0');
+						foundTotalElem.text('0');
+					}
+					searchWrap.addClass('results');
 				}else{
 					//this search is not different than the previous search...
 					
@@ -361,6 +402,10 @@ jQuery(document).ready(function(){
 			if(searchInput[0].hasOwnProperty('currentSearch')){
 				//clear the previous search
 				searchInput[0].currentSearch=undefined;
+				//hide the found count
+				foundCurrentElem.text('-');
+				foundTotalElem.text('-');
+				searchWrap.removeClass('results');
 				//get the elements whose inner text should be searched, depending on searchType
 				var searchElems=getSearchElems(searchType);
 				//for each search element that contains a <found> element
