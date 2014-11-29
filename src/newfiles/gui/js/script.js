@@ -135,6 +135,8 @@ jQuery(document).ready(function(){
 		//remove certain strings
 		str=replaceAll(str,'   ',' ');
 		str=replaceAll(str,'  ',' ');
+		str=replaceAll(str,'<','');
+		str=replaceAll(str,'>','');
 		
 		return str;
 	};
@@ -152,6 +154,8 @@ jQuery(document).ready(function(){
 		//add the button images
 		searchBtn.html(getSvg('search'));
 		clearBtn.html(getSvg('x'));
+		//get the searchType indicator for the search that needs to be conducted
+		var searchType=searchWrap.attr('name');
 		//get the elements whose inner text should be searched
 		var getSearchElems=function(type){
 			var elems;
@@ -165,13 +169,127 @@ jQuery(document).ready(function(){
 			}
 			return elems;
 		};
+		//get the element that is scrolled to move found searches into view
+		var getScrollElem=function(type){
+			var elem;
+			switch(type){
+				case 'templates':
+					elem=temLsWrap;
+				break;
+				default:
+					
+				break;
+			}
+			return elem;
+		}
+		//get all the found elements for a search
+		var getFoundElems=function(){
+			//get the elements whose inner text should be searched, depending on searchType
+			var searchElems=getSearchElems(searchType);
+			//get the highlighted elements (should only be one)
+			var foundElems=searchElems.has('found');
+			foundElems=foundElems.children('found');
+			return foundElems;
+		};
+		//move the highlighted found element into scroll view
+		var scrollToHighlight=function(elem){
+			var scrollElem=getScrollElem(searchType);
+			if(scrollElem!=undefined){
+				//get the element's position and the view window bounds of the current sroll
+				var elemTop=elem.position().top;
+				var scrollTop=scrollElem.scrollTop();
+				elemTop+=scrollTop;
+				var elemBottom=elemTop+elem.outerHeight();
+				var scrollBottom=scrollTop+scrollElem.innerHeight();
+				//if the scroll has passed the element's position
+				if(elemTop<scrollTop){
+					scrollElem.scrollTop(elemTop); //scroll up to the element
+				}else{
+					//if the scroll is before the element's position
+					if(elemBottom>=scrollBottom){
+						scrollElem.scrollTop(elemTop); //scroll down to the element
+					}
+				}
+			}
+		};
+		//hightlight the next found search match
+		var highlightNext=function(){
+			var didIt=false;
+			//if there is a previous search saved
+			if(searchInput[0].hasOwnProperty('currentSearch')){
+				//get the found elements
+				var foundElems=getFoundElems();
+				//if there is more than one found element
+				if(foundElems.length>1){
+					//get the highlighted found
+					var highlightedElems=foundElems.filter('.highlight');
+					//get the index of the highlighted element
+					var highlightIndex=highlightedElems.eq(0).attr('name');
+					highlightIndex=parseInt(highlightIndex);
+					//if this is NOT the last found element
+					var nextElem;
+					if(highlightIndex+1<foundElems.length){
+						//move to the next index
+						nextElem=foundElems.filter('found[name="'+(highlightIndex+1)+'"]:first');
+					}else{
+						//this is the last found element...
+						
+						//cycle back to the first element
+						nextElem=foundElems.eq(0);
+					}
+					//add the highlight to the next found
+					highlightedElems.removeClass('highlight');
+					nextElem.addClass('highlight');
+					didIt=true;
+					//scroll to the highlighted element, if outside of curent scroll
+					scrollToHighlight(nextElem);
+				}
+			}
+			return didIt;
+		};
+		//hightlight the previous found search match
+		var highlightPrev=function(){
+			var didIt=false;
+			//if there is a previous search saved
+			if(searchInput[0].hasOwnProperty('currentSearch')){
+				//get the found elements
+				var foundElems=getFoundElems();
+				//if there is more than one found element
+				if(foundElems.length>1){
+					//get the highlighted found
+					var highlightedElems=foundElems.filter('.highlight');
+					//get the index of the highlighted element
+					var highlightIndex=highlightedElems.eq(0).attr('name');
+					highlightIndex=parseInt(highlightIndex);
+					//if this is NOT the first found element
+					var nextElem;
+					if(highlightIndex>0){
+						//move to the prev index
+						nextElem=foundElems.filter('found[name="'+(highlightIndex-1)+'"]:first');
+					}else{
+						//this is the first found element...
+						
+						//cycle back to the last element
+						nextElem=foundElems.filter(':last');
+					}
+					//add the highlight to the next found
+					highlightedElems.removeClass('highlight');
+					nextElem.addClass('highlight');
+					didIt=true;
+					//scroll to the highlighted element, if outside of curent scroll
+					scrollToHighlight(nextElem);
+				}
+			}
+			return didIt;
+		};
 		//search button click event
 		var doSearch=function(){
 			searchWrap.addClass('do-search');
 			setTimeout(function(){searchWrap.removeClass('do-search');},200);
-			//if the current text is the default text OR blank
+			//get the text to search
 			var currentTxt=searchInput.val();
 			currentTxt=sanitizeSearchStr(currentTxt);
+			//if the current text is the default text OR blank
 			if(currentTxt==defaultTxt||currentTxt.length<1){
 				//clear the default text and set focus
 				searchInput.val('');
@@ -179,33 +297,85 @@ jQuery(document).ready(function(){
 			}else{
 				//current text is NOT the default NOR blank...
 				
-				//get the searchType indicator for the search that needs to be conducted
-				var searchType=searchWrap.attr('name');
-				//get the elements whose inner text should be searched, depending on searchType
-				var searchElems=getSearchElems(searchType);
-				//for each element to search
-				searchElems.each(function(){
-					//get the inner text of this element
-					var thisTxt=jQuery(this).text();
-					var origTxt=thisTxt;
-					//remove inner html (if a previous search had been conducted that left highlight html in this text)
-					jQuery(this).html(origTxt);
-					//normalize the inner text (casing, etc...)
-					thisTxt=sanitizeSearchStr(thisTxt);
-					//if any part of this inner text matches the text being searched
-					if(thisTxt.indexOf(currentTxt)!=-1){
-						var newTxt=thisTxt;
-						//*** figure out what text to wrap in <found></found> tags
-					}
-				});
+				//if this text is different than the previous search
+				if(!searchInput[0].hasOwnProperty('currentSearch')
+						||searchInput[0].currentSearch!=currentTxt){
+					//save this currentTxt as the current search
+					searchInput[0]['currentSearch']=currentTxt;
+					//get the elements whose inner text should be searched, depending on searchType
+					var searchElems=getSearchElems(searchType);
+					var highlightDelay=50;var foundIndex=0;
+					//for each element to search
+					searchElems.each(function(){
+						//get the inner text of this element
+						var thisTxt=jQuery(this).text();
+						var origTxt=thisTxt;
+						//remove inner html (if a previous search had been conducted that left highlight html in this text)
+						jQuery(this).html(origTxt);
+						//normalize the inner text (casing, etc...)
+						thisTxt=sanitizeSearchStr(thisTxt);
+						//if any part of this inner text matches the text being searched
+						if(thisTxt.indexOf(currentTxt)!=-1){
+							//get the matched sub-string
+							var startIndex=thisTxt.indexOf(currentTxt);
+							var matchedTxt=origTxt.substring(startIndex,startIndex+currentTxt.length);
+							//insert the <found></found> elements around the matchedTxt
+							var crazyTxt="<<<>>>";
+							origTxt=replaceAll(origTxt,matchedTxt,crazyTxt);
+							origTxt=replaceAll(origTxt,crazyTxt,'<found>'+matchedTxt+'</found>');
+							jQuery(this).html(origTxt);
+							//make sure this found text is NOT hidden inside a closed parent
+							var closedParents=jQuery(this).parents('li:first').parents('li.closed');
+							closedParents.each(function(){
+								//open up this parent element
+								var openBtn=jQuery(this).find('.opened-closed:first');
+								openBtn.click();
+							});
+							//number the found elements
+							var foundElems=jQuery(this).children('found');
+							foundElems.each(function(){
+								//highlight the first found
+								if(foundIndex==0){jQuery(this).addClass('highlight');}
+								//add index number to found element
+								jQuery(this).attr('name',foundIndex);
+								foundIndex++;
+							});
+							//after a delay, highlight the found text
+							setTimeout(function(){
+								foundElems.addClass('glow');
+							},highlightDelay);
+							highlightDelay+=30;
+						}
+					});
+				}else{
+					//this search is not different than the previous search...
+					
+					//highlight the next search match
+					highlightNext();
+				}
 			}
 		};
 		searchBtn.click(function(){doSearch();});
+		var removeFoundHighlights=function(){
+			//if there is a previous search
+			if(searchInput[0].hasOwnProperty('currentSearch')){
+				//clear the previous search
+				searchInput[0].currentSearch=undefined;
+				//get the elements whose inner text should be searched, depending on searchType
+				var searchElems=getSearchElems(searchType);
+				//for each search element that contains a <found> element
+				searchElems.has('found').each(function(){
+					//make sure there are no <found> elements hanging around
+					var origTxt=jQuery(this).text();
+					jQuery(this).html(origTxt);
+				});
+			}
+		};
 		var clearTxt=function(){
 			//clear the text and set focus
-			searchInput.val('');
-			searchInput.focus();
 			searchWrap.removeClass('text-entered');
+			searchInput.val(origTxt);
+			removeFoundHighlights();
 		};
 		//clear button click event
 		clearBtn.click(function(){clearTxt();});
@@ -218,6 +388,7 @@ jQuery(document).ready(function(){
 				//restore the default text
 				searchInput.val(origTxt);
 				searchWrap.removeClass('text-entered');
+				removeFoundHighlights();
 			}
 		});
 		var gotFocus=function(){
@@ -234,15 +405,29 @@ jQuery(document).ready(function(){
 		}else{
 			searchInput.click(function(){gotFocus();});
 		}
+		searchInput.keydown(function(e){
+			switch(e.keyCode){
+				case 38: //up arrow 
+					if(highlightPrev()){
+						e.preventDefault();}
+				break;
+				case 40: //down arrow 
+					if(highlightNext()){
+						e.preventDefault();}
+				break;
+			}					 
+		});
 		searchInput.keyup(function(e){
 			switch(e.keyCode){
 				case 27: //escape key pressed
 					e.preventDefault();
 					clearTxt();
+					searchInput.val('');
 				break;
 				case 13: //enter key pressed
 					e.preventDefault();
 					doSearch();
+				break;
 				default: //another key pressed, eg: a, b, c
 					//if the current text is NOT the default text OR blank
 					var currentTxt=searchInput.val();
@@ -253,6 +438,7 @@ jQuery(document).ready(function(){
 					}else{
 						//default text OR blank
 						searchWrap.removeClass('text-entered');
+						removeFoundHighlights();
 					}
 				break;
 			}

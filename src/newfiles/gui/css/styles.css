@@ -28,6 +28,13 @@ svg{display:inline-block;width:100%;height:100%;}
 .search .clear-btn{right:initial;left:.4em;display:none;width:1.5em;font-size:50%;}
 .search.text-entered .clear-btn{display:block;opacity:.7;}
 .search.text-entered .search-btn{opacity:1;}
+found{background-color:#ffffc0;border-radius:.2em;color:#685C00;text-shadow:0 0px 10px rgba(255,125,0,.5);display:inline-block;line-height:inherit;font-style:normal;opacity:.2;
+	-webkit-transition:all .1s linear;-moz-transition:all .1s linear;-ms-transition:all .1s linear;-o-transition:all .1s linear;transition:all .1s linear;}
+found.glow{opacity:1;background-color:#ffff27;padding:0 .3em;box-shadow:0 0 .5em rgba(255,255,0,.7);}
+found.highlight{background-color:yellow;color:#000;font-weight:bold;font-style:italic;box-shadow:0 0 1em rgba(255,255,0,.8);padding-right:.4em;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+found.highlight:before,found.highlight:after{font-style:normal;opacity:.5;}
+found.highlight:before{content:"[ ";}
+found.highlight:after{content:" ]";}
 /*COLOR PALETTE*/
 /*main background color*/
 body,.title .options ul li:hover,li.parent ul li:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
@@ -68,7 +75,7 @@ body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:ho
 #templates header > div,#templates .content{padding:0 .4em 0 .2em;}
 #templates header > div.size-controls{padding:0 .1em;}
 #templates .content{box-sizing:border-box;-moz-box-sizing:border-box;display:block;width:100%;height:100%;padding-top:.2em;padding-bottom:.2em;}
-#templates .content > nav.ls{width:100%;height:100%;padding:.1em;padding-left:0;overflow:auto;display:block;box-sizing:border-box;-moz-box-sizing:border-box;font-size:54%;}
+#templates .content > nav.ls{position:relative;width:100%;height:100%;padding:.1em;padding-left:0;overflow:auto;display:block;box-sizing:border-box;-moz-box-sizing:border-box;font-size:54%;}
 #templates .content nav.ls ul{margin:0;padding:0;}
 #templates .content nav.ls ul ul{padding-left:1em;}
 #templates .content nav.ls ul ul ul{padding-left:3.5em;font-size:92%;opacity:.8;}
