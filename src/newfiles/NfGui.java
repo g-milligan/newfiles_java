@@ -49,6 +49,10 @@ public class NfGui extends Application {
     
     //http://docs.oracle.com/javafx/2/webview/jfxpub-webview.htm
     
+    //fields
+    private static String mTargetDir;
+    private static String mBatchFileName;
+    private static String mTemplatesRoot;
     //display elements
     private Newfiles mNewfiles;
     private WebView mWebView;
@@ -122,6 +126,9 @@ public class NfGui extends Application {
     }
     //initial entry point called from Newfiles.java "gui" command
     public static void main(String[] args) {
+        mTargetDir=args[0];
+        mBatchFileName=args[1]; 
+        mTemplatesRoot=args[2];
         launch(args);
     }
 }

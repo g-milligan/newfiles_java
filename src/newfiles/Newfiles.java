@@ -123,7 +123,8 @@ public class Newfiles {
                 break;
             case 8: //8: open the Graphical user interface for Newfiles
                 System.out.println(" Loading GUI window, just a moment...");
-                NfGui gui=new NfGui(); gui.main(args); gui.close();
+                String[] guiArgs=new String[]{mTargetDir, mBatchFileName, mTemplatesRoot};
+                NfGui gui=new NfGui(); gui.main(guiArgs); gui.close();
                 break;
             default:
                 //invalid command (int code)
