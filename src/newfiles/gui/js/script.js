@@ -150,6 +150,8 @@ jQuery(document).ready(function(){
 		var foundCountWrap=searchWrap.children('.found-count:last');
 		var foundCurrentElem=foundCountWrap.children('.current:first');
 		var foundTotalElem=foundCountWrap.children('.total:last');
+		var foundPrevBtn=foundCountWrap.children('.prev:last');
+		var foundNextBtn=foundCountWrap.children('.next:last');
 		//get the default text for this search field
 		var defaultTxt=searchInput.attr('value');
 		var origTxt=defaultTxt;
@@ -157,6 +159,8 @@ jQuery(document).ready(function(){
 		//add the button images
 		searchBtn.html(getSvg('search'));
 		clearBtn.html(getSvg('x'));
+		foundPrevBtn.html(getSvg('up'));
+		foundNextBtn.html(getSvg('down'));
 		//get the searchType indicator for the search that needs to be conducted
 		var searchType=searchWrap.attr('name');
 		//get the elements whose inner text should be searched
@@ -252,9 +256,9 @@ jQuery(document).ready(function(){
 					foundCurrentElem.text(currentCount+'');
 					//if at the last count
 					if(foundCurrentElem.text()==foundTotalElem.text()){
-						foundCountWrap.addClass('atLast');
+						searchWrap.addClass('atLast');
 					}else{
-						foundCountWrap.removeClass('atLast');
+						searchWrap.removeClass('atLast');
 					}
 					//indicate the move happened
 					didIt=true;
@@ -298,9 +302,9 @@ jQuery(document).ready(function(){
 					foundCurrentElem.text(currentCount+'');
 					//if at the last count
 					if(foundCurrentElem.text()==foundTotalElem.text()){
-						foundCountWrap.addClass('atLast');
+						searchWrap.addClass('atLast');
 					}else{
-						foundCountWrap.removeClass('atLast');
+						searchWrap.removeClass('atLast');
 					}
 					//indicate the move happened
 					didIt=true;
@@ -332,7 +336,7 @@ jQuery(document).ready(function(){
 					searchInput[0]['currentSearch']=currentTxt;
 					//get the elements whose inner text should be searched, depending on searchType
 					var searchElems=getSearchElems(searchType);
-					var highlightDelay=50;var foundIndex=0;
+					var foundIndex=0;
 					//for each element to search
 					searchElems.each(function(){
 						//get the inner text of this element
@@ -373,11 +377,8 @@ jQuery(document).ready(function(){
 								jQuery(this).attr('name',foundIndex);
 								foundIndex++;
 							});
-							//after a delay, highlight the found text
-							setTimeout(function(){
-								foundElems.addClass('glow');
-							},highlightDelay);
-							highlightDelay+=30;
+							//highlight the found text
+							foundElems.addClass('glow');
 						}
 					});
 					//show the found count
@@ -387,13 +388,13 @@ jQuery(document).ready(function(){
 						foundTotalElem.text(foundIndex+'');
 						//if only one found
 						if(foundIndex==1){
-							foundCountWrap.addClass('atLast');
+							searchWrap.addClass('atLast');
 						}else{
-							foundCountWrap.removeClass('atLast');
+							searchWrap.removeClass('atLast');
 						}
 					}else{
 						//no matches found
-						foundCountWrap.addClass('atLast');
+						searchWrap.addClass('atLast');
 						foundCurrentElem.text('0');
 						foundTotalElem.text('0');
 					}
@@ -406,7 +407,7 @@ jQuery(document).ready(function(){
 				}
 			}
 		};
-		searchBtn.click(function(){doSearch();});
+		searchBtn.click(function(){doSearch();searchInput.focus();});
 		var removeFoundHighlights=function(){
 			//if there is a previous search
 			if(searchInput[0].hasOwnProperty('currentSearch')){
@@ -416,7 +417,7 @@ jQuery(document).ready(function(){
 				foundCurrentElem.text('-');
 				foundTotalElem.text('-');
 				searchWrap.removeClass('results');
-				foundCountWrap.removeClass('atLast');
+				searchWrap.removeClass('atLast');
 				//get the elements whose inner text should be searched, depending on searchType
 				var searchElems=getSearchElems(searchType);
 				//for each search element that contains a <found> element
@@ -498,6 +499,14 @@ jQuery(document).ready(function(){
 					}
 				break;
 			}
+		});
+		foundNextBtn.click(function(){
+			highlightNext();
+			searchInput.focus();
+		});
+		foundPrevBtn.click(function(){
+			highlightPrev();
+			searchInput.focus();
 		});
 	});
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
