@@ -9,6 +9,8 @@ jQuery(document).ready(function(){
 	var temLsWrap=temContentWrap.children('nav.ls:first');
 	var workspaceWrap=contentWrap.children('#workspace:first');
 	var temResizeHandle=templatesWrap.children('.resize.width:last');
+	//disable selection on certain elements
+	preventSelect(temLsWrap);
 	//==INTERNAL FUNCTIONS==
 	//function to save inline style rules, remove them, but allow them to be restored later
 	var saveRemoveInlineStyles=function(elem,targetRulesArray){
@@ -152,6 +154,8 @@ jQuery(document).ready(function(){
 		var foundTotalElem=foundCountWrap.children('.total:last');
 		var foundPrevBtn=foundCountWrap.children('.prev:last');
 		var foundNextBtn=foundCountWrap.children('.next:last');
+		//disable selection on certain elements
+		preventSelect(foundCountWrap); preventSelect(searchBtn); preventSelect(clearBtn);
 		//get the default text for this search field
 		var defaultTxt=searchInput.attr('value');
 		var origTxt=defaultTxt;
@@ -219,7 +223,20 @@ jQuery(document).ready(function(){
 					}
 				}
 				//==HORIZONTAL==
-				//***
+				//get the element's position and the view window bounds of the current sroll
+				var elemLeft=elem.position().left;
+				var scrollLeft=scrollElem.scrollLeft();
+				var elemRight=elemLeft+elem.outerWidth();
+				var scrollRight=scrollLeft+scrollElem.innerWidth();
+				//if the scroll has passed the element's position
+				if(elemLeft<scrollLeft){
+					scrollElem.scrollLeft(elemLeft); //scroll left until the elem's left edge shows
+				}else{
+					//if the scroll is before the element's position
+					if(elemRight>=scrollRight){
+						scrollElem.scrollLeft(elemRight-scrollRight); //scroll left until the elem's right edge shows
+					}
+				}
 			}
 		};
 		//hightlight the next found search match
@@ -262,8 +279,11 @@ jQuery(document).ready(function(){
 					}
 					//indicate the move happened
 					didIt=true;
-					//scroll to the highlighted element, if outside of curent scroll
-					scrollToHighlight(nextElem);
+					//delay so that css transitions will finish changing the highlighted size
+					setTimeout(function(){
+						//scroll to the highlighted element, if outside of curent scroll
+						scrollToHighlight(nextElem);
+					},20);
 				}
 			}
 			return didIt;
@@ -308,8 +328,11 @@ jQuery(document).ready(function(){
 					}
 					//indicate the move happened
 					didIt=true;
-					//scroll to the highlighted element, if outside of curent scroll
-					scrollToHighlight(nextElem);
+					//delay so that css transitions will finish changing the highlighted size
+					setTimeout(function(){
+						//scroll to the highlighted element, if outside of curent scroll
+						scrollToHighlight(nextElem);
+					},20);
 				}
 			}
 			return didIt;
@@ -369,16 +392,15 @@ jQuery(document).ready(function(){
 								//highlight the first found
 								if(foundIndex==0){
 									//highlight
+									jQuery(this).addClass('glow');
 									jQuery(this).addClass('highlight');
 									//make sure this first found element is scrolled into view
 									scrollToHighlight(jQuery(this));
-								}
+								}else{jQuery(this).addClass('glow');}
 								//add index number to found element
 								jQuery(this).attr('name',foundIndex);
 								foundIndex++;
 							});
-							//highlight the found text
-							foundElems.addClass('glow');
 						}
 					});
 					//show the found count
@@ -617,6 +639,10 @@ function replaceAll(theStr, charToReplace, replaceWith) {
     }else{theStr='';}
     return theStr;
 };
+//prevent the element or element children from being selected
+function preventSelect(elem){
+	elem.bind('selectstart',function(e){e.preventDefault();return false;});
+}
 //gets the contents of a function, eg: function functionName(){/* ...contents... */}
 function getFuncStr(functionName){
 	var functionContent = '';

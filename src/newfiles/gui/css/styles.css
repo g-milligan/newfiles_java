@@ -39,23 +39,20 @@ found{border-radius:.2em;display:inline-block;line-height:inherit;font-style:nor
 .search .found-count .prev,.search .found-count .next{display:inline-block;height:1em;width:1em;margin-left:.3em;cursor:pointer;}
 .search .found-count .prev{}
 .search .found-count .next{}
-found.glow{opacity:1;padding:0 .3em;}
-found.highlight{font-weight:bold;font-style:italic;padding-right:.4em;}
-found.glow.highlight{box-shadow:none;}
-found.glow:before,found.glow:after{font-style:normal;opacity:.8;
-	-webkit-transition:all .1s linear;-moz-transition:all .1s linear;-ms-transition:all .1s linear;-o-transition:all .1s linear;transition:all .1s linear;}
-found.highlight:before,found.highlight:after{opacity:1;font-weight:Bold;}
-found.glow:before{content:"{";padding-right:.2em;}
-found.glow:after{content:"}";padding-left:.2em;}
-found.highlight:before{padding-right:.3em;}
-found.highlight:after{padding-left:.4em;}
+found.glow{opacity:1;font-weight:bold;text-decoration:underline;}
+found.highlight{font-weight:bold;font-style:italic;text-decoration:none;}
+found.glow.highlight{margin:0 .2em;}
+found.glow:before,found.glow:after{font-style:normal;opacity:.8;}
+found.highlight:before,found.highlight:after{opacity:1;font-weight:Bold;text-decoration:none;}
+found.highlight:before{content:"{";padding-right:.1em;}
+found.highlight:after{content:"}";padding-left:.1em;}
 /*COLOR PALETTE*/
 /*main background color*/
 body,.title .options ul li:hover,li.parent ul li:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
 /*default color*/
 body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover,.search .found-count .prev:hover, .search .found-count .next:hover{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *{fill:#BC6684;}
 /*highlight color*/
-found.highlight:before,found.highlight:after{text-shadow:0 0 .5em rgba(181,137,0,1);}
+found.highlight:before,found.highlight:after{text-shadow:0 0 1em rgba(181,137,0,1);}
 found.glow:before,found.glow:after,found{color:rgba(181,137,0,1);}
 /*SCROLLBARS*/
 ::-webkit-scrollbar{width:.28em;height:.28em}
