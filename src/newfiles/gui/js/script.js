@@ -62,6 +62,7 @@ jQuery(document).ready(function(){
 		}
 	};
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
+	//***
 	//SIZE CONTROLS (EG: PIN/UNPIN)
 	var sizeCtlsWraps=bodyElem.find('.size-controls');
 	//pin/un-pin column
@@ -639,6 +640,24 @@ function replaceAll(theStr, charToReplace, replaceWith) {
     }else{theStr='';}
     return theStr;
 };
+//make a request to java to open a folder
+function openDir(type){
+	//if a folder type was given
+	if(type!=undefined){
+		//if the type data element does NOT already exist
+		var bodyElem=jQuery('body:first');
+		var typeElem=bodyElem.children('#nf_open_folder:last');
+		if(typeElem.length<1){
+			//create the type data element
+			bodyElem.append('<div id="nf_open_folder" style="display:none;"></div>');
+			typeElem=bodyElem.children('#nf_open_folder:last');
+		}
+		//set the type data
+		typeElem.text(type);
+		//trigger the event
+		document.dispatchEvent(new Event('nf_open_folder'));
+	}
+}
 //prevent the element or element children from being selected
 function preventSelect(elem){
 	elem.bind('selectstart',function(e){e.preventDefault();return false;});

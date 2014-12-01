@@ -16,6 +16,11 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.events.Event;
+import org.w3c.dom.events.EventListener;
+import org.w3c.dom.events.EventTarget;
 
 /**
 All rights reserved
@@ -60,12 +65,14 @@ public class NfGui extends Application {
     private Scene mScene;
     //objects
     private static StrMgr mStrMgr;
+    private static FileMgr mFileMgr;
     //init objects and fields
     private void initObjects(){
         mNewfiles=new Newfiles();
         mWebView=new WebView();
         mWebEngine=mWebView.getEngine();
         mStrMgr=new StrMgr();
+        mFileMgr=new FileMgr();
     }
     //configure and attach events wo the web view
     private void startWebView(){
@@ -80,6 +87,25 @@ public class NfGui extends Application {
             public void changed(ObservableValue<? extends Worker.State> ov, Worker.State oldState, Worker.State newState) {
                 //if load successful
                 if (newState == Worker.State.SUCCEEDED) {
+                    //get the DOM document
+                    final Document doc = mWebEngine.getDocument();
+                    //event listener to detect when javascript makes a request to java
+                    ((EventTarget)doc).addEventListener("nf_open_folder", new EventListener(){
+                        public void handleEvent(Event ev){
+                            //get the type of folder to open
+                            Element el = doc.getElementById("nf_open_folder");
+                            String type=el.getTextContent();
+                            //depending on what folder type should be opened
+                            switch(type){
+                                case "templates":
+                                    mFileMgr.openDirWindow(mTemplatesRoot);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }, false);
+                    //DONE SETTING WEB EVENTS, INDICATE DONE
                     System.out.println(" GUI window ready...");
                 }
             }
