@@ -1,3 +1,4 @@
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -62,7 +63,6 @@ jQuery(document).ready(function(){
 		}
 	};
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
-	//***
 	//SIZE CONTROLS (EG: PIN/UNPIN)
 	var sizeCtlsWraps=bodyElem.find('.size-controls');
 	//pin/un-pin column
@@ -533,51 +533,56 @@ jQuery(document).ready(function(){
 		});
 	});
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
-	var updateTemplates=function(){
-		//******
-		var htm=getHtm('template_dirs',sample_json_templates());
-		temLsWrap.append(htm);
-		//******
-		//==ADD JS EVENTS TO NEW ELEMENTS==
-		//add opened-closed toggle events (to elements that don't already have events added)
-		var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
-		//mark these elements as having the events attached
-		openCloseElems.addClass('evs');
-		openCloseElems.click(function(){
-			//get the parent li wrapper
-			var parentLi=jQuery(this).parents('li:first');
-			//if currently closed
-			if(parentLi.hasClass('closed')){
-				//open it
-				parentLi.removeClass('closed');
-				parentLi.addClass('opened');
-			}else{
-				//currently open, so close it
-				parentLi.addClass('closed');
-				parentLi.removeClass('opened');
-			}
-		});
-		//add on-off toggle events (to elements that don't already have events added)
-		var onOffElems=temLsWrap.find('.on-off').not('.evs');
-		//mark these elements as having the events attached
-		onOffElems.addClass('evs');
-		onOffElems.click(function(){
-			//get the parent li wrapper
-			var parentLi=jQuery(this).parents('li:first');
-			//if currently on
-			if(parentLi.hasClass('on')){
-				//turn it off
-				parentLi.removeClass('on');
-				parentLi.addClass('off');
-			}else{
-				//currently off, so turn it on
-				parentLi.addClass('on');
-				parentLi.removeClass('off');
-			}
-		});
+	var updateTemplates=function(json){
+		if(json!=undefined){
+			//==SET THE TEMPLATES LISTING HTML==
+			var htm=getHtm('template_dirs',json); //get html
+			temLsWrap.html(''); //clear old html
+			temLsWrap.append(htm); //set html
+			//==ADD JS EVENTS TO NEW ELEMENTS==
+			//add opened-closed toggle events (to elements that don't already have events added)
+			var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
+			//mark these elements as having the events attached
+			openCloseElems.addClass('evs');
+			openCloseElems.click(function(){
+				//get the parent li wrapper
+				var parentLi=jQuery(this).parents('li:first');
+				//if currently closed
+				if(parentLi.hasClass('closed')){
+					//open it
+					parentLi.removeClass('closed');
+					parentLi.addClass('opened');
+				}else{
+					//currently open, so close it
+					parentLi.addClass('closed');
+					parentLi.removeClass('opened');
+				}
+			});
+			//add on-off toggle events (to elements that don't already have events added)
+			var onOffElems=temLsWrap.find('.on-off').not('.evs');
+			//mark these elements as having the events attached
+			onOffElems.addClass('evs');
+			onOffElems.click(function(){
+				//get the parent li wrapper
+				var parentLi=jQuery(this).parents('li:first');
+				//if currently on
+				if(parentLi.hasClass('on')){
+					//turn it off
+					parentLi.removeClass('on');
+					parentLi.addClass('off');
+				}else{
+					//currently off, so turn it on
+					parentLi.addClass('on');
+					parentLi.removeClass('off');
+				}
+			});
+		}
 	};
 	bodyElem[0]['updateTemplates']=updateTemplates;
-	bodyElem[0].updateTemplates();
+	if(getTestInBrowser()){
+		//for testing in a browser
+		bodyElem[0].updateTemplates(sample_json_templates());
+	}
 	//==WINDOW READY==
 	jQuery(window).ready(function(){
 		//==TEMPLATES RESIZE==
