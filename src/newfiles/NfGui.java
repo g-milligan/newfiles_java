@@ -98,7 +98,7 @@ public class NfGui extends Application {
                     final Document doc = mWebEngine.getDocument();
                     //build the templates listing
                     String templatesJson=getTemplatesJson();
-                    //mWebEngine.executeScript("document.body.updateTemplates("+templatesJson+")");
+                    mWebEngine.executeScript("document.body.updateTemplates("+templatesJson+")");
                     //event listener to detect when javascript makes a request to java
                     ((EventTarget)doc).addEventListener("nf_open_folder", new EventListener(){
                         public void handleEvent(Event ev){
@@ -124,12 +124,82 @@ public class NfGui extends Application {
         //=======================
         mWebEngine.load(indexPath.toExternalForm());
     }
+    //get a path with / instead of \
+    private String getForwardSeparator(String unformattedPath){
+        String path=unformattedPath;
+        //if the file separator is NOT /
+        if(!File.separator.equals("/")){
+            //user / instead of the standard file separator
+            path=path.replace(File.separator, "/");
+        }
+        return path;
+    }
+    //get the formatted path for a template directory
+    private String getFormattedDir(String unformattedPath){
+        String path=unformattedPath;
+        //if the path starts with the templates root
+        if(path.indexOf(mTemplatesRoot)==0){
+            //remove the templates root from the start
+            path=path.substring(mTemplatesRoot.length()+1);
+        }
+        path=getForwardSeparator(path);
+        //if the path starts with /
+        if(path.indexOf("/")==0){
+            //remove starting /
+            path=path.substring(1);
+        }
+        //if the path ends with /
+        if(path.lastIndexOf("/")==path.length()-1){
+            //remove ending /
+            path=path.substring(0,path.length()-1);
+        }
+        return path;
+    }
     //get the templates listing JSON
     private String getTemplatesJson(){
-        String json="{";
+        String json="{"; String hiddenDirsJson="";
         //mTemplateHierarchy = HashMap<[templatePath], HashMap<[fileName], ArrayList<[tokenStr]>>>
         loadTemplateHierarchy();
-        //*** mTemplateHierarchy will be null if the templates folder doesn't exist
+        //if the templates folder exists (mTemplateHierarchy is null if the templates folder doesn't exist)
+        if(mTemplateHierarchy!=null){
+            //for each templatePath
+            for (String templatePath : mTemplateHierarchy.keySet()) {
+                //get the files for this template
+                HashMap<String, ArrayList<String>> fileTokens=mTemplateHierarchy.get(templatePath);
+                //if NOT a hidden template folder
+                if(fileTokens!=null){
+                    //***
+                }else{
+                    //this is a hidden template folder...
+                    
+                    //if this is the first hidden directory
+                    if(hiddenDirsJson.length()<1){
+                        //start the hidden template json
+                        hiddenDirsJson+="'hidden':[";
+                    }else{
+                        //continue json
+                        hiddenDirsJson+=",";
+                    }
+                    //add the hidden template path to the json
+                    hiddenDirsJson+="'"+getFormattedDir(templatePath)+"'";
+                }
+            }
+        }else{
+            //the templates folder doesn't exist...
+            
+            json+="'error':'The templates folder does not exist. "+getForwardSeparator(mTemplatesRoot)+"'";
+        }
+        //if any hidden directories
+         if(hiddenDirsJson.length()>0){
+            //if anything templates were added to the json
+            if(json.length()>1){
+                //separate directories from hidden
+                json+=",";
+            }
+            //tack on the hidden directory json
+            json+=hiddenDirsJson+"]";
+         }
+        //close the outer json
         json+="}";
         return json;
     }
@@ -200,7 +270,7 @@ public class NfGui extends Application {
                         //since dir contains at least one file, it should be counted as a template folder
                         dirHasFile=true;
                         //add this file to the list of files under this directory
-                        String fileContent=mFileMgr.readFile(subFiles[f].getPath()); //*** save to display... fileContent in file view
+                        String fileContent=mFileMgr.readFile(subFiles[f].getPath()); //*** save to display... fileContent in file view?
                         ArrayList<String> tokens=mTemplateData.getTokensFromContent(fileContent);
                         filesTokens.put(subFiles[f].getName(), tokens);
                     }else{

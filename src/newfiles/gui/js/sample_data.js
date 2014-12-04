@@ -1,7 +1,6 @@
 function sample_json_templates(){
 	json={
-		'dirs':
-		[
+		'dirs':[
 			{
 				'path':'Demos/ListTokenDemo',
 				'ls':

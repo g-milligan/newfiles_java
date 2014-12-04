@@ -95,6 +95,7 @@ found.glow:before,found.glow:after,found{color:rgba(181,137,0,1);}
 #templates .content nav.ls ul ul ul{padding-left:3.5em;font-size:92%;opacity:.8;}
 #templates .content nav.ls ul li{list-style:none;}
 #templates .content nav.ls ul li.off{opacity:.4;text-decoration:line-through;}
+#templates .content nav.ls ul li.error > span{text-decoration:underline;cursor:pointer;}
 
 #templates li.closed > ul{display:none;}
 #templates li.opened > ul{display:block;}
