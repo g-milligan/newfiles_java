@@ -191,19 +191,23 @@ public class NfGui extends Application {
                             json+="{'name':'"+fileName+"'";
                             //get the tokens in this file
                             ArrayList<String> tokenStrs=fileTokens.get(fileName);
-                            //if there are any tokens
-                            if(tokenStrs.size()>0){
-                                json+=",'tokens':["; //start tokens array
-                            }
                             //for each token in this file
                             for(int t=0;t<tokenStrs.size();t++){
+                                //if this is the first token
+                                if(t==0){                                  
+                                    json+=",'tokens':["; //start tokens array
+                                }else{
+                                    //not the first token
+                                    json+=",";
+                                }
                                 //get the token string
                                 String tokenStr=tokenStrs.get(t);
-                                //***
-                            }
-                            //if there are any tokens
-                            if(tokenStrs.size()>0){
-                                json+="]"; //end tokens array
+                                //get the json for this token string
+                                json+=mTemplateData.getTokenPartsJson(tokenStr);
+                                //if this is the last token
+                                if(t+1==tokenStrs.size()){
+                                    json+="]"; //end tokens array
+                                }
                             }
                             //end file json
                             json+="}";

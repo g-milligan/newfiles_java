@@ -581,7 +581,7 @@ jQuery(document).ready(function(){
 	bodyElem[0]['updateTemplates']=updateTemplates;
 	if(getTestInBrowser()){
 		//for testing in a browser
-		bodyElem[0].updateTemplates(sample_json_templates());
+		bodyElem[0].updateTemplates(sample_json_templates2());
 	}
 	//==WINDOW READY==
 	jQuery(window).ready(function(){

@@ -533,6 +533,36 @@ public class TemplateData {
         }
         return tokenStr;
     }
+    public String getTokenPartsJson(String tokenStr){
+        String[] tokenParts=tokenStr.split(mStrMgr.mTokenSeparator);
+        return getTokenPartsJson(tokenParts);
+    }
+    public String getTokenPartsJson(String[] tokenParts){
+        String json="{";
+        //all token types have a type
+        String tokenType=getTokenPart("type", tokenParts);
+        json+="'type':'"+tokenType+"'";
+        String casing=""; String options=""; String dir=""; String name=""; String alias=""; String source="";
+        switch(tokenType){
+            case "var":
+                casing=getTokenPart("casing",tokenParts);if(casing.length()>0){json+=",'casing':'"+casing+"'";}
+                options=getTokenPart("options",tokenParts);if(options.length()>0){json+=",'options':'"+options+"'";}
+                name=getTokenPart("name",tokenParts);if(name.length()>0){json+=",'name':'"+name+"'";}
+                alias=getTokenPart("alias",tokenParts);if(alias.length()>0){json+=",'alias':'"+alias+"'";}
+                break;
+            case "filename":
+                casing=getTokenPart("casing",tokenParts);if(casing.length()>0){json+=",'casing':'"+casing+"'";}
+                dir=getTokenPart("dir",tokenParts);if(dir.length()>0){json+=",'dir':'"+dir+"'";}
+                name=getTokenPart("name",tokenParts);if(name.length()>0){json+=",'name':'"+name+"'";}
+                source=getTokenPart("source",tokenParts);if(source.length()>0){json+=",'source':'"+source+"'";}
+                break;
+            case "list":
+                name=getTokenPart("name",tokenParts);if(name.length()>0){json+=",'name':'"+name+"'";}
+                break;
+        }
+        json+="}";
+        return json;
+    }
     public String getTokenPart(String partKey, String tokenStr){
         //CLIP OFF THE LARGE TOKEN CHUNK, IF THIS IS A TOKEN CHUNK
         //========================================================
