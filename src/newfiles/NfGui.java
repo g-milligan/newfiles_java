@@ -163,12 +163,75 @@ public class NfGui extends Application {
         //if the templates folder exists (mTemplateHierarchy is null if the templates folder doesn't exist)
         if(mTemplateHierarchy!=null){
             //for each templatePath
-            for (String templatePath : mTemplateHierarchy.keySet()) {
+            for(String templatePath : mTemplateHierarchy.keySet()){
                 //get the files for this template
                 HashMap<String, ArrayList<String>> fileTokens=mTemplateHierarchy.get(templatePath);
                 //if NOT a hidden template folder
                 if(fileTokens!=null){
-                    //***
+                    //if first dir
+                    if(json.equals("{")){
+                        //start dirs array
+                        json+="'dirs':[";
+                    }else{
+                        //NOT first dir...
+                        json+=",";
+                    }
+                    //start this dir json
+                    json+="{'path':'"+getFormattedDir(templatePath)+"'";
+                    //for each file in the template
+                    String ignoredFilesJson=""; boolean hasFiles=false;
+                    for(String fileName : fileTokens.keySet()){
+                        //if NOT an ignored file
+                        if(fileName.indexOf("_")!=0){
+                            //if this is the first template file
+                            if(!hasFiles){json+=",'ls':[";}
+                            else{json+=",";}
+                            hasFiles=true;
+                            //start file json
+                            json+="{'name':'"+fileName+"'";
+                            //get the tokens in this file
+                            ArrayList<String> tokenStrs=fileTokens.get(fileName);
+                            //if there are any tokens
+                            if(tokenStrs.size()>0){
+                                json+=",'tokens':["; //start tokens array
+                            }
+                            //for each token in this file
+                            for(int t=0;t<tokenStrs.size();t++){
+                                //get the token string
+                                String tokenStr=tokenStrs.get(t);
+                                //***
+                            }
+                            //if there are any tokens
+                            if(tokenStrs.size()>0){
+                                json+="]"; //end tokens array
+                            }
+                            //end file json
+                            json+="}";
+                        }else{
+                            //this is an ignored file...
+                            
+                            //if this is the first ignored file
+                            if(ignoredFilesJson.length()<1){
+                                //start it off
+                                ignoredFilesJson+=",'hidden':[";
+                            }else{
+                                //not the first ignored file
+                                ignoredFilesJson+=",";
+                            }
+                            //add the name to the list of ignored files
+                            ignoredFilesJson+="'"+fileName+"'";
+                        }
+                        
+                    }
+                    //if has any template files, then end 'ls' file array
+                    if(hasFiles){json+="]";}
+                    //if there were any hidden files
+                    if(ignoredFilesJson.length()>0){
+                       //tack on the ignored files json
+                       json+=ignoredFilesJson+"]";
+                    }
+                    //end this dir json
+                    json+="}";
                 }else{
                     //this is a hidden template folder...
                     
@@ -183,6 +246,11 @@ public class NfGui extends Application {
                     //add the hidden template path to the json
                     hiddenDirsJson+="'"+getFormattedDir(templatePath)+"'";
                 }
+            }
+            //if there were any directories
+            if(!json.equals("{")){
+                //end dirs array
+                json+="]";
             }
         }else{
             //the templates folder doesn't exist...
