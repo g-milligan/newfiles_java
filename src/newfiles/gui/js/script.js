@@ -173,7 +173,7 @@ jQuery(document).ready(function(){
 			var elems;
 			switch(type){
 				case 'templates':
-					elems=temLsWrap.find('.dir > .path,.file > .name,.token .str > .part.path,.token .str > .part.name,.token .str > .part.alias');
+					elems=temLsWrap.find('.dir > .path,.file > .name,.token .str > .part.dir,.token .str > .part.name,.token .str > .part.alias,.token .str .part > .i');
 				break;
 				default:
 					
