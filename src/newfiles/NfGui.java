@@ -124,16 +124,6 @@ public class NfGui extends Application {
         //=======================
         mWebEngine.load(indexPath.toExternalForm());
     }
-    //get a path with / instead of \
-    private String getForwardSeparator(String unformattedPath){
-        String path=unformattedPath;
-        //if the file separator is NOT /
-        if(!File.separator.equals("/")){
-            //user / instead of the standard file separator
-            path=path.replace(File.separator, "/");
-        }
-        return path;
-    }
     //get the formatted path for a template directory
     private String getFormattedDir(String unformattedPath){
         String path=unformattedPath;
@@ -142,7 +132,7 @@ public class NfGui extends Application {
             //remove the templates root from the start
             path=path.substring(mTemplatesRoot.length()+1);
         }
-        path=getForwardSeparator(path);
+        path=mFileMgr.getForwardSeparator(path);
         //if the path starts with /
         if(path.indexOf("/")==0){
             //remove starting /
@@ -259,7 +249,7 @@ public class NfGui extends Application {
         }else{
             //the templates folder doesn't exist...
             
-            json+="'error':'The templates folder does not exist. "+getForwardSeparator(mTemplatesRoot)+"'";
+            json+="'error':'The templates folder does not exist. "+mFileMgr.getForwardSeparator(mTemplatesRoot)+"'";
         }
         //if any hidden directories
          if(hiddenDirsJson.length()>0){
@@ -343,7 +333,7 @@ public class NfGui extends Application {
                         dirHasFile=true;
                         //add this file to the list of files under this directory
                         String fileContent=mFileMgr.readFile(subFiles[f].getPath()); //*** save to display... fileContent in file view?
-                        ArrayList<String> tokens=mTemplateData.getTokensFromContent(fileContent);
+                        ArrayList<String> tokens=mTemplateData.getTokensFromContent(fileContent, true); //true = include list chunk tokens
                         filesTokens.put(subFiles[f].getName(), tokens);
                     }else{
                         //this is an ignored file...

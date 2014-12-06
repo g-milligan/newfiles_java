@@ -471,12 +471,17 @@ public class TemplateData {
         return chunks;
     }
     //return an array list of tokens found in string content (appended to the tokens)
-    public ArrayList<String> getTokensFromContent(String contents){
+    public ArrayList<String> getTokensFromContent(String contents){return getTokensFromContent(contents, false);}
+    public ArrayList<String> getTokensFromContent(String contents, boolean includeStartChunks){
         ArrayList<String> tokens = new ArrayList<String>();
         //what are the different possible token type starting strings?
         ArrayList<String> tokenStartTags = new ArrayList<String>();
         tokenStartTags.add("var");
         tokenStartTags.add("filename");
+        //if the starting portion of chunk tokens should be returned in the lsit, eg: <<list:some name>>
+        if(includeStartChunks){
+            tokenStartTags.add("list");
+        }
         //if the file content contains the start tag
         if(contents.contains(mStrMgr.mStartToken)){
             //split the contents up by the start token tag
@@ -498,8 +503,18 @@ public class TemplateData {
                             if(tokenParts[0].trim().length()>0){
                                 //if the first token part is a token type listed in tokenStartTags
                                 if(tokenStartTags.contains(tokenParts[0].trim())){
-                                    //if there are at least three parts to the token
-                                    if(tokenParts.length>2){
+                                    boolean correctNumParts=false;
+                                    //if the token contains the correct number of parts for its type
+                                    switch(tokenParts[0].trim()){
+                                        case "list":
+                                            //if there are at least three parts to the token
+                                            if(tokenParts.length==2){correctNumParts=true;}break;
+                                        default: //var or filename
+                                            //if there are at least three parts to the token
+                                            if(tokenParts.length>2){correctNumParts=true;}break;
+                                    }
+                                    //if the token contains the correct number of parts for its type
+                                    if(correctNumParts){
                                         //add the start tag back to the start of the token text
                                         str=mStrMgr.mStartToken+str;
                                         //if this token key is not already in the list
@@ -546,13 +561,25 @@ public class TemplateData {
         switch(tokenType){
             case "var":
                 casing=getTokenPart("casing",tokenParts);if(casing.length()>0){json+=",'casing':'"+casing+"'";}
-                options=getTokenPart("options",tokenParts);if(options.length()>0){json+=",'options':'"+options+"'";}
+                options=getTokenPart("options",tokenParts);if(options.length()>0){
+                    json+=",'options':[";
+                    String[] optionsArray=options.split("\\|");
+                    for(int o=0;o<optionsArray.length;o++){
+                        //if not the first option, then add item separator
+                        if(o!=0){json+=",";}
+                        String option=optionsArray[o].trim();
+                        json+="'"+option+"'";
+                    }
+                    json+="]";
+                }
                 name=getTokenPart("name",tokenParts);if(name.length()>0){json+=",'name':'"+name+"'";}
                 alias=getTokenPart("alias",tokenParts);if(alias.length()>0){json+=",'alias':'"+alias+"'";}
                 break;
             case "filename":
                 casing=getTokenPart("casing",tokenParts);if(casing.length()>0){json+=",'casing':'"+casing+"'";}
-                dir=getTokenPart("dir",tokenParts);if(dir.length()>0){json+=",'dir':'"+dir+"'";}
+                dir=getTokenPart("dir",tokenParts);if(dir.length()>0){
+                    json+=",'dir':'"+mFileMgr.getForwardSeparator(dir)+"'";
+                }
                 name=getTokenPart("name",tokenParts);if(name.length()>0){json+=",'name':'"+name+"'";}
                 source=getTokenPart("source",tokenParts);if(source.length()>0){json+=",'source':'"+source+"'";}
                 break;

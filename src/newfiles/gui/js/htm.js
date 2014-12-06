@@ -235,9 +235,25 @@ function htm_template_token(json){
 				//write the separator html
 				htm+='<span class="sep '+sepClass+'">'+imgSvg+'</span>';
 			}
+			//display value
+			var val=json[partKey]; var manyOptionsClass='';
+			if(typeof val!='string'){
+				if(isNaN(val)){
+					//the val is an array
+					var array=val;
+					val='';
+					//for each array item
+					for(var a=0;a<array.length;a++){
+						//add the array item html
+						val+='<span class="i">'+array[a]+'</span>';
+					}
+					//if more than two options, then add the many options class
+					if(array.length>2){manyOptionsClass=' many';}
+				}
+			}
 			//write the token part html
-			htm+='<span class="part '+partKey+'">';
-			htm+=json[partKey];
+			htm+='<span class="part'+manyOptionsClass+' '+partKey+'">';
+			htm+=val;
 			htm+='</span>';
 			//next part
 			partIndex++;lastKey=partKey;
