@@ -62,6 +62,7 @@ public class NfGui extends Application {
     private static String mBatchFileName;
     private static String mTemplatesRoot;
     private static HashMap<String, HashMap<String, ArrayList<String>>> mTemplateHierarchy; //HashMap<[templatePath], HashMap<[fileName], ArrayList<[tokenStr]>>>
+    private static HashMap<String, ArrayList<String>> mIncludeRules; //HashMap<[templatePath], ArrayList<[includeRul]>>
     
     //display elements
     private Newfiles mNewfiles;
@@ -147,13 +148,14 @@ public class NfGui extends Application {
     }
     //get the templates listing JSON
     private String getTemplatesJson(){
-        String json="{"; String hiddenDirsJson="";
+        String json="{"; String hiddenDirsJson=""; 
         //mTemplateHierarchy = HashMap<[templatePath], HashMap<[fileName], ArrayList<[tokenStr]>>>
         loadTemplateHierarchy();
         //if the templates folder exists (mTemplateHierarchy is null if the templates folder doesn't exist)
         if(mTemplateHierarchy!=null){
             //for each templatePath
             for(String templatePath : mTemplateHierarchy.keySet()){
+                String includeRulesJson="";
                 //get the files for this template
                 HashMap<String, ArrayList<String>> fileTokens=mTemplateHierarchy.get(templatePath);
                 //if NOT a hidden template folder
@@ -224,7 +226,26 @@ public class NfGui extends Application {
                        //tack on the ignored files json
                        json+=ignoredFilesJson+"]";
                     }
-                    //end this dir json
+                    //if this template has any include rules
+                    if(mIncludeRules.containsKey(templatePath)){
+                        //start the include rules json
+                        includeRulesJson+=",'includes':[";
+                        //get the include rules
+                        ArrayList<String> includeRules=mIncludeRules.get(templatePath);
+                        //for each include rule
+                        for(int r=0;r<includeRules.size();r++){
+                            //if NOT the first rule, then add the separator
+                            if(r!=0){includeRulesJson+=",";}
+                            //create the rule's json item
+                            String rule=mFileMgr.getForwardSeparator(includeRules.get(r));
+                            includeRulesJson+="'"+rule+"'";
+                        }
+                        //end the include rules json
+                        includeRulesJson+="]";
+                        //add the include rules to the json
+                        json+=includeRulesJson;
+                    }
+                    //end this template dir json
                     json+="}";
                 }else{
                     //this is a hidden template folder...
@@ -252,15 +273,15 @@ public class NfGui extends Application {
             json+="'error':'The templates folder does not exist. "+mFileMgr.getForwardSeparator(mTemplatesRoot)+"'";
         }
         //if any hidden directories
-         if(hiddenDirsJson.length()>0){
-            //if anything templates were added to the json
-            if(json.length()>1){
-                //separate directories from hidden
-                json+=",";
-            }
-            //tack on the hidden directory json
-            json+=hiddenDirsJson+"]";
-         }
+        if(hiddenDirsJson.length()>0){
+           //if anything templates or include rules were added to the json
+           if(json.length()>1){
+               //separate directories from hidden
+               json+=",";
+           }
+           //tack on the hidden directory json
+           json+=hiddenDirsJson+"]";
+        }
         //close the outer json
         json+="}";
         return json;
@@ -271,6 +292,11 @@ public class NfGui extends Application {
             mTemplateHierarchy=new HashMap<String, HashMap<String, ArrayList<String>>>();
         }else{
             mTemplateHierarchy.clear();
+        }
+        if(mIncludeRules==null){
+            mIncludeRules=new HashMap<String, ArrayList<String>>();
+        }else{
+            mIncludeRules.clear();
         }
         //if the root template folder exists
         File temRoot = new File(mTemplatesRoot);
@@ -344,6 +370,16 @@ public class NfGui extends Application {
                             dirHasFile=true;
                             //add this hidden file to the list without any listed tokens
                             filesTokens.put(subFiles[f].getName(), null);
+                            //if this is _filenames.xml
+                            if(subFiles[f].getName().equals(mStrMgr.mFilenamesXml)){
+                                //get the include rules for this template's _filenames.xml file
+                                ArrayList<String> includeRules=mTemplateData.getXmlFilenamesIncludeValues(dir.getPath());
+                                //if this _filenames.xml file has any include rules
+                                if(includeRules.size()>0){
+                                    //add the include rules to the list
+                                    mIncludeRules.put(dir.getPath(), includeRules);
+                                }
+                            }
                         }
                     }
                 }

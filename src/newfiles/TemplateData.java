@@ -919,11 +919,13 @@ public class TemplateData {
         return listNestedKeyNoIndexes;
     }
     //get the _filenames.xml File object, if the file exists
-    private File getXmlFilenamesFile(){
-        return new File(mUseTemplatePath+File.separator+mStrMgr.mFilenamesXml);
+    private File getXmlFilenamesFile(){return getXmlFilenamesFile(mUseTemplatePath);}
+    private File getXmlFilenamesFile(String useTemplatePath){
+        return new File(useTemplatePath+File.separator+mStrMgr.mFilenamesXml);
     }
     //get the _filenames.xml XML document object, if the file exists
     private Document getXmlFilenamesDoc(){return getXmlFilenamesDoc(getXmlFilenamesFile());}
+    private Document getXmlFilenamesDoc(String useTemplatePath){return getXmlFilenamesDoc(getXmlFilenamesFile(useTemplatePath));}
     private Document getXmlFilenamesDoc(File fnXmlFile){
        Document xmlDoc=null;
         //if _filenames.xml exists
@@ -1116,11 +1118,12 @@ public class TemplateData {
         return matchedFiles;
     }
     //get a list of files to include (from _filenames.xml) in an export of a project
-    public ArrayList<String> getXmlFilenamesIncludeValues(){
+    public ArrayList<String> getXmlFilenamesIncludeValues(){return getXmlFilenamesIncludeValues(mUseTemplatePath);}
+    public ArrayList<String> getXmlFilenamesIncludeValues(String useTemplatePath){
         ArrayList<String> includeValues = new ArrayList<String>();
         boolean xmlChangesMade=false;
         //get the _filenames.xml file (if it already exists)
-        File fnXmlFile=getXmlFilenamesFile();
+        File fnXmlFile=getXmlFilenamesFile(useTemplatePath);
         if(fnXmlFile.exists()){
             //get the XML document object
             Document xmlDoc=getXmlFilenamesDoc(fnXmlFile);
