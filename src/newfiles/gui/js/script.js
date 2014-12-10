@@ -644,7 +644,7 @@ function replaceAll(theStr, charToReplace, replaceWith) {
         }
     }else{theStr='';}
     return theStr;
-};
+}
 //make a request to java to open a folder
 function openDir(type){
 	//if a folder type was given

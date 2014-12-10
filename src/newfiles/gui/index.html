@@ -14,8 +14,29 @@
 <body>
 	<content id="content">
     	<div id="workspace">
-        	<header>
-            </header>
+        	<section id="main-view">
+            	<header>
+                </header>
+                <div class="content">
+                	<div class="lcol">
+                    </div>
+                	<div class="rcol">
+                    </div>
+                </div>
+            </section>
+            <section id="input-view">
+            	<header>
+                	<div class="size-controls">
+                    </div>
+                </header>
+                <div class="content">
+                	<div class="lcol">
+                    </div>
+                	<div class="rcol">
+                    </div>
+                </div>
+                <div class="resize height"></div>
+            </section>
         </div>
         <div id="templates" class="pinned-unpinned pinned">
         	<header>
@@ -32,7 +53,7 @@
                     </div>
                 </div>
                 <div class="title">
-                	<div onclick="javascript:openDir('templates');" title="Open Folder" class="folder">
+                	<div onClick="javascript:openDir('templates');" title="Open Folder" class="folder">
                         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
                             <path d="M378.393 420.135l74.158-197.754h-321.351l-74.158 197.754zM106.481 197.663l-49.438 222.474v-321.351h111.237l49.438 49.438h160.675v49.438z"></path>
                         </svg>
@@ -43,7 +64,7 @@
                   <ul>
                         	<li>Refresh</li>
                             <li>New</li>
-                            <li onclick="javascript:openDir('templates');">Open Folder</li>
+                            <li onClick="javascript:openDir('templates');">Open Folder</li>
                         </ul>
                   </nav>
                	</div>
@@ -80,7 +101,7 @@
                 	<li>Save</li>
                     <li>Save As</li>
                 	<li>New</li>
-                    <li onclick="javascript:openDir('templates');">Open Folder</li>
+                    <li onClick="javascript:openDir('templates');">Open Folder</li>
                     <li>View _filenames.xml</li>
                     <li>Rename</li>
                     <li>Hide</li>
