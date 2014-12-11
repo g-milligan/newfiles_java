@@ -69,3 +69,7 @@ function svg_xml_down(){/*
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
 <path d="M66.099 143.386c-6.938-6.861-18.151-6.861-25.063 0-6.938 6.861-6.938 17.946 0 24.806l202.445 200.448c6.912 6.861 18.125 6.861 25.037 0l202.445-200.448c6.912-6.861 6.938-17.946 0-24.806s-18.125-6.861-25.063 0l-189.901 182.81-189.901-182.81z"></path>
 </svg>*/}
+function svg_xml_collapse(){/*
+*/}
+function svg_xml_expand(){/*
+*/}

@@ -9,6 +9,9 @@ jQuery(document).ready(function(){
 	var temContentWrap=templatesWrap.children('.content:last');
 	var temLsWrap=temContentWrap.children('nav.ls:first');
 	var workspaceWrap=contentWrap.children('#workspace:first');
+	var inputViewWrap=workspaceWrap.children('#input-view:last');
+	var mainViewWrap=workspaceWrap.children('#main-view:first');
+	var inputResizeHandle=inputViewWrap.children('.resize.height:last');
 	var temResizeHandle=templatesWrap.children('.resize.width:last');
 	//disable selection on certain elements
 	preventSelect(temLsWrap);
@@ -86,7 +89,7 @@ jQuery(document).ready(function(){
 						//remove slide-in class on hover
 						rowWrap.removeClass('slide-in');
 						rowWrap.addClass('slide-out');
-					}, 400);
+					}, 280);
 				}
 			},function(){
 				//add slide-in class on hover out
@@ -123,6 +126,63 @@ jQuery(document).ready(function(){
 			//restore inline styles
 			restoreInlineStyles(parentPinElem);
 			//do the same for the other elements that share the space with parentPinElem
+			spaceShareElems.each(function(){
+				//restore width style rules
+				restoreInlineStyles(jQuery(this));
+			});
+		}
+	});
+	//pin/un-pin column
+	var toggleExpandBtns=sizeCtlsWraps.children('.toggle-expand');
+	toggleExpandBtns.click(function(){
+		//get the parent element that is affected by expanded/collapsed state
+		var expandParentElem=jQuery(this).parents('.expanded-collapsed:first');
+		//get the wrapper above this expanded/collapsed element
+		var colWrap=expandParentElem.parent();
+		//get the other elements that share the space with the expandParentElem
+		var spaceShareElems=colWrap.children().not(expandParentElem);
+		//figure out what key name to use for this expanded/collapsed system
+		var ecName=expandParentElem.attr('id');if(ecName==undefined){ecName='';}
+		if(ecName.length<1){
+			ecName=expandParentElem.attr('name');if(ecName==undefined){ecName='';}
+		}
+		//if there is a unique id name for this expand/collapse system
+		var uniqueExpandClass='';var uniqueCollapseClass='';
+		if(ecName.length>0){
+			uniqueExpandClass='expand-'+ecName;
+			uniqueCollapseClass='collapse-'+ecName;
+		}
+		//if currently expanded
+		if(expandParentElem.hasClass('expanded')){
+			//so collapse
+			expandParentElem.removeClass('expanded');
+			expandParentElem.addClass('collapsed');
+			//remove height style rules so that they can be restored later
+			saveRemoveInlineStyles(expandParentElem, ['height']);
+			//do the same for the other elements that share the space with expandParentElem
+			spaceShareElems.each(function(){
+				//remove height style rules so that they can be restored later
+				saveRemoveInlineStyles(jQuery(this), ['height']);
+			});
+			//if there is a unique name for this expand/collapse system
+			if(ecName.length>0){
+				colWrap.removeClass(uniqueExpandClass);
+				colWrap.addClass(uniqueCollapseClass);
+			}
+		}else{
+			//currently collapsed...
+			
+			//so expand
+			expandParentElem.addClass('expanded');
+			expandParentElem.removeClass('collapsed');
+			//if there is a unique name for this expand/collapse system
+			if(ecName.length>0){
+				colWrap.removeClass(uniqueCollapseClass);
+				colWrap.addClass(uniqueExpandClass);
+			}
+			//restore inline styles
+			restoreInlineStyles(expandParentElem);
+			//do the same for the other elements that share the space with expandParentElem
 			spaceShareElems.each(function(){
 				//restore width style rules
 				restoreInlineStyles(jQuery(this));
@@ -581,7 +641,7 @@ jQuery(document).ready(function(){
 	bodyElem[0]['updateTemplates']=updateTemplates;
 	if(getTestInBrowser()){
 		//for testing in a browser
-		bodyElem[0].updateTemplates(sample_json_templates2());
+		bodyElem[0].updateTemplates(sample_json_templates3());
 	}
 	//==WINDOW READY==
 	jQuery(window).ready(function(){
@@ -605,6 +665,29 @@ jQuery(document).ready(function(){
 				workspaceWrap.css('width',workspacePercent+'%');
 				//remove the extra style junk from the drag handle
 				temResizeHandle.removeAttr('style');
+			}
+		});
+		//==INPUT VIEW RESIZE==
+		inputResizeHandle.draggable({
+			'addClasses':false,
+			'axis':'y',
+			'zIndex':999,
+			'stop':function(e,ui){
+				//when the drag stops...
+				
+				//calculate the percentage position where the drag stopped
+				var newTopOffset=ui.helper.offset().top;
+				var workspaceTop=workspaceWrap.offset().top;
+				newTopOffset-=workspaceTop; //remove the space where the content does not reach
+				var workspaceHeight=workspaceWrap.innerHeight();
+				var newInputHeight=workspaceHeight-newTopOffset;
+				var inputHeightPercent=(newInputHeight/workspaceHeight)*100;
+				var mainHeightPercent=100-inputHeightPercent;
+				//set the new percentage heights 
+				inputViewWrap.css('height',inputHeightPercent+'%');
+				mainViewWrap.css('height',mainHeightPercent+'%');
+				//remove the extra style junk from the drag handle
+				inputResizeHandle.removeAttr('style');
 			}
 		});
 		//==WINDOW RESIZE==
