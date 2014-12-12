@@ -111,6 +111,9 @@ public class NfGui extends Application {
                                 case "templates":
                                     mFileMgr.openDirWindow(mTemplatesRoot);
                                     break;
+                                case "current-template":
+                                    //***
+                                    break;
                                 default:
                                     break;
                             }

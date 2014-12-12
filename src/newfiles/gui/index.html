@@ -14,8 +14,38 @@
 <body>
 	<content id="content">
     	<div id="workspace" class="expand-input-view">
-        	<section id="main-view">
+        	<section id="main-view" class="tree-view">
             	<header>
+                    <div class="title">
+                        <div onClick="javascript:openDir('current-template');" title="Open Folder" class="folder">
+                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+                                <path d="M378.393 420.135l74.158-197.754h-321.351l-74.158 197.754zM106.481 197.663l-49.438 222.474v-321.351h111.237l49.438 49.438h160.675v49.438z"></path>
+                            </svg>
+                        </div>
+                        <h1 title="MyTemplate">MyTemplate</h1>
+                    </div>
+                    <nav class="tabs">
+                    	<span class="tree-view" name="tree-view">Tree-View</span>
+                        <span class="file-view" name="file-view">File-View</span>
+                    </nav>
+                    <div class="template-files">
+                    	<div class="dropdown">
+                        	<div title="options" class="file-icon">
+                                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+    <path d="M423.044 113.669l-52.837-52.838c-16.408-16.407-48.816-29.831-72.019-29.831h-196.875c-23.203 0-42.188 18.985-42.188 42.188v365.625c0 23.203 18.984 42.188 42.188 42.188h309.375c23.203 0 42.188-18.985 42.188-42.188v-253.125c0-23.203-13.423-55.611-29.831-72.019zM312.25 90.573c0.965 0.353 1.957 0.739 2.97 1.159 7.937 3.288 13.447 7.109 15.212 8.874l52.838 52.839c1.766 1.766 5.586 7.274 8.875 15.212 0.42 1.013 0.805 2.005 1.159 2.969h-81.053v-81.052zM396.625 424.75h-281.25v-337.5h168.75v112.5h112.5v225z"></path>
+    </svg>
+                            </div>
+                            <select class="active">
+                                <option value="--">--</option>
+                                <option value="testfile.js">testfile.js</option>
+                                <option value="testfile.php">testfile.php</option>
+                            </select>
+                        </div>
+                        <div class="prev-next">
+                        	<div title="previous file" class="prev"></div>
+                            <div title="next file" class="next"></div>
+                        </div>
+                    </div>
                 </header>
                 <div class="content">
                 	<div class="lcol">
