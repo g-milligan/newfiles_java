@@ -76,6 +76,16 @@ public class FileMgr {
         }
         return path;
     }
+    //get a path with the system separator instead of /
+    public String getSystemSeparator(String unformattedPath){
+        String path=unformattedPath;
+        //if the file separator is NOT /
+        if(!File.separator.equals("/")){
+            //user / instead of the standard file separator
+            path=path.replace("/",File.separator);
+        }
+        return path;
+    }
     //determine if the file is a text-based file or other... eg: an image...
     //this info is needed to decide if a file should be written or copied to a location
     public static boolean isTextBasedFile(File f){

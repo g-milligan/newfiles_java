@@ -111,8 +111,19 @@ public class NfGui extends Application {
                                 case "templates":
                                     mFileMgr.openDirWindow(mTemplatesRoot);
                                     break;
-                                case "current-template":
-                                    //***
+                                case "selected-template":
+                                    //if there is a selected template
+                                    String selectedTemplate=(String)mWebEngine.executeScript("document.body.getSelectedTemplate()");
+                                    if(selectedTemplate.length()>0){
+                                        //format the path to get it ready to open the actual directory
+                                        selectedTemplate=getFormattedDir(selectedTemplate);
+                                        selectedTemplate=mFileMgr.getSystemSeparator(selectedTemplate);
+                                        //open the actual template directory
+                                        mFileMgr.openDirWindow(mTemplatesRoot+File.separator+selectedTemplate);
+                                    }else{
+                                        //no selected template... just open the template root by default
+                                        mFileMgr.openDirWindow(mTemplatesRoot);
+                                    }
                                     break;
                                 default:
                                     break;

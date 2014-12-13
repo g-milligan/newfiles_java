@@ -22,6 +22,7 @@ li.parent ul li{font-size:95%;text-transform:none;}
 .size-controls{height:.9em;text-align:right;}
 .size-controls > .title{display:block;float:left;text-transform:uppercase;padding:.4em;margin:0;font-size:50%;height:100%;box-sizing:border-box;-moz-box-sizing:border-box;}
 .resize.width,.resize.height{width:.2em;position:absolute;right:0;top:0;height:100%;box-sizing:border-box;-moz-box-sizing:border-box;cursor:ew-resize;z-index:990;}
+.resize.width.ui-draggable-dragging,.resize.height.ui-draggable-dragging{box-shadow:-5px 5px 10px rgba(0,0,0,0.8);}
 .resize.height{width:100%;height:.2em;cursor:ns-resize;}
 svg{display:inline-block;width:100%;height:100%;}
 .search{position:relative;}
@@ -106,7 +107,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #templates li.closed > ul{display:none;}
 #templates li.opened > ul{display:block;}
 #templates nav.ls > ul.ls.folders{}
-#templates nav.ls .dir{white-space:nowrap;}
+#templates nav.ls .dir{white-space:nowrap;display:block;}
 #templates nav.ls .file{white-space:nowrap;}
 #templates nav.ls .token{white-space:nowrap;vertical-align:top;}
 #templates nav.ls .token *{vertical-align:top;}

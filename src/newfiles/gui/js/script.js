@@ -11,10 +11,13 @@ jQuery(document).ready(function(){
 	var workspaceWrap=contentWrap.children('#workspace:first');
 	var inputViewWrap=workspaceWrap.children('#input-view:last');
 	var mainViewWrap=workspaceWrap.children('#main-view:first');
+	var mainTitleElem=mainViewWrap.find('header .title h1:first');
+	var mainViewTabs=mainViewWrap.find('header .tabs:first');
+	var mainViewFilesBar=mainViewWrap.find('header .template-files:first');
 	var inputResizeHandle=inputViewWrap.children('.resize.height:last');
 	var temResizeHandle=templatesWrap.children('.resize.width:last');
 	//disable selection on certain elements
-	preventSelect(temLsWrap);
+	preventSelect(temLsWrap); preventSelect(mainViewTabs); preventSelect(mainViewFilesBar);
 	//==INTERNAL FUNCTIONS==
 	//function to save inline style rules, remove them, but allow them to be restored later
 	var saveRemoveInlineStyles=function(elem,targetRulesArray){
@@ -592,6 +595,13 @@ jQuery(document).ready(function(){
 			searchInput.focus();
 		});
 	});
+	//==FUNCTIONS ATTACHED TO THE BODY ELEMENT==
+	var getSelectedTemplate=function(){
+		//get the selected template from the main view title element
+		var tem=mainTitleElem.text();
+		return tem.trim();
+	};
+	bodyElem[0]['getSelectedTemplate']=getSelectedTemplate;
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
 	var updateTemplates=function(json){
 		if(json!=undefined){
@@ -769,4 +779,27 @@ function getFuncStr(functionName){
 		functionContent = functionContent.trim();
 	}
 	return functionContent;
+}
+//go to a specific tab view by passing the corresponding tab button to the function
+function goToTabView(tabBtn){
+	tabBtn=jQuery(tabBtn);
+	var tabName=tabBtn.attr('name');
+	//get the parent wrap for the tabs
+	var tabsNav=tabBtn.parent();
+	var mainViewWrap=tabsNav.parents('#main-view:first');
+	//if this isn't the currently selected tab
+	if(!mainViewWrap.hasClass(tabName)){
+		//find which tab is selected, and deselect
+		var otherTabs=tabsNav.children().not(tabBtn);
+		otherTabs.each(function(){
+			//if this tab is selected
+			var otherTabName=jQuery(this).attr('name');
+			if(mainViewWrap.hasClass(otherTabName)){
+				//remove this previous tab from the class list of mainViewWrap
+				mainViewWrap.removeClass(otherTabName);
+			}
+		});
+		//select the new tab
+		mainViewWrap.addClass(tabName);
+	}
 }

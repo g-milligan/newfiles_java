@@ -17,16 +17,16 @@
         	<section id="main-view" class="tree-view">
             	<header>
                     <div class="title">
-                        <div onClick="javascript:openDir('current-template');" title="Open Folder" class="folder">
+                        <div onclick="javascript:openDir('selected-template');" title="Open Folder" class="folder">
                             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
                                 <path d="M378.393 420.135l74.158-197.754h-321.351l-74.158 197.754zM106.481 197.663l-49.438 222.474v-321.351h111.237l49.438 49.438h160.675v49.438z"></path>
                             </svg>
                         </div>
-                        <h1 title="MyTemplate">MyTemplate</h1>
+                        <h1 title="TestVarOptions"></h1>
                     </div>
                     <nav class="tabs">
-                    	<span class="tree-view" name="tree-view">Tree-View</span>
-                        <span class="file-view" name="file-view">File-View</span>
+                    	<span onclick="javascript:goToTabView(this);" class="tree-view" name="tree-view">Tree-View</span>
+                        <span onclick="javascript:goToTabView(this);" class="file-view" name="file-view">File-View</span>
                     </nav>
                     <div class="template-files">
                     	<div title="select file" class="dropdown">
