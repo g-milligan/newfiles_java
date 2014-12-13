@@ -856,7 +856,33 @@ public class Newfiles {
     }
     //application main functionality entry point
     private static void start(String[] args){
-        System.out.println("\n WELCOME: You are now running \"Newfiles\". \n By running Newfiles, you agree to the license, terms, \n and conditions, which are packaged with this code. \n You can read the license terms and conditions \n by typing the \"" + mCommands[7] + "\" command. Removing or modifying \n the license and/or disrupting access to the license \n is not permitted. Thank you for putting up \n with this legal stuff. The license is designed \n to protect your user rights. \n ");
+        String intro="";
+        intro+=" WELCOME: to Newfiles \n\n";
+        intro+=" PHILOSOPHY: When ALL \n";
+        intro+=" are given the opportunity \n";
+        intro+=" to create value, the world's sum increases. \n";
+        intro+=" Justice for you is justice for me. \n\n";
+        
+        intro+=" Our dedication and vision \n";
+        intro+=" should be the only barriers to \n";
+        intro+=" making dreams a reality. \n\n";
+        
+        intro+=" LICENSE: Newfiles is free \n";
+        intro+=" to use and distribute, \n";
+        intro+=" as ensured by its license, \n";
+        intro+=" packaged with this application. \n";
+        intro+=" "+mCmdUsageText[7].replace("{nf}", mBatchFileName)+" \n\n";
+        
+        intro+=" As stated elegantly by an honorable \n";
+        intro+=" practitioner of this universal law: \n";
+        intro+=" \"would you patent the sun?\". \n\n";
+        
+        intro+=" DEDICATION: For dad, and his \n";
+        intro+=" humanitarian works, including being \n";
+        intro+=" an amazing father to me. May \n";
+        intro+=" the ripples travel outward. \n";
+        intro+=" \"We are all connected\".";
+        System.out.println("\n" + intro + "\n");
         System.out.println(" VERSION: \"" + VERSION_ALIAS + "\" (" + VERSION_NUMBER + "_" + PATCH_NUMBER + ") \n");
         //what basic command was given?
         String doWhat=mCommands[2]; //show help command by default

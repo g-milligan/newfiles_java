@@ -646,6 +646,23 @@ jQuery(document).ready(function(){
 					parentLi.removeClass('off');
 				}
 			});
+			//select events for templates
+			var dirPathElems=temLsWrap.find('li .dir > .path').not('.evs');
+			dirPathElems.addClass('evs');
+			dirPathElems.click(function(){
+				//if the parent .dir isn't already selected
+				var dirParent=jQuery(this).parent();
+				if(!dirParent.hasClass('selected')){
+					//deselect any templates that are currently selected
+					temLsWrap.find('.ls.folders > li > .dir.selected').removeClass('selected');
+					//select this dir
+					dirParent.addClass('selected');
+					//set the selected template in the main title
+					var dirp=jQuery(this).text(); dirp=dirp.trim();
+					mainTitleElem.text(dirp);
+					//*** other stuff related to changing the template
+				}
+			});
 		}
 	};
 	bodyElem[0]['updateTemplates']=updateTemplates;
