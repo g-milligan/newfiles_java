@@ -182,7 +182,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #main-view .template-files .prev-next > div.prev:before{border-width:.3em .6em .3em 0;border-top-color:transparent;border-left-color:transparent;border-bottom-color:transparent;}
 #main-view .template-files .prev-next > div.next:before{border-width:.3em 0 .3em .6em;border-right-color:transparent;border-top-color:transparent;border-bottom-color:transparent;}
 #main-view .template-files .dropdown{padding-left:.8em;position:relative;max-width:100%;box-sizing:border-box;-moz-box-sizing:border-box;display:inline-block;}
-#main-view .template-files .dropdown:after{content:"";width:0;height:0;border-style:solid;border-width:.2em .15em 0 .15em;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;position:absolute;right:.2em;top:0;bottom:0;margin:auto;z-index:1;}
+#main-view .template-files .dropdown:after{content:"";width:0;height:0;border-style:solid;border-width:.2em .15em 0 .15em;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;position:absolute;right:.2em;top:0;bottom:0;margin:auto;z-index:1;display:none;/*** remove this?*/}
 #main-view .template-files .file-icon{position:absolute;left:0;top:0;bottom:0;margin:auto;width:.6em;height:.6em;display:block;cursor:pointer;}
 #main-view .template-files select{width:100%;display:none;font-size:50%;padding:.1em 1.5em .1em .1em;z-index:10;border-radius:.5em;}
 #main-view .template-files select.active{display:block;}
