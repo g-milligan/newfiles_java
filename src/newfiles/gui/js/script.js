@@ -1,4 +1,4 @@
-function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -675,7 +675,7 @@ jQuery(document).ready(function(){
 			var fileNameElems=temLsWrap.find('ul.ls.files li .file > .name').not('.evs');
 			fileNameElems.addClass('evs');
 			fileNameElems.click(function(){
-				//if the parent .file isn't already selected
+				//get some elements
 				var fileParent=jQuery(this).parent();
 				var liParent=fileParent.parent();
 				//make sure this file's template is also selected, if not already
@@ -699,7 +699,7 @@ jQuery(document).ready(function(){
 			//select file events in the dropdowns
 			var fileSelects=fileDropdownsWrap.children('select').not('.evs');
 			fileSelects.addClass('evs');
-			fileSelects.change(function(){selectFileFromDropdown();});
+			fileSelects.change(function(){selectFileFromDropdown(true);});
 			//==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
 			//if there is no selected template
 			var selectedTemplate=temLsWrap.find('ul.ls.folders > li.selected');
@@ -868,7 +868,7 @@ function goToTabView(tabBtn){
 		mainViewWrap.addClass(tabName);
 	}
 }
-
+//make sure the file dropdown is aligned with the templates navigation selection
 function selectFileFromTemplates(){
 	//template elements
 	var temsUl=jQuery('#templates nav.ls ul.ls.folders:first');
@@ -898,8 +898,43 @@ function selectFileFromTemplates(){
 		fileSelect.val('...');
 	}
 }
-function selectFileFromDropdown(){
+//make sure the templates navigation selection is aligned with the file dropdown
+function selectFileFromDropdown(openParent){
+	if(openParent==undefined){openParent=false;}
+	//get the selected template / file
 	var fileDropdownsWrap=jQuery('#main-view header .template-files .dropdown:first');
 	var fileSelect=fileDropdownsWrap.children('select.active:first');
-	//***
+	var temVal=fileSelect.attr('name');if(temVal==undefined){temVal='';}
+	//get template nav elements
+	var temsUl=jQuery('#templates nav.ls ul.ls.folders:first');
+	//if any template is selected
+	if(temVal.length>0){
+		var temPathElem=temsUl.find('li .dir .path[name="'+temVal+'"]:first');
+		var temLi=temPathElem.parents('li:first');
+		//if not blank file
+		var fileVal=fileSelect.val();
+		if(fileVal!='...'){
+			//if not already selected
+			var fileNameElem=temLi.find('ul.ls.files li .file .name[name="'+fileVal+'"]:first');
+			var fileLi=fileNameElem.parents('li:first');
+			if(!fileLi.hasClass('selected')){
+				//select the file
+				fileNameElem.click();
+				//if the template should be open to show the selected file
+				if(openParent){
+					//if NOT already open
+					if(!temLi.hasClass('opened')){
+						//then open
+						temLi.find('.dir .opened-closed:first').click();
+					}
+				}
+			}
+		}else{
+			//blank file selected... so deselect any files in this template
+			temLi.find('ul.ls.files li.selected').removeClass('selected');
+		}
+	}else{
+		//no template is selected... so deselect any templates
+		temsUl.children('li.selected').removeClass('selected');
+	}
 }

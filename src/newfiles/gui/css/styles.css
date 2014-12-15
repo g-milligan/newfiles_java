@@ -175,7 +175,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #main-view nav.tabs{font-size:50%;}
 #main-view nav.tabs > span{display:inline-block;padding:.3em .8em;text-transform:uppercase;font-weight:bold;cursor:pointer;}
 #main-view.tree-view nav.tabs > span.tree-view,#main-view.file-view nav.tabs > span.file-view{cursor:text;}
-#main-view .template-files{position:relative;box-sizing:border-box;-moz-box-sizing:border-box;width:100%;padding:.1em .35em;padding-right:4.5em;text-align:center;}
+#main-view .template-files{position:relative;box-sizing:border-box;-moz-box-sizing:border-box;width:100%;padding:.1em .35em;padding-right:4.5em;text-align:left;}
 #main-view .template-files .prev-next{position:absolute;right:0;top:0;bottom:0;margin:auto;width:4.5em;padding:.2em .35em;box-sizing:border-box;-moz-box-sizing:border-box;}
 #main-view .template-files .prev-next > div{display:inline-block;width:50%;height:100%;float:left;cursor:pointer;text-align:center;box-sizing:border-box;-moz-box-sizing:border-box;}
 #main-view .template-files .prev-next > div:before{display:inline-block;content:"";width:0;height:0;border-style:solid;}
