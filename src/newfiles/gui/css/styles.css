@@ -51,12 +51,12 @@ found.highlight:before{content:"{";padding-right:.1em;}
 found.highlight:after{content:"}";padding-left:.1em;}
 /*COLOR PALETTE*/
 /*main background color*/
-body,.title .options ul li:hover,li.parent ul li:hover,#main-view .file-icon:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files .dropdown:after,#main-view .prev-next > div:before,#templates .dir.selected,.selected found.glow:before, .selected found.glow:after, .selected found{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path,#main-view .file-icon path,#templates .dir.selected path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
+body,.title .options ul li:hover,li.parent ul li:hover,#main-view .file-icon:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files .dropdown:after,#main-view .prev-next > div:before,#templates li.selected > .dir,#templates li.selected li.selected > .file, #templates li.selected > span found,li.selected > span found.glow:before, li.selected > span found.glow:after{color:#01131A;} div:hover > svg *,#templates .on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path,#main-view .file-icon path,#templates li.selected > .dir path,#templates li.selected li.selected > .file path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
 /*default color*/
-body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.toggle-expand:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover,.search .found-count .prev:hover, .search .found-count .next:hover,#templates nav.ls .token .part .i:before,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files,#templates .dir.selected{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *,#main-view .file-icon:hover path{fill:#BC6684;}
+body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover{color:#BC6684;} .folder:hover,.pin:hover,.toggle-expand:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,#templates nav.ls .on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover,.search .found-count .prev:hover, .search .found-count .next:hover,#templates nav.ls .token .part .i:before,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files,#templates li.selected > .dir,#templates li.selected li.selected > .file{background-color:#BC6684;} input[type="text"]{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *,#main-view .file-icon:hover path{fill:#BC6684;}
 /*highlight color*/
 found.highlight:before,found.highlight:after{text-shadow:0 0 1em rgba(181,137,0,1);}
-.selected found.highlight:before,.selected found.highlight:after{text-shadow:none;}
+#templates li.selected > .dir found:before,#templates li.selected > .dir found:after,#templates li.selected li.selected > .file found:before,#templates li.selected li.selected > .file found:after{text-shadow:none;}
 found.glow:before,found.glow:after,found{color:rgba(181,137,0,1);}
 /*SELECT DROPDOWNS*/
 select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;border:0;background-color:transparent;}
@@ -108,8 +108,8 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #templates li.closed > ul{display:none;}
 #templates li.opened > ul{display:block;}
 #templates nav.ls > ul.ls.folders{}
-#templates nav.ls .dir{white-space:nowrap;display:block;}
-#templates nav.ls .file{white-space:nowrap;}
+#templates nav.ls .dir{white-space:nowrap;display:inline-block;min-width:100%;}
+#templates nav.ls .file{white-space:nowrap;display:inline-block;min-width:100%;}
 #templates nav.ls .token{white-space:nowrap;vertical-align:top;}
 #templates nav.ls .token *{vertical-align:top;}
 #templates nav.ls .include{white-space:nowrap;opacity:.8;}
@@ -124,6 +124,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #templates nav.ls .menu-btn{display:inline-block;width:.9em;height:.9em;margin-left:.2em;padding:.1em;cursor:pointer;visibility:hidden;}
 #templates nav.ls span:hover > .menu-btn{visibility:visible;}
 #templates nav.ls .dir .path{display:inline-block;cursor:pointer;}
+#templates nav.ls .file .name{cursor:pointer;}
 #templates nav.ls .on-off{display:inline-block;width:.9em;height:.9em;padding:.1em;margin-right:.2em;cursor:pointer;}
 #templates nav.ls .opened > .dir span.closed,#templates nav.ls .closed > .dir span.opened,
 #templates nav.ls .opened > .file span.closed,#templates nav.ls .closed > .file span.opened,
@@ -183,7 +184,8 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #main-view .template-files .dropdown{padding-left:.8em;position:relative;max-width:100%;box-sizing:border-box;-moz-box-sizing:border-box;display:inline-block;}
 #main-view .template-files .dropdown:after{content:"";width:0;height:0;border-style:solid;border-width:.2em .15em 0 .15em;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;position:absolute;right:.2em;top:0;bottom:0;margin:auto;z-index:1;}
 #main-view .template-files .file-icon{position:absolute;left:0;top:0;bottom:0;margin:auto;width:.6em;height:.6em;display:block;cursor:pointer;}
-#main-view .template-files select{width:100%;display:block;font-size:50%;padding:.1em 1.5em .1em .1em;z-index:10;border-radius:.5em;}
+#main-view .template-files select{width:100%;display:none;font-size:50%;padding:.1em 1.5em .1em .1em;z-index:10;border-radius:.5em;}
+#main-view .template-files select.active{display:block;}
 /*INPUT VIEW*/
 #input-view{display:block;height:35%;width:100%;position:absolute;left:0;bottom:0;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace.collapse-input-view > #input-view{height:.9em;overflow:hidden;}

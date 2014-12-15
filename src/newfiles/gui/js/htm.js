@@ -29,7 +29,7 @@ function htm_hidden_dirs_label(numDirs){
 }
 //get template listing html 
 function htm_template_dirs(json){
-	var htm='';
+	var temHtm='';var selFileHtm='';
 	//get the template directories array
 	var dirs=[];
 	var hidden=[];
@@ -39,9 +39,9 @@ function htm_template_dirs(json){
 		if(json.hasOwnProperty('hidden')){hidden=json.hidden;}
 		if(json.hasOwnProperty('error')){
 			if(json.error.length>0){
-				htm+='<div class="error">';
-				htm+=json.error;
-				htm+='</div/>';
+				temHtm+='<div class="error">';
+				temHtm+=json.error;
+				temHtm+='</div/>';
 				hasError=true;
 			}
 		}
@@ -49,45 +49,49 @@ function htm_template_dirs(json){
 	//if there is NOT an error
 	if(!hasError){
 		//start dir listing
-		htm+='<ul class="ls folders">';
+		temHtm+='<ul class="ls folders">';
 		//if there are any template dirs
 		if(dirs.length>0){
 			//for each template directory
 			for(var d=0;d<dirs.length;d++){
 				//get the html for one template dir
-				htm+=htm_template_dir(dirs[d]);
+				var htm=htm_template_dir(dirs[d]);
+				temHtm+=htm.template;
+				selFileHtm+=htm.file_select;
 			}
 		}else{
 			//no template dirs...
 			
-			htm+='<li class="error no-templates">';
-			htm+='No templates. <span onclick="javascript:alert(\'do it\');">Create a new one?</span>';
-			htm+='</li>';
+			temHtm+='<li class="error no-templates">';
+			temHtm+='No templates. <span onclick="javascript:alert(\'do it\');">Create a new one?</span>';
+			temHtm+='</li>';
 		}
 		//end dir listing
-		htm+='</ul>';
+		temHtm+='</ul>';
 		//==HIDDEN TEMPLATES==
-		htm+='<ul class="hidden folders">';
+		temHtm+='<ul class="hidden folders">';
 		//if there are any hidden directories
 		var hasDirsClass='no-dirs';numDirs=0;
 		if(hidden.length>0){hasDirsClass='has-dirs';numDirs=hidden.length;}
-		htm+='<li class="closed '+hasDirsClass+'">';
+		temHtm+='<li class="closed '+hasDirsClass+'">';
 		//==HID TEMPLATES HEAD==
-		htm+='<span class="hid-templates">';
-		htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
-		htm+='<span class="icon">'+getSvg('hidden')+'</span>';
-		htm+='<span class="intro">'+htm_hidden_dirs_label(numDirs)+'</span>';
-		htm+='</span>';
-		htm+='<ul>';
+		temHtm+='<span class="hid-templates">';
+		temHtm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
+		temHtm+='<span class="icon">'+getSvg('hidden')+'</span>';
+		temHtm+='<span class="intro">'+htm_hidden_dirs_label(numDirs)+'</span>';
+		temHtm+='</span>';
+		temHtm+='<ul>';
 		//for each hidden directory
 		for(var h=0;h<hidden.length;h++){
 			//get the html for one hidden template dir
-			htm+=htm_template_hiddir(hidden[h]);
+			temHtm+=htm_template_hiddir(hidden[h]);
 		}
 		//end dir listing
-		htm+='</ul></li></ul>';
+		temHtm+='</ul></li></ul>';
 	}
-	return htm;
+	//put all of the different html parts together into a json
+	var retJson={'templates':temHtm,'file_selects':selFileHtm};
+	return retJson;
 }
 //get hidden template name html 
 function htm_template_hiddir(path){
@@ -98,7 +102,7 @@ function htm_template_hiddir(path){
 }
 //get the html for a template directory
 function htm_template_dir(json){
-	var htm='';
+	var temHtml='';var selFileHtm='';
 	if(json!=undefined){
 		//if a dir path was provided (required)
 		if(json.hasOwnProperty('path')){
@@ -117,45 +121,56 @@ function htm_template_dir(json){
 			var openClass='closed';if(isOpen){openClass='opened';}
 			//==DIRECTORY HEAD HTML==
 			//start dir item
-			htm+='<li class="'+openClass+hasFilesClass+'">';
+			temHtml+='<li class="'+openClass+hasFilesClass+'">';
 			//the main directory path html
-            htm+='<span class="dir">';
-            htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
-			htm+='<span class="icon">'+getSvg('folder')+'</span>';
-            htm+='<span class="path">'+json.path+'</span>';
-            htm+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
-            htm+='</span>';
+            temHtml+='<span class="dir">';
+            temHtml+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
+			temHtml+='<span class="icon">'+getSvg('folder')+'</span>';
+            temHtml+='<span class="path">'+json.path+'</span>';
+            temHtml+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
+            temHtml+='</span>';
 			//==FILE LIST HTML==
-			htm+=htm_template_ls(ls);
+			var htm=htm_template_ls(ls); 
+			temHtml+=htm.template;
+			selFileHtm+='<select name="'+json.path+'">';
+			selFileHtm+='<option value="...">[select a file]</option>';
+			selFileHtm+=htm.file_select;
+			selFileHtm+='</select>';
 			//==HIDDEN FILES HTML==
-			htm+=htm_template_hidfiles(hidden);
+			temHtml+=htm_template_hidfiles(hidden);
 			//==INCLUDES HTML==
-			htm+=htm_template_includes(includes);
+			temHtml+=htm_template_includes(includes);
 			//end dir item
-			htm+='</li>';
+			temHtml+='</li>';
 		}
 	}
-	return htm;
+	//put the return json together
+	var retJson={'template':temHtml,'file_select':selFileHtm};
+	return retJson;
 }
 //get file listing html 
 function htm_template_ls(ls){
-	var htm='';
+	var temHtml='';selFileHtm='';
 	//start file listing for this directory
-	htm+='<ul class="ls files">';
+	temHtml+='<ul class="ls files">';
 	//if the list was provided
 	if(ls!=undefined){
 		for(var f=0;f<ls.length;f++){
 			//get the html for one file
-			htm+=htm_template_file(ls[f]);
+			var htm=htm_template_file(ls[f]);
+			temHtml+=htm.template;
+			selFileHtm+=htm.file_select;
 		}
 	}
 	//end file listing for this directory
-	htm+='</ul>';
-	return htm;
+	temHtml+='</ul>';
+	//put the return json together
+	var retJson={'template':temHtml,'file_select':selFileHtm};
+	return retJson;
 }
 //get file html 
 function htm_template_file(json){
-	var htm='';
+	var temHtml='';var selFileHtm='';
 	if(json!=undefined){
 		//if a file name was provided (required)
 		if(json.hasOwnProperty('name')){
@@ -170,21 +185,24 @@ function htm_template_file(json){
 			var openClass='closed';if(isOpen){openClass='opened';}
 			//==FILE HEAD HTML==
 			//start file item
-			htm+='<li class="on '+openClass+hasTokensClass+'">';
+			temHtml+='<li class="on '+openClass+hasTokensClass+'">';
 			//the main directory path html
-			htm+='<span class="file">';
-            htm+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
-			htm+='<span title="on/off" class="on-off">'+getSvg('file')+'</span>';
-			htm+='<span class="name">'+json.name+'</span>';
-			htm+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
-			htm+='</span>';
+			temHtml+='<span class="file">';
+            temHtml+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
+			temHtml+='<span title="on/off" class="on-off">'+getSvg('file')+'</span>';
+			temHtml+='<span class="name">'+json.name+'</span>';
+			temHtml+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
+			temHtml+='</span>';
+			selFileHtm+='<option value="'+json.name+'">'+json.name+'</option>';
 			//==TOKENS LIST HTML==
-			htm+=htm_template_tokens(tokens);
+			temHtml+=htm_template_tokens(tokens);
 			//end file item
-			htm+='</li>';
+			temHtml+='</li>';
 		}
 	}
-	return htm;
+	//put the return json together
+	var retJson={'template':temHtml,'file_select':selFileHtm};
+	return retJson;
 }
 //get tokens listing html 
 function htm_template_tokens(tokens){

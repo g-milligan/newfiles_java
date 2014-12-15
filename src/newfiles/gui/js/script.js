@@ -14,6 +14,7 @@ jQuery(document).ready(function(){
 	var mainTitleElem=mainViewWrap.find('header .title h1:first');
 	var mainViewTabs=mainViewWrap.find('header .tabs:first');
 	var mainViewFilesBar=mainViewWrap.find('header .template-files:first');
+	var fileDropdownsWrap=mainViewFilesBar.children('.dropdown:first');
 	var inputResizeHandle=inputViewWrap.children('.resize.height:last');
 	var temResizeHandle=templatesWrap.children('.resize.width:last');
 	//disable selection on certain elements
@@ -606,9 +607,12 @@ jQuery(document).ready(function(){
 	var updateTemplates=function(json){
 		if(json!=undefined){
 			//==SET THE TEMPLATES LISTING HTML==
-			var htm=getHtm('template_dirs',json); //get html
+			var htm=htm_template_dirs(json); //get html
 			temLsWrap.html(''); //clear old html
-			temLsWrap.append(htm); //set html
+			temLsWrap.append(htm.templates); //set html
+			//==SET THE FILE DROPDOWNS HTML==
+			fileDropdownsWrap.children('select[name]').remove(); //clear old html
+			fileDropdownsWrap.append(htm.file_selects); //set html
 			//==ADD JS EVENTS TO NEW ELEMENTS==
 			//add opened-closed toggle events (to elements that don't already have events added)
 			var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
@@ -652,17 +656,61 @@ jQuery(document).ready(function(){
 			dirPathElems.click(function(){
 				//if the parent .dir isn't already selected
 				var dirParent=jQuery(this).parent();
-				if(!dirParent.hasClass('selected')){
+				var liParent=dirParent.parent();
+				if(!liParent.hasClass('selected')){
 					//deselect any templates that are currently selected
-					temLsWrap.find('.ls.folders > li > .dir.selected').removeClass('selected');
+					temLsWrap.find('.ls.folders > li.selected').removeClass('selected');
 					//select this dir
-					dirParent.addClass('selected');
+					liParent.addClass('selected');
 					//set the selected template in the main title
 					var dirp=jQuery(this).text(); dirp=dirp.trim();
 					mainTitleElem.text(dirp);
-					//*** other stuff related to changing the template
+					//show the correct file dropdown for the selected template
+					var fileSelect=fileDropdownsWrap.children('select[name="'+dirp+'"]:first');
+					fileDropdownsWrap.children('select').not(fileSelect).removeClass('active');
+					fileSelect.addClass('active');
 				}
 			});
+			//select events for files
+			var fileNameElems=temLsWrap.find('ul.ls.files li .file > .name').not('.evs');
+			fileNameElems.addClass('evs');
+			fileNameElems.click(function(){
+				//if the parent .file isn't already selected
+				var fileParent=jQuery(this).parent();
+				var liParent=fileParent.parent();
+				//make sure this file's template is also selected, if not already
+				var temLiParent=liParent.parents('li:first');
+				if(!temLiParent.hasClass('selected')){
+					//select the template for this file too
+					var temPathBtn=temLiParent.find('.dir .path:first');
+					temPathBtn.click();
+				}
+				//if this file isn't already selected
+				if(!liParent.hasClass('selected')){
+					//deselect any files that are currently selected (in this template)
+					var fileListUl=fileParent.parents('ul.ls.files:first');
+					fileListUl.children('li.selected').removeClass('selected');
+					//select this file
+					liParent.addClass('selected');
+					//make sure this file is selected in the main-view dropdown
+					selectFileFromTemplates();
+				}
+			});
+			//select file events in the dropdowns
+			var fileSelects=fileDropdownsWrap.children('select').not('.evs');
+			fileSelects.addClass('evs');
+			fileSelects.change(function(){selectFileFromDropdown();});
+			//==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
+			//if there is no selected template
+			var selectedTemplate=temLsWrap.find('ul.ls.folders > li.selected');
+			if(selectedTemplate.length<1){
+				//select the first template by default
+				var firstDirElem=temLsWrap.find('ul.ls.folders li .dir:first');
+				var firstTemBtn=firstDirElem.children('.path:first');
+				firstTemBtn.click(); //select the first template by default on app load
+				var firstOpenBtn=firstDirElem.children('.opened-closed:first');
+				firstOpenBtn.click(); //open (+) this first template on app load
+			}
 		}
 	};
 	bodyElem[0]['updateTemplates']=updateTemplates;
@@ -819,4 +867,39 @@ function goToTabView(tabBtn){
 		//select the new tab
 		mainViewWrap.addClass(tabName);
 	}
+}
+
+function selectFileFromTemplates(){
+	//template elements
+	var temsUl=jQuery('#templates nav.ls ul.ls.folders:first');
+	var temLi=temsUl.children('li.selected:first');
+	var temPathElem=temLi.find('.dir .path:first');
+	//file elements
+	var filesUl=temLi.children('ul.ls.files:first');
+	var fileLi=filesUl.children('li.selected:first');
+	//dropdown elements
+	var fileDropdownsWrap=jQuery('#main-view header .template-files .dropdown:first');
+	//get the directory
+	var dirp=temPathElem.text(); dirp=dirp.trim();
+	//get the targetted select dropdown element
+	var fileSelect=fileDropdownsWrap.children('select[name="'+dirp+'"]:first');
+	//if any file is selected
+	var fname='';
+	if(fileLi.length>0){
+		var fileNameElem=fileLi.find('.file .name:first');
+		fname=fileNameElem.text();fname=fname.trim();
+		//if this file isn't already selected
+		if(fname!=fileSelect.val()){
+			//select this file 
+			fileSelect.val(fname);
+		}
+	}else{
+		//no file is selected so select the blank file option...
+		fileSelect.val('...');
+	}
+}
+function selectFileFromDropdown(){
+	var fileDropdownsWrap=jQuery('#main-view header .template-files .dropdown:first');
+	var fileSelect=fileDropdownsWrap.children('select.active:first');
+	//***
 }
