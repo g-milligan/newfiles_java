@@ -1,4 +1,4 @@
-function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -622,6 +622,9 @@ jQuery(document).ready(function(){
 			fileDropdownsWrap.children('select').removeClass('active');
 			var fileSelect=fileDropdownsWrap.children('select[name="'+temName+'"]:first');
 			fileSelect.addClass('active');
+			//==SHOW WORKSPACE==
+			//remove the no-selected-template indicator to show the workspace content
+			workspaceWrap.removeClass('no-selected-template');
 		}
 	};
 	bodyElem[0]['selectTemplate']=selectTemplate;
@@ -781,10 +784,14 @@ jQuery(document).ready(function(){
 			if(selectedTemplate.length<1){
 				//select the first template by default
 				var firstDirElem=temLsWrap.find('ul.ls.folders li .dir:first');
-				var firstTemBtn=firstDirElem.children('.path:first');
-				firstTemBtn.click(); //select the first template by default on app load
-				var firstOpenBtn=firstDirElem.children('.opened-closed:first');
-				firstOpenBtn.click(); //open (+) this first template on app load
+				//if there is a template
+				if(firstDirElem.length>0){
+					//find the first template select button
+					var firstTemBtn=firstDirElem.children('.path:first');
+					firstTemBtn.click(); //select the first template by default on app load
+					var firstOpenBtn=firstDirElem.children('.opened-closed:first');
+					firstOpenBtn.click(); //open (+) this first template on app load
+				}
 			}
 		}
 	};

@@ -149,7 +149,7 @@ public class FileMgr {
         if(forf.getName().indexOf("_")==0){
             //should be ignored
             isIgnored = true;
-    }else{
+        }else{
             //if the name is not blank
             if(forf.getName().length() > 0){
                 //if this file actually exists
@@ -158,6 +158,14 @@ public class FileMgr {
                     if(forf.isHidden()){
                         //should be ignored
                         isIgnored = true;
+                    }else{
+                        //file not considered hidden by the current system...
+                        
+                        //if the file/folder name starts with a dot
+                        if(forf.getName().indexOf(".")==0){
+                            //should be ignored, eg: .gitignore on a windows machine
+                            isIgnored = true;
+                        }
                     }
                 }
             }

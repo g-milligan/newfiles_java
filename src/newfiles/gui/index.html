@@ -13,7 +13,8 @@
 </head>
 <body>
 	<content id="content">
-    	<div id="workspace" class="expand-input-view">
+    	<div id="workspace" class="no-selected-template expand-input-view">
+        	<div class="no-selected-template">No selected template...</div>
         	<section id="main-view" class="tree-view">
             	<header>
                     <div class="title">
@@ -40,8 +41,8 @@
                             </select>
                         </div>
                         <div class="prev-next">
-                        	<div onclick="javascript:document.body.selectPrevFile();" title="previous file" class="prev"></div>
-                            <div onclick="javascript:document.body.selectNextFile();" title="next file" class="next"></div>
+                        	<div onClick="javascript:document.body.selectPrevFile();" title="previous file" class="prev"></div>
+                            <div onClick="javascript:document.body.selectNextFile();" title="next file" class="next"></div>
                         </div>
                     </div>
                 </header>
