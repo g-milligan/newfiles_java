@@ -598,6 +598,47 @@ jQuery(document).ready(function(){
 		});
 	});
 	//==FUNCTIONS ATTACHED TO THE BODY ELEMENT==
+	//convert <span class="str">...</span>, in the templates nav, to a JSON
+	var tokenNavElemToJson=function(strElem,includePartSelector){
+		if(includePartSelector==undefined){includePartSelector='.part';}
+		var tokenJson;
+		//if this element has a str class
+		if(strElem.hasClass('str')){
+			//if the parent of this element has a token class
+			if(strElem.parent().hasClass('token')){
+				tokenJson={};
+				//for each token part
+				strElem.children(includePartSelector).not('.sep').each(function(){
+					//get the last class as the partName
+					var partName=jQuery(this).attr('class');
+					partName=partName.split(' ');
+					partName=partName[partName.length-1];
+					//if this part name isn't already in the json
+					if(!tokenJson.hasOwnProperty(partName)){
+						//if the part contains options
+						var partVal='';
+						var iElems=jQuery(this).children('.i');
+						if(iElems.length>0){
+							partVal=[];
+							//for each option
+							iElems.each(function(){
+								//add the option value to the array
+								var val=jQuery(this).text();val=val.trim();
+								partVal.push(val);
+							});
+						}else{
+							//set the option value
+							partVal=jQuery(this).text();partVal=partVal.trim();
+						}
+						//add the part name/value to the json
+						tokenJson[partName]=partVal;
+					}
+				});
+			}
+		}
+		return tokenJson;
+	};
+	//==GET SELECTED TEMPLATE==
 	var getSelectedTemplate=function(){
 		//get the selected template from the main view title element
 		var tem=mainTitleElem.text();
@@ -615,8 +656,7 @@ jQuery(document).ready(function(){
 			//deselect existing selection
 			temLsWrap.find('ul.ls.folders > li.selected').removeClass('selected');
 			//select the new template
-			var dirPathElem=temLsWrap.find('ul.ls.folders li .dir .path[name="'+temName+'"]:first');
-			var temLi=dirPathElem.parents('li:first');
+			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
 			temLi.addClass('selected');
 			//==FILES DROPDOWN==
 			fileDropdownsWrap.children('select').removeClass('active');
@@ -635,10 +675,8 @@ jQuery(document).ready(function(){
 		var currentFile=fileSelect[0]['currentSelectedFile'];
 		if(currentFile!=fName){
 			//==LEFT NAV FILE==
-			var dirPathElem=temLsWrap.find('ul.ls.folders li .dir .path[name="'+temName+'"]:first');
-			var temLi=dirPathElem.parents('li:first');
-			var fileNameElem=temLi.find('ul.ls.files li .file .name[name="'+fName+'"]:first');
-			var fileLi=fileNameElem.parents('li:first');
+			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+			var fileLi=temLi.find('ul.ls.files > li[name="'+fName+'"]:first');
 			//deselect other files in this template
 			temLi.find('ul.ls.files > li.selected').removeClass('selected');
 			//if this left nav item exists
@@ -700,6 +738,85 @@ jQuery(document).ready(function(){
 		}
 	};
 	bodyElem[0]['selectPrevFile']=selectPrevFile;
+	//==SELECT TOKEN==
+	var selectTokenInstances=function(temName,json){
+		//json can specify what to select. EG: an array of file-names. And a json of token parts to match
+		//json = {'files':['file1.txt','file2.txt','file3.txt'], 'token':{'type':'var','name':'my token'}}
+		//if the json was provided
+		if(json!=undefined){
+			//if the json has the minimum amount of required token properties
+			if(json.hasOwnProperty('token')&&json.token.hasOwnProperty('type')&&json.token.hasOwnProperty('name')){
+				//==WHICH FILES? (LOOP ONCE FOR EACH SECTION)==
+				//figure out which files to include in the token selection
+				var navFileSelFormat='ul.ls.files li{file-names} ul.tokens li[name="'+json.token.type+'"] .token .str .part.name';
+				var navFileSel=navFileSelFormat.replace('{file-names}','');
+				//if selecting from any specific file(s) (select from any template file by default)
+				if(json.hasOwnProperty('files')){
+					if(json.files.length>0){
+						navFileSel='';
+						for(var f=0;f<json.files.length;f++){
+							//if not the first file, then add the selector separator
+							if(f!=0){navFileSel+=',';}
+							//add to the selector
+							navFileSel+=navFileSelFormat.replace('{file-names}','[name="'+json.files[f]+'"]');
+						}
+					}
+				}
+				//==LEFT NAV TOKENS==
+				//target the template, by name
+				var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+				if(temLi.length>0){
+					//deselect any other selected tokens in this template
+					temLi.find('ul.tokens > li[name]').removeClass('selected');
+					//get all of the name part elements (under the selected files) in the template
+					var nameElems=temLi.find(navFileSel);
+					//for each name part element in this template
+					nameElems.each(function(){
+						//name must match exactly
+						var tokenName=jQuery(this).text();tokenName=tokenName.trim();
+						if(tokenName==json.token.name){
+							var strElem=jQuery(this).parent();
+							//this is a selected token until proven not to be a match
+							var isMatched=true;
+							var tokenJson=tokenNavElemToJson(strElem);
+							//for each token part
+							for (var partKey in json.token){
+								//no need to compare an options token part
+								if(partKey!='options'){
+									//if key is an actual property of an object, (not from the prototype)
+									if (json.token.hasOwnProperty(partKey)){
+										//if tokenJson also has partKey (needed to match)
+										if(tokenJson.hasOwnProperty(partKey)){
+											switch(partKey){
+												case 'type':break; //already checked
+												case 'name':break; //already checked
+												default:	
+													//if has the NOT the same value
+													if(json.token[partKey]!=tokenJson[partKey]){
+														isMatched=false;
+													}
+												break;
+											}
+										}else{isMatched=false;} //tokenJson doesn't have this token part
+									}
+								}
+								//if not a match, then stop comparing the token parts
+								if(!isMatched){break;}
+							}
+							//if the token parts match up
+							if(isMatched){
+								//then this token should be selected
+								strElem.parents('li:first').addClass('selected');
+							}
+						}
+					});
+				}
+				//==SOME OTHER TOKEN SELECTIONS==
+				//... +++ 
+			}
+		}
+	};
+	bodyElem[0]['selectTokenInstances']=selectTokenInstances;
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
 	var updateTemplates=function(json){
 		if(json!=undefined){
@@ -748,7 +865,7 @@ jQuery(document).ready(function(){
 				}
 			});
 			//select events for templates
-			var dirPathElems=temLsWrap.find('li .dir > .path').not('.evs');
+			var dirPathElems=temLsWrap.find('ul.ls.folders li .dir > .path').not('.evs');
 			dirPathElems.addClass('evs');
 			dirPathElems.click(function(){
 				//select the template
@@ -777,6 +894,28 @@ jQuery(document).ready(function(){
 				bodyElem[0].selectTemplate(temName);
 				//select the template file
 				bodyElem[0].selectTemplateFile(temName,jQuery(this).val());
+			});
+			//select events for tokens
+			var tokenElems=temLsWrap.find('ul.ls.folders ul.ls.files ul.tokens li .token > .str').not('.evs');
+			tokenElems.addClass('evs');
+			tokenElems.click(function(){
+				var tokensUl=jQuery(this).parents('ul.tokens:first');
+				var fileLi=tokensUl.parent();
+				var fileNameBtn=fileLi.find('.file .name:first');
+				var temLi=fileLi.parents('li:first');
+				var temPathBtn=temLi.find('.dir .path:first');
+				//select the template
+				var temName=temPathBtn.text();
+				bodyElem[0].selectTemplate(temName);
+				//select the template file
+				var fileName=fileNameBtn.text();
+				bodyElem[0].selectTemplateFile(temName,fileName);
+				//select the token
+				var tokenJson=tokenNavElemToJson(jQuery(this));
+				bodyElem[0].selectTokenInstances(temName, 
+				{
+					'files':[fileName], 'token':tokenJson
+				});
 			});
 			//==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
 			//if there is no selected template

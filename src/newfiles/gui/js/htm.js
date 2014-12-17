@@ -121,12 +121,12 @@ function htm_template_dir(json){
 			var openClass='closed';if(isOpen){openClass='opened';}
 			//==DIRECTORY HEAD HTML==
 			//start dir item
-			temHtml+='<li class="'+openClass+hasFilesClass+'">';
+			temHtml+='<li class="'+openClass+hasFilesClass+'" name="'+json.path+'">';
 			//the main directory path html
             temHtml+='<span class="dir">';
             temHtml+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
 			temHtml+='<span class="icon">'+getSvg('folder')+'</span>';
-            temHtml+='<span class="path" name="'+json.path+'">'+json.path+'</span>';
+            temHtml+='<span class="path">'+json.path+'</span>';
             temHtml+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
             temHtml+='</span>';
 			//==FILE LIST HTML==
@@ -185,12 +185,12 @@ function htm_template_file(json){
 			var openClass='closed';if(isOpen){openClass='opened';}
 			//==FILE HEAD HTML==
 			//start file item
-			temHtml+='<li class="on '+openClass+hasTokensClass+'">';
+			temHtml+='<li class="on '+openClass+hasTokensClass+'" name="'+json.name+'">';
 			//the main directory path html
 			temHtml+='<span class="file">';
             temHtml+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
 			temHtml+='<span title="on/off" class="on-off">'+getSvg('file')+'</span>';
-			temHtml+='<span class="name" name="'+json.name+'">'+json.name+'</span>';
+			temHtml+='<span class="name">'+json.name+'</span>';
 			temHtml+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
 			temHtml+='</span>';
 			selFileHtm+='<option value="'+json.name+'">'+json.name+'</option>';
@@ -224,7 +224,7 @@ function htm_template_tokens(tokens){
 function htm_template_token(json){
 	var htm='';
 	//==TOKEN ITEM HTML==
-	htm+='<li>';
+	htm+='<li name="'+json.type+'">';
 	htm+='<span class="token">';
 	htm+='<span class="start-tag">'+getSvg('lcarrot')+getSvg('lcarrot')+'</span>';
 	htm+='<span class="str">';
