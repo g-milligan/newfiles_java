@@ -193,7 +193,8 @@ function htm_template_file(json){
 			temHtml+='<span class="name">'+json.name+'</span>';
 			temHtml+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
 			temHtml+='</span>';
-			selFileHtm+='<option value="'+json.name+'">'+json.name+'</option>';
+			var optionTxt=replaceAll(json.name,'_','..');
+			selFileHtm+='<option value="'+json.name+'">'+optionTxt+'</option>';
 			//==TOKENS LIST HTML==
 			temHtml+=htm_template_tokens(tokens);
 			//end file item
