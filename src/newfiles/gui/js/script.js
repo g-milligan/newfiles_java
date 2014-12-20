@@ -981,6 +981,7 @@ jQuery(document).ready(function(){
 			//select events for files
 			var fileNameElems=temLsWrap.find('ul.ls.files li .file > .name').not('.evs');
 			fileNameElems.addClass('evs');
+
 			fileNameElems.click(function(){
 				var fileParent=jQuery(this).parent();
 				var liParent=fileParent.parent();
