@@ -132,10 +132,10 @@ function htm_template_dir(json){
 			//==FILE LIST HTML==
 			var htm=htm_template_ls(ls); 
 			temHtml+=htm.template;
-			selFileHtm+='<select name="'+json.path+'">';
-			selFileHtm+='<option value="...">[select a file]</option>';
+			selFileHtm+='<nav class="select" name="'+json.path+'">';
+			selFileHtm+='<span class="lbl">[select a file]</span><ul><li class="active" val="..."><span class="txt">[select a file]</span></li>';
 			selFileHtm+=htm.file_select;
-			selFileHtm+='</select>';
+			selFileHtm+='</ul></nav>';
 			//==HIDDEN FILES HTML==
 			temHtml+=htm_template_hidfiles(hidden);
 			//==INCLUDES HTML==
@@ -193,8 +193,8 @@ function htm_template_file(json){
 			temHtml+='<span class="name">'+json.name+'</span>';
 			temHtml+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
 			temHtml+='</span>';
-			var optionTxt=replaceAll(json.name,'_','..');
-			selFileHtm+='<option value="'+json.name+'">'+optionTxt+'</option>';
+			selFileHtm+='<li class="on" val="'+json.name+'"><span class="on-off">'+getSvg('file')+'</span>';
+			selFileHtm+='<span class="txt">'+json.name+'</span></li>';
 			//==TOKENS LIST HTML==
 			temHtml+=htm_template_tokens(tokens);
 			//end file item

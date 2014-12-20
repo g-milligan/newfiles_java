@@ -659,8 +659,8 @@ jQuery(document).ready(function(){
 			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
 			temLi.addClass('selected');
 			//==FILES DROPDOWN==
-			fileDropdownsWrap.children('select').removeClass('active');
-			var fileSelect=fileDropdownsWrap.children('select[name="'+temName+'"]:first');
+			fileDropdownsWrap.children('nav.select').removeClass('active');
+			var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
 			fileSelect.addClass('active');
 			//==SHOW WORKSPACE==
 			//remove the no-selected-template indicator to show the workspace content
@@ -671,7 +671,7 @@ jQuery(document).ready(function(){
 	//==SELECT FILE==
 	var selectTemplateFile=function(temName,fName){
 		//if this file from this template is not already selected
-		var fileSelect=fileDropdownsWrap.children('select[name="'+temName+'"]:first');
+		var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
 		var currentFile=fileSelect[0]['currentSelectedFile'];
 		if(currentFile!=fName){
 			//==LEFT NAV FILE==
@@ -686,55 +686,55 @@ jQuery(document).ready(function(){
 			}
 			//==FILES DROPDOWN==
 			//if the select is not already correct
-			if(fileSelect.val()!=fName){
+			if(fileSelect[0].val()!=fName){
 				//set the correct select option
-				fileSelect.val(fName);
+				fileSelect[0].val(fName);
 			}
 			fileSelect[0]['currentSelectedFile']=fName;
 		}
 	};
 	bodyElem[0]['selectTemplateFile']=selectTemplateFile;
 	//==SELECT NEXT FILE==
-	var selectNextFile=function(){
+	var selectNextFile=function(){ 
 		//if there is more than one option
-		var fileSelect=fileDropdownsWrap.children('select.active:first');
-		if(fileSelect.children('option').length>1){
+		var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
+		if(fileSelect.find('ul li').length>1){
 			//get the selected option
-			var selFileOption=fileSelect.children('option:selected');
+			var selFileOption=fileSelect.find('ul li.active:first');
 			if(selFileOption.length<1){
 				//just get the first option if the selected one isn't found
-				selFileOption=fileSelect.children('option:first');
+				selFileOption=fileSelect.find('ul li:first');
 			}
 			//try to get the next option
-			var nextOption=selFileOption.next('option:first');
+			var nextOption=selFileOption.next('li:first');
 			if(nextOption.length<1){
 				//or just cycle back to the first option
-				nextOption=fileSelect.children('option:first');
+				nextOption=fileSelect.find('ul li:first');
 			}
 			//select the new option
-			selectTemplateFile(fileSelect.attr('name'),nextOption.attr('value'));
+			selectTemplateFile(fileSelect.attr('name'),nextOption.attr('val'));
 		}
 	};
 	bodyElem[0]['selectNextFile']=selectNextFile;
 	//==SELECT PREVIOUS FILE==
-	var selectPrevFile=function(){
+	var selectPrevFile=function(){ 
 		//if there is more than one option
-		var fileSelect=fileDropdownsWrap.children('select.active:first');
-		if(fileSelect.children('option').length>1){
+		var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
+		if(fileSelect.find('ul li').length>1){
 			//get the selected option
-			var selFileOption=fileSelect.children('option:selected');
+			var selFileOption=fileSelect.find('ul li.active:first');
 			if(selFileOption.length<1){
 				//just get the first option if the selected one isn't found
-				selFileOption=fileSelect.children('option:first');
+				selFileOption=fileSelect.find('ul li:first');
 			}
 			//try to get the prev option
-			var prevOption=selFileOption.prev('option:first');
+			var prevOption=selFileOption.prev('li:first');
 			if(prevOption.length<1){
 				//or just cycle back to the last option
-				prevOption=fileSelect.children('option:last');
+				prevOption=fileSelect.find('ul li:last');
 			}
 			//select the new option
-			selectTemplateFile(fileSelect.attr('name'),prevOption.attr('value'));
+			selectTemplateFile(fileSelect.attr('name'),prevOption.attr('val'));
 		}
 	};
 	bodyElem[0]['selectPrevFile']=selectPrevFile;
@@ -825,8 +825,115 @@ jQuery(document).ready(function(){
 			temLsWrap.html(''); //clear old html
 			temLsWrap.append(htm.templates); //set html
 			//==SET THE FILE DROPDOWNS HTML==
-			fileDropdownsWrap.children('select[name]').remove(); //clear old html
+			fileDropdownsWrap.children('nav.select[name]').remove(); //clear old html
 			fileDropdownsWrap.append(htm.file_selects); //set html
+			//==HOME-MADE SELECT DROPDOWNS VAL FUNCTION==
+			var selectDrops=contentWrap.find('nav.select').not('.evs');
+			selectDrops.each(function(){
+				var thisDropDown=jQuery(this);
+				thisDropDown.addClass('evs');
+				//hover event
+				thisDropDown.hover(function(){
+					//hover
+					jQuery(this).addClass('over');
+				},function(){
+					//end hover and close, if open 
+					jQuery(this).removeClass('over');
+					jQuery(this).removeClass('open');
+				});
+				//dropdown label click
+				thisDropDown.children('.lbl:first').click(function(){
+					//if dropdown is open
+					var thisDropDown=jQuery(this).parent();
+					if(thisDropDown.hasClass('open')){
+						//then close it
+						thisDropDown.removeClass('open');
+					}else{
+						//otherwise, open it
+						thisDropDown.addClass('open');
+					}
+				});
+				//val function
+				var val=function(valToSelect){
+					var retVal='';
+					//if there are any list items
+					var listItems=thisDropDown.find('ul li');
+					if(listItems.length>0){
+						//get the active list item txt element(s)
+						var selectedTxt=listItems.filter('.active').children('.txt');
+						//if there is no active selected item
+						if(selectedTxt.length<1){
+							//select the first item by default
+							thisDropDown.find('ul li:first').addClass('active');
+						}
+						//get ONLY ONE selected text item
+						var firstSelectedTxt=selectedTxt.eq(0);
+						//if there is more than one selected
+						if(selectedTxt.length>1){
+							//make sure only one item is selected
+							selectedTxt.not(firstSelectedTxt).parent().removeClass('active');
+						}
+						//if setting a new selected value
+						var setNewTxt=false;
+						if(valToSelect!=undefined){
+							//if this new item value exists
+							var newSelectLi=listItems.filter('[val="'+valToSelect+'"]:first');
+							if(newSelectLi.length>0){
+								//deselect previous item
+								listItems.not(newSelectLi).removeClass('active');
+								//select the new item
+								newSelectLi.addClass('active');
+								//set the new text
+								selectedTxt=newSelectLi.children('.txt:first');
+								setNewTxt=true;
+							}
+						}
+						//get the value of this first item
+						retVal=selectedTxt.text();
+						retVal=retVal.trim();
+						//if new text was set
+						if(setNewTxt){
+							//make sure the label text is correct
+							var selectLbl=thisDropDown.children('.lbl:first');
+							//if the text has changed
+							if(selectLbl!=retVal){
+								//set the new text
+								selectLbl.text(retVal);
+								//fire change event
+								var parentId=thisDropDown.parents('[id]:first').attr('id');
+								switch(parentId){
+									case 'main-view': //main view file dropdown
+										//select the template
+										var temName=thisDropDown.attr('name');
+										bodyElem[0].selectTemplate(temName);
+										//select the template file
+										bodyElem[0].selectTemplateFile(temName,retVal);
+									break;
+								}
+							}
+						}
+					}
+					return retVal;
+				};
+				thisDropDown[0]['val']=val;
+				//click event for select items
+				var txtElems=thisDropDown.find('ul li .txt').not('.evs');
+				txtElems.addClass('evs');
+				txtElems.click(function(){
+					//select item on click
+					var thisDropDown=jQuery(this).parents('nav.select:first');
+					var txtVal=jQuery(this).parent().attr('val'); txtVal=txtVal.trim();
+					thisDropDown[0].val(txtVal);
+					//close the dropdown
+					thisDropDown.removeClass('open');
+				});
+				//hover event for click items
+				txtElems.hover(function(){
+					jQuery(this).parent().addClass('over');
+				},function(){
+					jQuery(this).parent().removeClass('over');
+				});
+			});
 			//==ADD JS EVENTS TO NEW ELEMENTS==
 			//add opened-closed toggle events (to elements that don't already have events added)
 			var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
@@ -884,16 +991,6 @@ jQuery(document).ready(function(){
 				bodyElem[0].selectTemplate(temName);
 				//select the template file
 				bodyElem[0].selectTemplateFile(temName,jQuery(this).text());
-			});
-			//select file events in the dropdowns
-			var fileSelects=fileDropdownsWrap.children('select').not('.evs');
-			fileSelects.addClass('evs');
-			fileSelects.change(function(){
-				//select the template
-				var temName=jQuery(this).attr('name');
-				bodyElem[0].selectTemplate(temName);
-				//select the template file
-				bodyElem[0].selectTemplateFile(temName,jQuery(this).val());
 			});
 			//select events for tokens
 			var tokenElems=temLsWrap.find('ul.ls.folders ul.ls.files ul.tokens li .token > .str').not('.evs');
