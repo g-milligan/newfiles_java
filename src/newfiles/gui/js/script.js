@@ -817,6 +817,37 @@ jQuery(document).ready(function(){
 		}
 	};
 	bodyElem[0]['selectTokenInstances']=selectTokenInstances;
+	//==TURN FILE ON/OFF==
+	var toggleOnOffFile=function(temName,fName){
+		//==GET FILES DROPDOWN==
+		var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
+		var selectedLi=fileSelect.find('ul li[val="'+fName+'"]:first');
+		//if this file exists
+		if(selectedLi.length>0){
+			//==GET LEFT NAV FILE==
+			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+			var fileLi=temLi.find('ul.ls.files > li[name="'+fName+'"]:first');
+			//if already on
+			if(selectedLi.hasClass('on')){
+				//==TOGGLE FILES DROPDOWN OFF==
+				selectedLi.removeClass('on');
+				selectedLi.addClass('off');
+				//==TOGGLE LEFT NAV FILE OFF==
+				fileLi.removeClass('on');
+				fileLi.addClass('off');
+			}else{
+				//file no already on...
+
+				//==TOGGLE FILES DROPDOWN ON==
+				selectedLi.removeClass('off');
+				selectedLi.addClass('on');
+				//==TOGGLE LEFT NAV FILE ON==
+				fileLi.removeClass('off');
+				fileLi.addClass('on');
+			}
+		}
+	};
+	bodyElem[0]['toggleOnOffFile']=toggleOnOffFile;
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
 	var updateTemplates=function(json){
 		if(json!=undefined){
@@ -832,6 +863,8 @@ jQuery(document).ready(function(){
 			selectDrops.each(function(){
 				var thisDropDown=jQuery(this);
 				thisDropDown.addClass('evs');
+				//prevent selection inside the select dropdown
+				preventSelect(thisDropDown.children('ul:first'));
 				//hover event
 				thisDropDown.hover(function(){
 					//hover
@@ -851,9 +884,22 @@ jQuery(document).ready(function(){
 					}else{
 						//otherwise, open it
 						thisDropDown.addClass('open');
+						//scroll to the selected item
+						var activeItem=thisDropDown.find('ul li.active:first');
+						if(activeItem.length>0){
+							var ulParent=activeItem.parent();
+							//the index at which the item appears in the list
+							var activeItemIndex=activeItem.index();
+							//the height of the item
+							var activeItemHeight=activeItem.outerHeight();
+							//calculate the height of item stack BEFORE the selected item
+							var scrollPos=activeItemHeight*activeItemIndex;
+							//scroll to the item so it appears at the top of the scroll
+							ulParent.scrollTop(scrollPos);
+						}
 					}
 				});
-				//val function
+				//val function for home-made select dropdown
 				var val=function(valToSelect){
 					var retVal='';
 					//if there are any list items
@@ -933,6 +979,13 @@ jQuery(document).ready(function(){
 				},function(){
 					jQuery(this).parent().removeClass('over');
 				});
+				//click events for on-off buttons
+				var onOffBtns=thisDropDown.find('ul li .on-off').not('.evs');
+				onOffBtns.addClass('evs');
+				onOffBtns.click(function(){
+					var parentLi=jQuery(this).parent();
+					bodyElem[0].toggleOnOffFile(thisDropDown.attr('name'),parentLi.attr('val'));
+				});
 			});
 			//==ADD JS EVENTS TO NEW ELEMENTS==
 			//add opened-closed toggle events (to elements that don't already have events added)
@@ -958,18 +1011,9 @@ jQuery(document).ready(function(){
 			//mark these elements as having the events attached
 			onOffElems.addClass('evs');
 			onOffElems.click(function(){
-				//get the parent li wrapper
-				var parentLi=jQuery(this).parents('li:first');
-				//if currently on
-				if(parentLi.hasClass('on')){
-					//turn it off
-					parentLi.removeClass('on');
-					parentLi.addClass('off');
-				}else{
-					//currently off, so turn it on
-					parentLi.addClass('on');
-					parentLi.removeClass('off');
-				}
+				var fileLi=jQuery(this).parents('li:first');
+				var temLi=fileLi.parents('li:first');
+				bodyElem[0].toggleOnOffFile(temLi.attr('name'),fileLi.attr('name'));
 			});
 			//select events for templates
 			var dirPathElems=temLsWrap.find('ul.ls.folders li .dir > .path').not('.evs');
