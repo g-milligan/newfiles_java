@@ -20,6 +20,7 @@ li.parent ul li{font-size:95%;text-transform:none;}
 .title .options ul li:last-child,li.parent ul li:last-child{border-bottom:none;}
 .title .options .arrow:before{position:absolute;left:0;right:0;top:0;bottom:0;margin:auto;content:"";width:0;height:0;border-style:solid;border-width:.4em .2em 0 .2em;}
 .size-controls{height:.9em;text-align:right;}
+#main-view .size-controls{text-align:left;}
 .size-controls > .title{display:block;float:left;text-transform:uppercase;padding:.4em;margin:0;font-size:50%;height:100%;box-sizing:border-box;-moz-box-sizing:border-box;}
 .resize.width,.resize.height{width:.2em;position:absolute;right:0;top:0;height:100%;box-sizing:border-box;-moz-box-sizing:border-box;cursor:ew-resize;z-index:990;}
 .resize.height{width:100%;height:.2em;cursor:ns-resize;}
@@ -52,7 +53,7 @@ found.highlight:after{content:"}";padding-left:.1em;}
 /*main background color*/
 body,.title .options ul li:hover,li.parent ul li:hover,#main-view .file-icon:hover,#main-view .template-files .select ul::-webkit-scrollbar-thumb,#main-view .template-files nav.select ul li.active,.template-files .on-off:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files .dropdown:after,#main-view .prev-next > div:before,#templates li.selected > .dir,#templates li.selected li.selected > .file, #templates li.selected > span.file found, #templates li.selected > span.dir found, #templates ul.ls.folders > .selected .selected .selected > .token found,#templates ul.ls.folders > .selected .selected .selected > .token,#main-view .template-files nav.select .lbl,#main-view .template-files .select ul{color:#01131A;} div:hover > svg *,.on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path,#main-view .file-icon path,#templates li.selected > .dir path,#templates li.selected li.selected > .file path,#templates ul.ls.folders > .selected .selected .selected > .token path,.template-files .on-off path,.template-files li.active .on-off:hover path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
 /*default color*/
-body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover,#main-view .template-files nav.select ul li.active{color:#BC6684;} .folder:hover,.pin:hover,.toggle-expand:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,.on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover,.search .found-count .prev:hover, .search .found-count .next:hover,#templates nav.ls .token .part .i:before,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files,#templates li.selected > .dir,#templates li.selected li.selected > .file,#templates ul.ls.folders > .selected .selected .selected > .token,#main-view .template-files nav.select ul,.template-files li.active .on-off:hover{background-color:#BC6684;} input[type="text"],#main-view .template-files nav.select ul{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *,#main-view .file-icon:hover path,.template-files .on-off:hover path,.template-files li.active .on-off path{fill:#BC6684;}
+body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover,#main-view .template-files nav.select ul li.active{color:#BC6684;} .folder:hover,.pin:hover,.toggle-expand:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,.on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in > .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover,.search .found-count .prev:hover, .search .found-count .next:hover,#templates nav.ls .token .part .i:before,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files,#templates li.selected > .dir,#templates li.selected li.selected > .file,#templates ul.ls.folders > .selected .selected .selected > .token,#main-view .template-files nav.select ul,.template-files li.active .on-off:hover{background-color:#BC6684;} input[type="text"],#main-view .template-files nav.select ul{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *,#main-view .file-icon:hover path,.template-files .on-off:hover path,.template-files li.active .on-off path{fill:#BC6684;}
 /*highlight color*/
 found.highlight:before,found.highlight:after{text-shadow:0 0 1em rgba(181,137,0,1);}
 #templates li.selected > .dir found:before,#templates li.selected > .dir found:after,#templates li.selected li.selected > .file found:before,#templates li.selected li.selected > .file found:after{text-shadow:none;}
@@ -167,10 +168,16 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #workspace.no-selected-template div.no-selected-template{display:block;}
 #workspace.no-selected-template section{display:none;}
 #workspace header{}
-#workspace .content{}
-#workspace .lcol,#workspace .rcol{display:inline-block;}
-#workspace .lcol{width:80%;}
-#workspace .rcol{width:20%;}
+#workspace .content{position:absolute;bottom:0;left:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;}
+#workspace #main-view .content{top:96px;display:none;}
+#workspace #main-view .content.active{display:block;}
+#workspace #input-view .content{top:35px;}
+#workspace .lcol,#workspace .rcol{position:absolute;top:0;display:block;height:100%;box-sizing:border-box;-moz-box-sizing:border-box;padding:0 .2em;}
+#workspace .lcol{width:70%;left:0;}
+#workspace .rcol{width:30%;right:0;border-left:solid .1em;}
+#workspace .rcol.unpinned{border-left:dashed .1em;}
+#workspace .content.slide-in .rcol.unpinned{width:1.1em;}
+#workspace .content.slide-in .rcol.unpinned *{display:none;}
 /*MAIN VIEW*/
 #main-view{display:block;height:65%;width:100%;position:absolute;left:0;top:0;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace.collapse-input-view > #main-view{height:auto;bottom:.9em;}

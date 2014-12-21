@@ -1229,5 +1229,10 @@ function goToTabView(tabBtn){
 		});
 		//select the new tab
 		mainViewWrap.addClass(tabName);
+		//remove active class from current content
+		var contentWraps=mainViewWrap.children('.content');
+		contentWraps.removeClass('active');
+		//add active class to new selected content
+		contentWraps.filter('[name="'+tabName+'"]:first').addClass('active');
 	}
 }

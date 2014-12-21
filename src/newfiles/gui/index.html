@@ -38,11 +38,7 @@
                             </div>
                             <nav class="select active">
                             	<span class="lbl">[select a template]</span>
-                                <ul>
-                                	<li class="active" val="...">
-                                    	<span class="txt">[select a template]</span>
-                                    </li>
-                                </ul>
+                                <ul><li class="active" val="..."><span class="txt">[select a template]</span></li></ul>
                             </nav>
                         </div>
                         <div class="prev-next">
@@ -50,14 +46,42 @@
                             <div onClick="javascript:document.body.selectNextFile();" title="next file" class="next"></div>
                         </div>
                     </div>
-                </header>
-                <div class="content">
-                	<div class="lcol">
-                    </div>
-                	<div class="rcol">
+              </header>
+                <div name="tree-view" class="content active">
+                	<div class="lcol"></div>
+                	<div class="rcol pinned-unpinned pinned">
+                        <div class="size-controls">
+                            <div class="pin">
+                                <svg class="in" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
+                                    <path d="M260.508,393.645l9.497-67.795h78.389l-49.884-49.884l7.126-106.893h42.758v-42.757H134.607v42.757h42.757l7.126,106.893
+                                        l-49.883,49.884h78.388l9.458,67.526 M234.374,268.84h-28.505v-99.767h28.505V268.84z"></path>
+                                    <rect x="102.5" y="377" width="277" height="21"></rect>
+                                </svg>
+                                <svg class="out" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+                                    <path d="M266.863 82.192l-32.589 32.589 32.589 32.589-76.040 86.904h-76.040l59.747 59.746-92.335 122.418v13.37h13.37l122.417-92.336 59.746 59.746v-76.040l86.904-76.040 32.589 32.589 32.589-32.589-162.945-162.945zM234.274 266.863l-21.726-21.726 76.040-76.040 21.726 21.726-76.040 76.040z"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </section>
+                <div name="file-view" class="content">
+                	<div class="lcol"></div>
+                	<div class="rcol pinned-unpinned pinned">
+                        <div class="size-controls">
+                            <div class="pin">
+                                <svg class="in" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
+                                    <path d="M260.508,393.645l9.497-67.795h78.389l-49.884-49.884l7.126-106.893h42.758v-42.757H134.607v42.757h42.757l7.126,106.893
+                                        l-49.883,49.884h78.388l9.458,67.526 M234.374,268.84h-28.505v-99.767h28.505V268.84z"></path>
+                                    <rect x="102.5" y="377" width="277" height="21"></rect>
+                                </svg>
+                                <svg class="out" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+                                    <path d="M266.863 82.192l-32.589 32.589 32.589 32.589-76.040 86.904h-76.040l59.747 59.746-92.335 122.418v13.37h13.37l122.417-92.336 59.746 59.746v-76.040l86.904-76.040 32.589 32.589 32.589-32.589-162.945-162.945zM234.274 266.863l-21.726-21.726 76.040-76.040 21.726 21.726-76.040 76.040z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+          </section>
             <section id="input-view" class="expanded-collapsed expanded">
             	<header>
                 	<div class="size-controls">
@@ -71,12 +95,8 @@
                     </div>
                 </header>
                 <div class="content">
-                	<div class="lcol">
-                    </div>
-                	<div class="rcol">
-                    </div>
                 </div>
-                <div class="resize height"></div>
+              <div class="resize height"></div>
             </section>
         </div>
         <div id="templates" class="pinned-unpinned pinned">
@@ -102,7 +122,7 @@
                 	<h1>Templates</h1>
                     <nav class="options">
                     	<span class="arrow"></span>
-                  <ul>
+          <ul>
                         	<li>Refresh</li>
                             <li>New</li>
                             <li onClick="javascript:openDir('templates');">Open Folder</li>
