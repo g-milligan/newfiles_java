@@ -63,6 +63,8 @@ public class NfGui extends Application {
     private static String mTemplatesRoot;
     private static HashMap<String, HashMap<String, ArrayList<String>>> mTemplateHierarchy; //HashMap<[templatePath], HashMap<[fileName], ArrayList<[tokenStr]>>>
     private static HashMap<String, ArrayList<String>> mIncludeRules; //HashMap<[templatePath], ArrayList<[includeRul]>>
+    private static HashMap<String, HashMap<String, String>> mFilenameXmlOverwriteLookup; //HashMap<[templatePath], HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>>
+    private static HashMap<String, HashMap<String, HashMap<String, String>>> mFileAliasesLookup; //HashMap<[templatePath], HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>>
     
     //display elements
     private Newfiles mNewfiles;
@@ -73,6 +75,7 @@ public class NfGui extends Application {
     private static StrMgr mStrMgr;
     private static FileMgr mFileMgr;
     private static TemplateData mTemplateData;
+    private static BuildTemplate mBuildTemplate;
     //init objects and fields
     private void initObjects(){
         mNewfiles=new Newfiles();
@@ -81,6 +84,7 @@ public class NfGui extends Application {
         mStrMgr=new StrMgr();
         mFileMgr=new FileMgr();
         mTemplateData=new TemplateData();
+        mBuildTemplate=new BuildTemplate(mTargetDir, mBatchFileName, mTemplatesRoot);
     }
     //configure and attach events wo the web view
     private void startWebView(){
@@ -186,7 +190,8 @@ public class NfGui extends Application {
                     json+="{'path':'"+getFormattedDir(templatePath)+"'";
                     //for each file in the template
                     String ignoredFilesJson=""; boolean hasFiles=false;
-                    for(String fileName : fileTokens.keySet()){
+                    for(String filePath : fileTokens.keySet()){
+                        String fileName=new File(filePath).getName();
                         //if NOT an ignored file
                         if(fileName.indexOf("_")!=0){
                             //if this is the first template file
@@ -196,7 +201,7 @@ public class NfGui extends Application {
                             //start file json
                             json+="{'name':'"+fileName+"'";
                             //get the tokens in this file
-                            ArrayList<String> tokenStrs=fileTokens.get(fileName);
+                            ArrayList<String> tokenStrs=fileTokens.get(filePath);
                             //for each token in this file
                             for(int t=0;t<tokenStrs.size();t++){
                                 //if this is the first token
@@ -259,6 +264,21 @@ public class NfGui extends Application {
                         //add the include rules to the json
                         json+=includeRulesJson;
                     }
+                    //get the project ids (the token names that help define one or more file path)
+                    HashMap<String, String> filenameXmlOverwriteLookup=null;
+                    if(mFilenameXmlOverwriteLookup.containsKey(templatePath)){
+                        filenameXmlOverwriteLookup=mFilenameXmlOverwriteLookup.get(templatePath);
+                    }
+                    HashMap<String, HashMap<String, String>> fileAliasesLookup=null;
+                    if(mFileAliasesLookup.containsKey(templatePath)){
+                        fileAliasesLookup=mFileAliasesLookup.get(templatePath);
+                    }
+                    //array of unique project id's (names of tokens that define one or more project file paths)
+                    ArrayList<String> inFileNameTokens=mBuildTemplate.getTokensInFilenames(templatePath,filenameXmlOverwriteLookup,fileTokens,fileAliasesLookup);
+                    //create the json if there are any project id's for this template
+                    if(inFileNameTokens.size()>0){
+                        //***
+                    }
                     //end this template dir json
                     json+="}";
                 }else{
@@ -312,6 +332,16 @@ public class NfGui extends Application {
         }else{
             mIncludeRules.clear();
         }
+        if(mFilenameXmlOverwriteLookup==null){
+            mFilenameXmlOverwriteLookup=new HashMap<String, HashMap<String, String>>();
+        }else{
+            mFilenameXmlOverwriteLookup.clear();
+        }
+        if(mFileAliasesLookup==null){
+            mFileAliasesLookup=new HashMap<String, HashMap<String, HashMap<String, String>>>();
+        }else{
+            mFileAliasesLookup.clear();
+        }
         //if the root template folder exists
         File temRoot = new File(mTemplatesRoot);
         if(temRoot.exists()){
@@ -328,6 +358,27 @@ public class NfGui extends Application {
             //template root folder doesn't exist...
             
             mTemplateHierarchy=null;
+        }
+    }
+    private static void loadAliasLookupForOneToken(String temPath, String filePath, String tokenStr){
+        //if this token contains an alias
+        String tAlias=mTemplateData.getTokenPart("alias", tokenStr);
+        if(tAlias.length()>0){
+            if(!mFileAliasesLookup.containsKey(temPath)){
+                HashMap<String, HashMap<String, String>> fileAliasTokenStr = new HashMap<String, HashMap<String, String>>();
+                mFileAliasesLookup.put(temPath, fileAliasTokenStr);
+            }
+            //if this file path isn't already a key in fileAliasesLookup
+            if(!mFileAliasesLookup.get(temPath).containsKey(filePath)){
+                //create this path-key in HashMap<[tokenAlias], [tokenStr]>
+                HashMap<String, String> aliasTokenStr = new HashMap<String, String>();
+                mFileAliasesLookup.get(temPath).put(filePath, aliasTokenStr);
+            }
+            //if this alias isn't already listed for this file
+            if (!mFileAliasesLookup.get(temPath).get(filePath).containsKey(tAlias)){
+                //add the alias/name to the file's listing
+                mFileAliasesLookup.get(temPath).get(filePath).put(tAlias, tokenStr);
+            }
         }
     }
     //if a the given directory contains at least one file, hidden from Newfiles or otherwise. But excluding hidden system files
@@ -373,8 +424,20 @@ public class NfGui extends Application {
                         dirHasFile=true;
                         //add this file to the list of files under this directory
                         String fileContent=mFileMgr.readFile(subFiles[f].getPath()); //*** save to display... fileContent in file view?
+                        //escape tokens, as needed
+                        fileContent = fileContent.replace("\\"+mStrMgr.mStartToken, mStrMgr.mStartEscToken);
+                        fileContent = fileContent.replace("\\"+mStrMgr.mEndToken, mStrMgr.mEndEscToken);
+                        //get the tokens from the string
                         ArrayList<String> tokens=mTemplateData.getTokensFromContent(fileContent, true); //true = include list chunk tokens
-                        filesTokens.put(subFiles[f].getName(), tokens);
+                        //if this template file contains any tokens
+                        if(tokens.size()>0){
+                            //for each token inside the template file
+                            for(int t=0;t<tokens.size();t++){
+                                //load the alias info for this token
+                                loadAliasLookupForOneToken(dir.getPath(),subFiles[f].getPath(),tokens.get(t));
+                            }
+                        }
+                        filesTokens.put(subFiles[f].getPath(), tokens);
                     }else{
                         //this is an ignored file...
                         
@@ -382,8 +445,6 @@ public class NfGui extends Application {
                         if(subFiles[f].getName().indexOf("_")==0){
                             //since dir contains at least one file, it should be counted as a template folder
                             dirHasFile=true;
-                            //add this hidden file to the list without any listed tokens
-                            filesTokens.put(subFiles[f].getName(), null);
                             //if this is _filenames.xml
                             if(subFiles[f].getName().equals(mStrMgr.mFilenamesXml)){
                                 //get the include rules for this template's _filenames.xml file
@@ -393,6 +454,34 @@ public class NfGui extends Application {
                                     //add the include rules to the list
                                     mIncludeRules.put(dir.getPath(), includeRules);
                                 }
+                                //get the <filename> overwrites in this file
+                                HashMap<String, String> filenameXmlOverwriteLookup=mTemplateData.getXmlFilenameHashValues(dir.getPath());
+                                mFilenameXmlOverwriteLookup.put(dir.getPath(), filenameXmlOverwriteLookup);
+                                //get the tokens inside the _filenames.xml file
+                                String fileContent=mFileMgr.readFile(subFiles[f].getPath());
+                                //escape tokens, as needed
+                                fileContent = fileContent.replace("\\"+mStrMgr.mStartToken, mStrMgr.mStartEscToken);
+                                fileContent = fileContent.replace("\\"+mStrMgr.mEndToken, mStrMgr.mEndEscToken);
+                                //get the tokens from the string
+                                ArrayList<String> tokens=mTemplateData.getTokensFromContent(fileContent, false); //true = include list chunk tokens, but _filenames.xml can't contain token chunks
+                                //if _filenames.xml contains any tokens
+                                if(tokens.size()>0){
+                                    ArrayList<String> tokenStrs=new ArrayList<String>();
+                                    //for each token inside _filenames.xml
+                                    for(int t=0;t<tokens.size();t++){
+                                        String tStr=tokens.get(t);
+                                        //append the source to the token AND add the modified value to a new list
+                                        tokenStrs.add(tStr+" " + mStrMgr.mTokenSourceSeparator + " " + mStrMgr.mFilenamesXml);
+                                        //load the alias info for this token
+                                        loadAliasLookupForOneToken(dir.getPath(),subFiles[f].getPath(),tStr);
+                                    }
+                                    //add the list of tokens inside _filenames.xml
+                                    filesTokens.put(subFiles[f].getPath(), tokenStrs);
+                                }
+                            }else{
+                                //this is a hidden file AND NOT _filenames.xml
+                                //add this hidden file to the list without any listed tokens
+                                filesTokens.put(subFiles[f].getPath(), null);
                             }
                         }
                     }

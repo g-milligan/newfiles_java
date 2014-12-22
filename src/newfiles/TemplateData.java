@@ -1184,11 +1184,12 @@ public class TemplateData {
     }
     //get a list of rename values from _filenames.xml 
     //and remove any <filename> node that is pointing at nothing OR a file that doesn't exist 
-    private HashMap<String, String> getXmlFilenameHashValues(){
+    public HashMap<String, String> getXmlFilenameHashValues(){return getXmlFilenameHashValues(mUseTemplatePath);}
+    public HashMap<String, String> getXmlFilenameHashValues(String useTemplatePath){
         HashMap<String, String> renameList = new HashMap<String, String>();
         boolean xmlChangesMade=false;
         //get the _filenames.xml file (if it already exists)
-        File fnXmlFile=getXmlFilenamesFile();
+        File fnXmlFile=getXmlFilenamesFile(useTemplatePath);
         if(fnXmlFile.exists()){
             //get the XML document object
             Document xmlDoc=getXmlFilenamesDoc(fnXmlFile);
@@ -1211,7 +1212,7 @@ public class TemplateData {
                                 String nameAttrVal=nameAttr.getNodeValue();
                                 if(nameAttrVal.length()>0){
                                     //if the name attribute's filePath value is not already a key in the list
-                                    String filePath=mUseTemplatePath+File.separator+nameAttrVal;
+                                    String filePath=useTemplatePath+File.separator+nameAttrVal;
                                     if(!renameList.containsKey(filePath)){
                                         //if the file actual exists
                                         if(new File(filePath).exists()){
