@@ -182,6 +182,12 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #workspace .rcol.unpinned{border-left:dashed .1em;}
 #workspace .content.slide-in .rcol.unpinned{width:1.1em;}
 #workspace .content.slide-in .rcol.unpinned *{display:none;}
+#workspace .rcol .block-wrap{padding:.5em 0 1em 1em;box-sizing:border-box;-moz-box-sizing:border-box;}
+#workspace .rcol .project-ids.block{display:none;}
+#workspace .rcol .project-ids.block.active{display:block;}
+#workspace .rcol .block-wrap .project-ids.block.no-project-ids{font-style:italic;text-decoration:line-through;}
+#workspace .rcol .project-ids.block .label{display:block;font-weight:bold;font-style:italic;}
+#workspace .rcol .project-ids.block input{border:dashed .1em;font-size:100%;}
 /*MAIN VIEW*/
 #main-view{display:block;height:65%;width:100%;position:absolute;left:0;top:0;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace.collapse-input-view > #main-view{height:auto;bottom:.9em;}

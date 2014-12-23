@@ -29,7 +29,7 @@ function htm_hidden_dirs_label(numDirs){
 }
 //get template listing html 
 function htm_template_dirs(json){
-	var temHtm='';var selFileHtm='';
+	var temHtm='';var selFileHtm='';var projectIdsHtm='';
 	//get the template directories array
 	var dirs=[];
 	var hidden=[];
@@ -58,6 +58,7 @@ function htm_template_dirs(json){
 				var htm=htm_template_dir(dirs[d]);
 				temHtm+=htm.template;
 				selFileHtm+=htm.file_select;
+				projectIdsHtm+=htm.project_ids;
 			}
 		}else{
 			//no template dirs...
@@ -90,7 +91,7 @@ function htm_template_dirs(json){
 		temHtm+='</ul></li></ul>';
 	}
 	//put all of the different html parts together into a json
-	var retJson={'templates':temHtm,'file_selects':selFileHtm};
+	var retJson={'templates':temHtm,'file_selects':selFileHtm,'project_ids':projectIdsHtm};
 	return retJson;
 }
 //get hidden template name html 
@@ -102,13 +103,15 @@ function htm_template_hiddir(path){
 }
 //get the html for a template directory
 function htm_template_dir(json){
-	var temHtml='';var selFileHtm='';
+	var temHtml='';var selFileHtm='';var projectIdsHtm='';
 	if(json!=undefined){
 		//if a dir path was provided (required)
 		if(json.hasOwnProperty('path')){
 			//==GET VALUES FROM THE JSON==
 			//if json has ls property, then get the ls array
 			var ls=[];if(json.hasOwnProperty('ls')){ls=json.ls;}
+			//if json has project_ids property, then get the project ids array
+			var project_ids=[];if(json.hasOwnProperty('project_ids')){project_ids=json.project_ids;}
 			//if json has includes property, then get the includes array
 			var includes=[];if(json.hasOwnProperty('includes')){includes=json.includes;}
 			//if json has hidden property, then get the hidden array
@@ -142,10 +145,12 @@ function htm_template_dir(json){
 			temHtml+=htm_template_includes(includes);
 			//end dir item
 			temHtml+='</li>';
+			//==PROJECT IDS HTML==
+			projectIdsHtm+=htm_project_ids(json.path,project_ids);
 		}
 	}
 	//put the return json together
-	var retJson={'template':temHtml,'file_select':selFileHtm};
+	var retJson={'template':temHtml,'file_select':selFileHtm,'project_ids':projectIdsHtm};
 	return retJson;
 }
 //get file listing html 
@@ -388,5 +393,34 @@ function htm_template_hidfile(name){
 	var htm='';
 	//==HID FILE NAME HTML==
 	htm+='<li>'+name+'</li>';
+	return htm;
+}
+//get the project ids html for a single template
+function htm_project_ids(temPath,project_ids){
+	var htm='';
+	if(project_ids!=undefined){
+		if(project_ids.length>0){
+			htm+='<div name="'+temPath+'" class="block project-ids">';
+			//for each project id
+			for(var i=0;i<project_ids.length;i++){
+				//get the html for one project id
+				htm+=htm_project_id(project_ids[i]);
+			}
+			htm+='</div>';
+		}else{
+			htm+='<div name="'+temPath+'" class="block project-ids no-project-ids">';
+			htm+='(0) project id\'s';
+			htm+='</div>';
+		}
+	}
+	return htm;
+}
+//get one project id html
+function htm_project_id(id){
+	var htm='';
+	htm+='<div name="'+id+'" class="id">';
+	htm+='<span class="label">'+id+'</span>';
+	htm+='<input class="id-val" type="text" />';
+	htm+='</div>';
 	return htm;
 }

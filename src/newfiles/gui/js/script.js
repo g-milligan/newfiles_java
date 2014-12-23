@@ -11,6 +11,9 @@ jQuery(document).ready(function(){
 	var workspaceWrap=contentWrap.children('#workspace:first');
 	var inputViewWrap=workspaceWrap.children('#input-view:last');
 	var mainViewWrap=workspaceWrap.children('#main-view:first');
+	var treeViewContent=mainViewWrap.children('.content[name="tree-view"]:first');
+	var projectIdsWrap=treeViewContent.find('.rcol .col-content .block-wrap.project-ids:first');
+	var fileViewContent=mainViewWrap.children('.content[name="file-view"]:first');
 	var mainTitleElem=mainViewWrap.find('header .title h1:first');
 	var mainViewTabs=mainViewWrap.find('header .tabs:first');
 	var mainViewFilesBar=mainViewWrap.find('header .template-files:first');
@@ -662,6 +665,9 @@ jQuery(document).ready(function(){
 			fileDropdownsWrap.children('nav.select').removeClass('active');
 			var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
 			fileSelect.addClass('active');
+			//==PROJECT IDS==
+			projectIdsWrap.children('.block').removeClass('active');
+			projectIdsWrap.children('.block[name="'+temName+'"]:first').addClass('active');
 			//==SHOW WORKSPACE==
 			//remove the no-selected-template indicator to show the workspace content
 			workspaceWrap.removeClass('no-selected-template');
@@ -858,6 +864,9 @@ jQuery(document).ready(function(){
 			//==SET THE FILE DROPDOWNS HTML==
 			fileDropdownsWrap.children('nav.select[name]').remove(); //clear old html
 			fileDropdownsWrap.append(htm.file_selects); //set html
+			//==PROJECT IDS LISTINGS FOR EACH TEMPLATE==
+			projectIdsWrap.html(''); //clear old html
+			projectIdsWrap.append(htm.project_ids); //set html
 			//==HOME-MADE SELECT DROPDOWNS VAL FUNCTION==
 			var selectDrops=contentWrap.find('nav.select').not('.evs');
 			selectDrops.each(function(){

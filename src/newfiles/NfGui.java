@@ -277,7 +277,17 @@ public class NfGui extends Application {
                     ArrayList<String> inFileNameTokens=mBuildTemplate.getTokensInFilenames(templatePath,filenameXmlOverwriteLookup,fileTokens,fileAliasesLookup);
                     //create the json if there are any project id's for this template
                     if(inFileNameTokens.size()>0){
-                        //***
+                        //start project id list json
+                        json+=",'project_ids':[";
+                        //for each project id (token name)
+                        for(int p=0;p<inFileNameTokens.size();p++){ //*** get the token options (if it has any)
+                            //if not the first token name... then add comma separator
+                            if(p!=0){json+=",";}
+                            //add to the token name to the json
+                            json+="'"+inFileNameTokens.get(p)+"'";
+                        }
+                        //end project id list json
+                        json+="]";
                     }
                     //end this template dir json
                     json+="}";
