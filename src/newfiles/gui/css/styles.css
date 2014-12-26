@@ -128,6 +128,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #templates nav.ls span:hover > .menu-btn{visibility:visible;}
 #templates nav.ls .dir .path{display:inline-block;cursor:pointer;}
 #templates nav.ls .file .name{cursor:pointer;}
+#templates nav.ls li.special > .file .name{font-weight:bold;}
 #templates nav.ls .on-off{display:inline-block;width:.9em;height:.9em;padding:.1em;margin-right:.2em;cursor:pointer;}
 #templates nav.ls .opened > .dir span.closed,#templates nav.ls .closed > .dir span.opened,
 #templates nav.ls .opened > .file span.closed,#templates nav.ls .closed > .file span.opened,
@@ -219,7 +220,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #main-view .template-files nav.select ul li .on-off{position:absolute;left:0;top:0;bottom:0;display:inline-block;width:.9em;height:.9em;margin:auto;padding:.1em;cursor:pointer;}
 #main-view .template-files nav.select ul li .txt{cursor:pointer;z-index:999;display:inline-block;width:100%;padding:.3em 0 .3em 1em;box-sizing:border-box;-moz-box-sizing:border-box;white-space:nowrap;}
 #main-view .template-files nav.select ul li.off .txt{text-decoration:line-through;font-style:italic;}
-#main-view .template-files nav.select ul li:first-child .txt{padding-left:0;}
+#main-view .template-files nav.select ul li:first-child .txt,#main-view .template-files nav.select ul li.special .txt{padding-left:0;}
 /*INPUT VIEW*/
 #input-view{display:block;height:35%;width:100%;position:absolute;left:0;bottom:0;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace.collapse-input-view > #input-view{height:.9em;overflow:hidden;}

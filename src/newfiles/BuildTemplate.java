@@ -285,27 +285,30 @@ public class BuildTemplate {
                             ArrayList<String> includeRules = mData.getXmlFilenamesIncludeValues(useTemplatePath);
                             //if there are any include rules
                             if(includeRules.size()>0){
-                                //for each token
-                                for(int t=0;t<tokens.size();t++){
-                                    //get the token text, eg: <<var:l:something>>
-                                    String tokenStr=tokens.get(t);
-                                    String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
-                                    //get the token alias
-                                    String tokenAlias=mData.getTokenPart("alias", tokenParts);
-                                    //if the token has an alias
-                                    if(tokenAlias.length()>0){
-                                        //get the token's name
-                                        String tokenName=mData.getTokenPart("name", fileAliasesLookup.get(filePath).get(tokenAlias));
-                                        //for each include rule, (check to see if this tokenAlias appears in any of the include rules)
-                                        for(int i=0;i<includeRules.size();i++){
-                                            //if the include rule contains the token alias
-                                            String includeRule=includeRules.get(i);
-                                            if(includeRule.contains(tokenAlias)){
-                                                //add the token name (associated with this alias) to the list
-                                                //the user will have to input a value for this token in order to determine the file path
-                                                inFileNameTokens.add(tokenName);
-                                                //stop searching for this alias inside include rules
-                                                break;
+                                //if the tokens list isn't null
+                                if(tokens!=null){
+                                    //for each token
+                                    for(int t=0;t<tokens.size();t++){
+                                        //get the token text, eg: <<var:l:something>>
+                                        String tokenStr=tokens.get(t);
+                                        String[] tokenParts = tokenStr.split(mStrMgr.mTokenSeparator);
+                                        //get the token alias
+                                        String tokenAlias=mData.getTokenPart("alias", tokenParts);
+                                        //if the token has an alias
+                                        if(tokenAlias.length()>0){
+                                            //get the token's name
+                                            String tokenName=mData.getTokenPart("name", fileAliasesLookup.get(filePath).get(tokenAlias));
+                                            //for each include rule, (check to see if this tokenAlias appears in any of the include rules)
+                                            for(int i=0;i<includeRules.size();i++){
+                                                //if the include rule contains the token alias
+                                                String includeRule=includeRules.get(i);
+                                                if(includeRule.contains(tokenAlias)){
+                                                    //add the token name (associated with this alias) to the list
+                                                    //the user will have to input a value for this token in order to determine the file path
+                                                    inFileNameTokens.add(tokenName);
+                                                    //stop searching for this alias inside include rules
+                                                    break;
+                                                }
                                             }
                                         }
                                     }

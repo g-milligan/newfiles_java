@@ -192,39 +192,8 @@ public class NfGui extends Application {
                     String ignoredFilesJson=""; boolean hasFiles=false;
                     for(String filePath : fileTokens.keySet()){
                         String fileName=new File(filePath).getName();
-                        //if NOT an ignored file
-                        if(fileName.indexOf("_")!=0){
-                            //if this is the first template file
-                            if(!hasFiles){json+=",'ls':[";}
-                            else{json+=",";}
-                            hasFiles=true;
-                            //start file json
-                            json+="{'name':'"+fileName+"'";
-                            //get the tokens in this file
-                            ArrayList<String> tokenStrs=fileTokens.get(filePath);
-                            //for each token in this file
-                            for(int t=0;t<tokenStrs.size();t++){
-                                //if this is the first token
-                                if(t==0){                                  
-                                    json+=",'tokens':["; //start tokens array
-                                }else{
-                                    //not the first token
-                                    json+=",";
-                                }
-                                //get the token string
-                                String tokenStr=tokenStrs.get(t);
-                                //get the json for this token string
-                                json+=mTemplateData.getTokenPartsJson(tokenStr);
-                                //if this is the last token
-                                if(t+1==tokenStrs.size()){
-                                    json+="]"; //end tokens array
-                                }
-                            }
-                            //end file json
-                            json+="}";
-                        }else{
-                            //this is an ignored file...
-                            
+                        //if this is an ignored file
+                        if(fileName.indexOf("_")==0){
                             //if this is the first ignored file
                             if(ignoredFilesJson.length()<1){
                                 //start it off
@@ -236,7 +205,39 @@ public class NfGui extends Application {
                             //add the name to the list of ignored files
                             ignoredFilesJson+="'"+fileName+"'";
                         }
-                        
+                        //if NOT an ignored file OR is the _filenames.xml file
+                        if(fileName.indexOf("_")!=0||fileName.equals(mStrMgr.mFilenamesXml)){
+                            //if this is the first template file
+                            if(!hasFiles){json+=",'ls':[";}
+                            else{json+=",";}
+                            hasFiles=true;
+                            //start file json
+                            json+="{'name':'"+fileName+"'";
+                            //get the tokens in this file
+                            ArrayList<String> tokenStrs=fileTokens.get(filePath);
+                            if(tokenStrs!=null){
+                                //for each token in this file
+                                for(int t=0;t<tokenStrs.size();t++){
+                                    //if this is the first token
+                                    if(t==0){                                  
+                                        json+=",'tokens':["; //start tokens array
+                                    }else{
+                                        //not the first token
+                                        json+=",";
+                                    }
+                                    //get the token string
+                                    String tokenStr=tokenStrs.get(t);
+                                    //get the json for this token string
+                                    json+=mTemplateData.getTokenPartsJson(tokenStr);
+                                    //if this is the last token
+                                    if(t+1==tokenStrs.size()){
+                                        json+="]"; //end tokens array
+                                    }
+                                }
+                            }
+                            //end file json
+                            json+="}";
+                        }                        
                     }
                     //if has any template files, then end 'ls' file array
                     if(hasFiles){json+="]";}
@@ -487,6 +488,9 @@ public class NfGui extends Application {
                                     }
                                     //add the list of tokens inside _filenames.xml
                                     filesTokens.put(subFiles[f].getPath(), tokenStrs);
+                                }else{
+                                    //_filenames.xml contains ZERO tokens
+                                    filesTokens.put(subFiles[f].getPath(), null);
                                 }
                             }else{
                                 //this is a hidden file AND NOT _filenames.xml

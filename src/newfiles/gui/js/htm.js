@@ -189,16 +189,26 @@ function htm_template_file(json){
 			//set the opened/closed class
 			var openClass='closed';if(isOpen){openClass='opened';}
 			//==FILE HEAD HTML==
+			var isSpecial=false; var specialClass='';
+			if(json.name.indexOf('_')==0){ //if special _filenames.xml hidden file
+				isSpecial=true;
+				specialClass=' special';
+			}
 			//start file item
-			temHtml+='<li class="on '+openClass+hasTokensClass+'" name="'+json.name+'">';
+			temHtml+='<li class="on '+openClass+hasTokensClass+specialClass+'" name="'+json.name+'">';
 			//the main directory path html
 			temHtml+='<span class="file">';
             temHtml+='<span title="open/close" class="opened-closed"><span class="closed">'+getSvg('plus')+'</span><span class="opened">'+getSvg('minus')+'</span></span>';
-			temHtml+='<span title="on/off" class="on-off">'+getSvg('file')+'</span>';
+			if(!isSpecial){ //if not the special _filenames.xml hidden file
+				temHtml+='<span title="on/off" class="on-off">'+getSvg('file')+'</span>';
+			}
 			temHtml+='<span class="name">'+json.name+'</span>';
 			temHtml+='<span title="options" class="menu-btn">'+getSvg('cog')+'</span>';
 			temHtml+='</span>';
-			selFileHtm+='<li class="on" val="'+json.name+'"><span class="on-off">'+getSvg('file')+'</span>';
+			selFileHtm+='<li class="on'+specialClass+'" val="'+json.name+'">';
+			if(!isSpecial){ //if not the special _filenames.xml hidden file
+				selFileHtm+='<span class="on-off">'+getSvg('file')+'</span>';
+			}
 			selFileHtm+='<span class="txt">'+json.name+'</span></li>';
 			//==TOKENS LIST HTML==
 			temHtml+=htm_template_tokens(tokens);

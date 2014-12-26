@@ -861,9 +861,24 @@ jQuery(document).ready(function(){
 			var htm=htm_template_dirs(json); //get html
 			temLsWrap.html(''); //clear old html
 			temLsWrap.append(htm.templates); //set html
+			//make sure the special files, ie: _filenames.xml are first in the listings
+			var specialLi=temLsWrap.find('ul.ls.files > li.special');
+			specialLi.each(function(){
+				//make the special file first in the file listing
+				var parentUl=jQuery(this).parent();
+				parentUl.prepend(jQuery(this));
+			});
 			//==SET THE FILE DROPDOWNS HTML==
 			fileDropdownsWrap.children('nav.select[name]').remove(); //clear old html
 			fileDropdownsWrap.append(htm.file_selects); //set html
+			//make sure the special files, ie: _filenames.xml are first in the listings
+			var specialOption=fileDropdownsWrap.find('nav.select > ul li.special');
+			specialOption.each(function(){
+				//make the special file second in the file listing
+				var parentUl=jQuery(this).parent();
+				var firstOption=parentUl.children('li:first');
+				firstOption.after(jQuery(this));
+			});
 			//==PROJECT IDS LISTINGS FOR EACH TEMPLATE==
 			projectIdsWrap.html(''); //clear old html
 			projectIdsWrap.append(htm.project_ids); //set html
