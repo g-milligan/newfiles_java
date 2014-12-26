@@ -65,6 +65,7 @@ public class NfGui extends Application {
     private static HashMap<String, ArrayList<String>> mIncludeRules; //HashMap<[templatePath], ArrayList<[includeRul]>>
     private static HashMap<String, HashMap<String, String>> mFilenameXmlOverwriteLookup; //HashMap<[templatePath], HashMap<[filePath], [filenameTokenTxt from _filename.xml]>>>
     private static HashMap<String, HashMap<String, HashMap<String, String>>> mFileAliasesLookup; //HashMap<[templatePath], HashMap<[filePath], HashMap<[tokenAlias], [tokenStr]>>>
+    public static HashMap<String, HashMap<String, ArrayList<String>>> mUniqueTokenNameOptions; //HashMap<[templatePath], HashMap<[tokenName], ArrayList<[possible-input-value-options]>>> token name is NOT the nested name, it's just the name with no index
     
     //display elements
     private Newfiles mNewfiles;
@@ -278,14 +279,45 @@ public class NfGui extends Application {
                     ArrayList<String> inFileNameTokens=mBuildTemplate.getTokensInFilenames(templatePath,filenameXmlOverwriteLookup,fileTokens,fileAliasesLookup);
                     //create the json if there are any project id's for this template
                     if(inFileNameTokens.size()>0){
+                        //if this template has any tokens WITH OPTIONS
+                        HashMap<String, ArrayList<String>> tokenNamesWithOptions=null;
+                        if(mUniqueTokenNameOptions.containsKey(templatePath)){
+                            tokenNamesWithOptions=mUniqueTokenNameOptions.get(templatePath);
+                        }
                         //start project id list json
                         json+=",'project_ids':[";
                         //for each project id (token name)
-                        for(int p=0;p<inFileNameTokens.size();p++){ //*** get the token options (if it has any)
+                        for(int p=0;p<inFileNameTokens.size();p++){ 
                             //if not the first token name... then add comma separator
                             if(p!=0){json+=",";}
+                            //start token json
+                            json+="{";
                             //add to the token name to the json
-                            json+="'"+inFileNameTokens.get(p)+"'";
+                            String tokenName=inFileNameTokens.get(p);
+                            json+="'name':'"+tokenName+"'";
+                            //if this template has any tokens WITH OPTIONS
+                            if(tokenNamesWithOptions!=null){
+                                //if this project id has fixed options
+                                if(tokenNamesWithOptions.containsKey(tokenName)){
+                                    //if there are any option items in the list
+                                    ArrayList<String> options=tokenNamesWithOptions.get(tokenName);
+                                    if(options.size()>0){
+                                        //start options list
+                                        json+=",'options':[";
+                                        //for each option
+                                        for(int o=0;o<options.size();o++){
+                                            //if not the first option, then add separator
+                                            if(o!=0){json+=",";}
+                                            //add option value
+                                            json+="'"+options.get(o)+"'";
+                                        }
+                                        //end options list
+                                        json+="]";
+                                    }
+                                }
+                            }
+                            //end token json
+                            json+="}";
                         }
                         //end project id list json
                         json+="]";
@@ -353,6 +385,11 @@ public class NfGui extends Application {
         }else{
             mFileAliasesLookup.clear();
         }
+        if(mUniqueTokenNameOptions==null){
+            mUniqueTokenNameOptions=new HashMap<String, HashMap<String, ArrayList<String>>>();
+        }else{
+            mUniqueTokenNameOptions.clear();
+        }
         //if the root template folder exists
         File temRoot = new File(mTemplatesRoot);
         if(temRoot.exists()){
@@ -369,6 +406,34 @@ public class NfGui extends Application {
             //template root folder doesn't exist...
             
             mTemplateHierarchy=null;
+        }
+    }
+    //store the associated options for a token name inside of a template
+    private static void linkOptionsToUniqueTokenName(String templatePath, String tokenName, String tokenStr){
+        //if there are defined input value options for this token
+        String tOptionsStr = mTemplateData.getTokenPart("options", tokenStr);
+        if(tOptionsStr.length()>0){
+            //if this template doesn't already have any associated options
+            if(!mUniqueTokenNameOptions.containsKey(templatePath)){
+                HashMap<String, ArrayList<String>> options = new HashMap<String, ArrayList<String>>();
+                mUniqueTokenNameOptions.put(templatePath, options);
+            }
+            //if this token name doesn't already have any associated options
+            if(!mUniqueTokenNameOptions.get(templatePath).containsKey(tokenName)){
+                //create the token name as a key in this HashMap
+                ArrayList<String> options = new ArrayList<String>();
+                mUniqueTokenNameOptions.get(templatePath).put(tokenName, options);
+            }
+            //for each option
+            String[] tOptionsArray = tOptionsStr.split("\\|");
+            for(int a=0;a<tOptionsArray.length;a++){
+                //if this option isn't already associated with this token name
+                String opt=tOptionsArray[a];
+                if(!mUniqueTokenNameOptions.get(templatePath).get(tokenName).contains(opt)){
+                    //add the association between this token name and value option
+                    mUniqueTokenNameOptions.get(templatePath).get(tokenName).add(opt);
+                }
+            }
         }
     }
     private static void loadAliasLookupForOneToken(String temPath, String filePath, String tokenStr){
@@ -444,8 +509,12 @@ public class NfGui extends Application {
                         if(tokens.size()>0){
                             //for each token inside the template file
                             for(int t=0;t<tokens.size();t++){
+                                //get the token name
+                                String tokenName=mTemplateData.getTokenPart("name", tokens.get(t));
                                 //load the alias info for this token
                                 loadAliasLookupForOneToken(dir.getPath(),subFiles[f].getPath(),tokens.get(t));
+                                //load the options info for this token
+                                linkOptionsToUniqueTokenName(dir.getPath(),tokenName,tokens.get(t));
                             }
                         }
                         filesTokens.put(subFiles[f].getPath(), tokens);
@@ -481,10 +550,14 @@ public class NfGui extends Application {
                                     //for each token inside _filenames.xml
                                     for(int t=0;t<tokens.size();t++){
                                         String tStr=tokens.get(t);
+                                        //get the token name
+                                        String tokenName=mTemplateData.getTokenPart("name", tStr);
                                         //append the source to the token AND add the modified value to a new list
                                         tokenStrs.add(tStr+" " + mStrMgr.mTokenSourceSeparator + " " + mStrMgr.mFilenamesXml);
                                         //load the alias info for this token
                                         loadAliasLookupForOneToken(dir.getPath(),subFiles[f].getPath(),tStr);
+                                        //load the options info for this token
+                                        linkOptionsToUniqueTokenName(dir.getPath(),tokenName,tStr);
                                     }
                                     //add the list of tokens inside _filenames.xml
                                     filesTokens.put(subFiles[f].getPath(), tokenStrs);

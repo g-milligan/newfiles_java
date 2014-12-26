@@ -426,11 +426,33 @@ function htm_project_ids(temPath,project_ids){
 	return htm;
 }
 //get one project id html
-function htm_project_id(id){
+function htm_project_id(json){
 	var htm='';
-	htm+='<div name="'+id+'" class="id">';
-	htm+='<span class="label">'+id+'</span>';
-	htm+='<input class="id-val" type="text" />';
-	htm+='</div>';
+	if(json.hasOwnProperty('name')){
+		htm+='<div name="'+json.name+'" class="id">';
+		htm+='<span class="label">'+json.name+'</span>';
+		var optionArray=[];if(json.hasOwnProperty('options')){optionArray=json.options;}
+		//if there are no options
+		if(optionArray.length<1){
+			htm+='<input class="id-val" type="text" />';
+		}else{
+			//there are options for this project_id...
+			
+			//start option select 
+			htm+='<nav class="select">';
+			htm+='<span class="lbl">[select an option]</span>';
+			htm+='<ul>';
+			htm+='<li class="active" val="..."><span class="txt">[select an option]</span></li>';
+			//for each option
+			for(var i=0;i<optionArray.length;i++){
+				var option=optionArray[i];
+				//add item
+				htm+='<li val="'+option+'"><span class="txt">'+option+'</span></li>';
+			}
+			//end option select 
+			htm+='</ul></nav>';
+		}
+		htm+='</div>';
+	}
 	return htm;
 }
