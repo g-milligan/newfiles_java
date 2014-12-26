@@ -74,7 +74,53 @@ jQuery(document).ready(function(){
 		}
 	};
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
+	//PLUS/MINUS SECTIONS
+	var plusMinusClick=function(btn){
+		var btnParent=btn.parent();
+		if(btnParent.hasClass('plus')){
+			var blockElem=btnParent.next('.plus:first');
+			btnParent.removeClass('plus');
+			blockElem.removeClass('plus');
+			btnParent.addClass('minus');
+			blockElem.addClass('minus');
+		}else{
+			var blockElem=btnParent.next('.minus:first');
+			btnParent.removeClass('minus');
+			blockElem.removeClass('minus');
+			btnParent.addClass('plus');
+			blockElem.addClass('plus');
+		}
+	};
+	var plusMinusBtns=bodyElem.find('.plus-minus').not('.evs');
+	preventSelect(plusMinusBtns);
+	plusMinusBtns.addClass('evs');
+	plusMinusBtns.html('<span class="minus">'+getSvg('plus')+'</span><span class="plus">'+getSvg('minus')+'</span>');
+	plusMinusBtns.click(function(){plusMinusClick(jQuery(this));});
 	//SIZE CONTROLS (EG: PIN/UNPIN)
+	var pinUnpinElems=bodyElem.find('.pinned-unpinned').not('.evs');
+	pinUnpinElems.addClass('evs');
+	var slider_timeout;
+	pinUnpinElems.hover(function(){
+		//if unpinned
+		if(jQuery(this).hasClass('unpinned')){
+			var rowWrap=jQuery(this).parent();
+			//after a delay
+			slider_timeout=setTimeout(function(){
+				//remove slide-in class on hover
+				rowWrap.removeClass('slide-in');
+				rowWrap.addClass('slide-out');
+			}, 280);
+		}
+	},function(){
+		//add slide-in class on hover out
+		clearTimeout(slider_timeout);
+		var rowWrap=jQuery(this).parent();
+		//if unpinned
+		if(jQuery(this).hasClass('unpinned')){
+			rowWrap.addClass('slide-in');
+		}else{rowWrap.removeClass('slide-in');}
+		rowWrap.removeClass('slide-out');
+	});
 	var sizeCtlsWraps=bodyElem.find('.size-controls');
 	//pin/un-pin column
 	var pinElems=sizeCtlsWraps.children('.pin');
@@ -84,31 +130,6 @@ jQuery(document).ready(function(){
 		//get the elements that share the space with the pinned-unpinned element
 		var rowWrap=parentPinElem.parent();
 		var spaceShareElems=rowWrap.children().not(parentPinElem);
-		//if the parent element doesn't already have the hover event
-		if(!parentPinElem.hasClass('evs')){
-			parentPinElem.addClass('evs');
-			//add the hover event
-			var slider_timeout;
-			parentPinElem.hover(function(){
-				//if unpinned
-				if(parentPinElem.hasClass('unpinned')){
-					//after a delay
-					slider_timeout=setTimeout(function(){
-						//remove slide-in class on hover
-						rowWrap.removeClass('slide-in');
-						rowWrap.addClass('slide-out');
-					}, 280);
-				}
-			},function(){
-				//add slide-in class on hover out
-				clearTimeout(slider_timeout);
-				//if unpinned
-				if(parentPinElem.hasClass('unpinned')){
-					rowWrap.addClass('slide-in');
-				}else{rowWrap.removeClass('slide-in');}
-				rowWrap.removeClass('slide-out');
-			});
-		}
 		//if currently pinned
 		if(parentPinElem.hasClass('pinned')){
 			//then unpin
