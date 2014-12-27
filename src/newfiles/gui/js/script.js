@@ -218,6 +218,111 @@ jQuery(document).ready(function(){
 			});
 		}
 	});
+	//INCLUDE FILE RULE BOX
+	//internal function to sanitize the search string
+	var sanitizeIncludeStr=function(str){
+		//case insensitive
+		str=str.trim();
+		//remove certain strings
+		str=replaceAll(str,'   ',' ');
+		str=replaceAll(str,'  ',' ');
+		str=replaceAll(str,'<','');
+		str=replaceAll(str,'>','');
+		
+		return str;
+	};
+	//get the include rule wraps
+	var includeRuleWraps=contentWrap.find('.edit-include-rule');
+	includeRuleWraps.each(function(){
+		var includeRuleWrap=jQuery(this);
+		var includeInput=includeRuleWrap.children('input:first');
+		var addBtn=includeRuleWrap.children('.add-btn:last');
+		var clearBtn=includeRuleWrap.children('.clear-btn:last');
+		//disable selection on certain elements
+		preventSelect(addBtn); preventSelect(clearBtn);
+		//add the button images
+		addBtn.html(getSvg('paperclip'));
+		clearBtn.html(getSvg('x'));
+		//get the default text for this field
+		var defaultTxt=includeInput.attr('value');
+		var origTxt=defaultTxt;
+		defaultTxt=sanitizeIncludeStr(defaultTxt);
+		//internal functions
+		var doAdd=function(){
+			includeRuleWrap.addClass('do-add');
+			setTimeout(function(){includeRuleWrap.removeClass('do-add');},200);
+			//get the text to search
+			var currentTxt=includeInput.val();
+			currentTxt=sanitizeIncludeStr(currentTxt);
+			//if the current text is the default text OR blank
+			if(currentTxt==defaultTxt||currentTxt.length<1){
+				//clear the default text and set focus
+				includeInput.val('');
+				includeInput.focus();
+			}else{
+				//***
+			}
+		};
+		var clearTxt=function(){
+			//clear the text and set focus
+			includeRuleWrap.removeClass('text-entered');
+			includeInput.val(origTxt);
+		};
+		var gotFocus=function(){
+			//if the current text is the default text
+			var currentTxt=includeInput.val();
+			currentTxt=sanitizeIncludeStr(currentTxt);
+			if(currentTxt==defaultTxt){
+				//clear text
+				includeInput.val('');
+			}
+		};
+		//EVENTS
+		addBtn.click(function(){doAdd();includeInput.focus();});
+		//clear button click event
+		clearBtn.click(function(){clearTxt();});
+		//search input events
+		includeInput.blur(function(){
+			//if the current text is the default text OR blank
+			var currentTxt=includeInput.val();
+			currentTxt=sanitizeIncludeStr(currentTxt);
+			if(currentTxt==defaultTxt||currentTxt.length<1){
+				//restore the default text
+				includeInput.val(origTxt);
+				includeRuleWrap.removeClass('text-entered');
+			}
+		});
+		if(includeInput.focusin){
+			includeInput.focusin(function(){gotFocus();});
+		}else{
+			includeInput.click(function(){gotFocus();});
+		}
+		includeInput.keyup(function(e){
+			switch(e.keyCode){
+				case 27: //escape key pressed
+					e.preventDefault();
+					clearTxt();
+					includeInput.val('');
+				break;
+				case 13: //enter key pressed
+					e.preventDefault();
+					doAdd();
+				break;
+				default: //another key pressed, eg: a, b, c
+					//if the current text is NOT the default text OR blank
+					var currentTxt=includeInput.val();
+					currentTxt=sanitizeIncludeStr(currentTxt);
+					if(currentTxt!=defaultTxt&&currentTxt.length>0){
+						//add the text entered class
+						includeRuleWrap.addClass('text-entered');
+					}else{
+						//default text OR blank
+						includeRuleWrap.removeClass('text-entered');
+					}
+				break;
+			}
+		});
+	});
 	//SEARCH BOXES
 	//internal function to sanitize the search string
 	var sanitizeSearchStr=function(str){

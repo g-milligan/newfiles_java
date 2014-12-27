@@ -50,9 +50,27 @@
                 <div name="tree-view" class="content active hidden-system-files">
                 	<div class="lcol">
                     	<div class="col-content">
-                        	<div class="top-bar"></div>
+                        	<div class="top-bar">
+                            	<div class="search" name="search-tree-view">
+                                    <input type="text" value="Tree-view search (file, folder)">
+                                    <div class="clear-btn"></div>
+                                    <div class="search-btn"></div>
+                                    <div class="found-count">
+                                        <div class="current">-</div>
+                                        <div class="total">-</div>
+                                        <div class="prev"></div>
+                                        <div class="next"></div>
+                                    </div>
+                                </div>
+                            </div>
                         	<div class="scroll"></div>
-                            <div class="bottom-bar"></div>
+                            <div class="bottom-bar">
+                            	<div class="edit-include-rule">
+                                    <input type="text" value="Add include file rule to project exports">
+                                    <div class="clear-btn"></div>
+                                    <div class="add-btn"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 	<div class="rcol pinned-unpinned pinned">
@@ -77,7 +95,7 @@
                                 	<div class="btn refresh-tree">Refresh tree</div>
                                     <div class="btn expand-file">Expand selected template file</div>
                                     <div class="btn open-folder">Open selected folder</div>
-                                    <div onclick="javascript:toggleHiddenSystemFiles(this);" class="toggle show-hid-files on">Show hidden system files</div>
+                                    <div onClick="javascript:toggleHiddenSystemFiles(this);" class="toggle show-hid-files on">Show hidden system files</div>
                                 </div>
                             </div>
                         </div>
