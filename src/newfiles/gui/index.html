@@ -47,10 +47,12 @@
                         </div>
                     </div>
               </header>
-                <div name="tree-view" class="content active">
+                <div name="tree-view" class="content active hidden-system-files">
                 	<div class="lcol">
                     	<div class="col-content">
+                        	<div class="top-bar"></div>
                         	<div class="scroll"></div>
+                            <div class="bottom-bar"></div>
                         </div>
                     </div>
                 	<div class="rcol pinned-unpinned pinned">
@@ -71,7 +73,12 @@
                         		<h2 class="block-title project-ids plus"><span class="plus-minus"></span>Project ID's</h2>
                                 <div id="project-ids" class="block-wrap project-ids plus"></div>
                         		<h2 class="block-title tree-view-options minus"><span class="plus-minus"></span>Tree View Options</h2>
-                                <div class="tree-view-options minus"></div>
+                                <div class="block-wrap tree-view-options minus">
+                                	<div class="btn refresh-tree">Refresh tree</div>
+                                    <div class="btn expand-file">Expand selected template file</div>
+                                    <div class="btn open-folder">Open selected folder</div>
+                                    <div onclick="javascript:toggleHiddenSystemFiles(this);" class="toggle show-hid-files on">Show hidden system files</div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1281,3 +1281,14 @@ function goToTabView(tabBtn){
 		contentWraps.filter('[name="'+tabName+'"]:first').addClass('active');
 	}
 }
+function toggleHiddenSystemFiles(btn){
+	btn=jQuery(btn);
+	var treeViewWrap=btn.parents('.content[name="tree-view"]:first');
+	if(btn.hasClass('on')){
+		btn.removeClass('on');
+		treeViewWrap.removeClass('hidden-system-files');
+	}else{
+		btn.addClass('on');
+		treeViewWrap.addClass('hidden-system-files');
+	}
+}

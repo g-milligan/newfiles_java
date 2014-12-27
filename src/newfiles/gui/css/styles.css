@@ -55,9 +55,9 @@ found.highlight:before{content:"{";padding-right:.1em;}
 found.highlight:after{content:"}";padding-left:.1em;}
 /*COLOR PALETTE*/
 /*main background color*/
-body,.title .options ul li:hover,li.parent ul li:hover,#main-view .file-icon:hover,#main-view .select ul::-webkit-scrollbar-thumb,#main-view nav.select ul li.active,.template-files .on-off:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files .dropdown:after,#main-view .prev-next > div:before,#templates li.selected > .dir,#templates li.selected li.selected > .file, #templates li.selected > span.file found, #templates li.selected > span.dir found, #templates ul.ls.folders > .selected .selected .selected > .token found,#templates ul.ls.folders > .selected .selected .selected > .token,#main-view .template-files nav.select .lbl,#main-view .select ul{color:#01131A;} div:hover > svg *,.on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path,#main-view .file-icon path,#templates li.selected > .dir path,#templates li.selected li.selected > .file path,#templates ul.ls.folders > .selected .selected .selected > .token path,.template-files .on-off path,.template-files li.active .on-off:hover path,.plus-minus:hover path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
+body,.title .options ul li:hover,li.parent ul li:hover,#main-view .file-icon:hover,#main-view .select ul::-webkit-scrollbar-thumb,#main-view nav.select ul li.active,.template-files .on-off:hover{background-color:#01131A;} #menu-bar > ul > li:hover,#menu-bar > ul > li.on:hover,.title .options ul li,li.parent ul li,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files .dropdown:after,#main-view .prev-next > div:before,#templates li.selected > .dir,#templates li.selected li.selected > .file, #templates li.selected > span.file found, #templates li.selected > span.dir found, #templates ul.ls.folders > .selected .selected .selected > .token found,#templates ul.ls.folders > .selected .selected .selected > .token,#main-view .template-files nav.select .lbl,#main-view .select ul,#workspace .tree-view-options > div:hover{color:#01131A;} div:hover > svg *,.on-off:hover path,#templates .opened-closed:hover path,#templates .menu-btn:hover path,.search.do-search .search-btn path,#main-view .file-icon path,#templates li.selected > .dir path,#templates li.selected li.selected > .file path,#templates ul.ls.folders > .selected .selected .selected > .token path,.template-files .on-off path,.template-files li.active .on-off:hover path,.plus-minus:hover path{fill:#01131A;} .title .options:hover .arrow:before,#menu-bar ul li.parent:hover:after{border-color:#01131A transparent transparent transparent;}
 /*default color*/
-body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover,#main-view nav.select ul li.active{color:#BC6684;} .folder:hover,.pin:hover,.toggle-expand:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,.on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in > .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover,.search .found-count .prev:hover, .search .found-count .next:hover,#templates nav.ls .token .part .i:before,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files,#templates li.selected > .dir,#templates li.selected li.selected > .file,#templates ul.ls.folders > .selected .selected .selected > .token,#main-view nav.select ul,.template-files li.active .on-off:hover,.plus-minus:hover{background-color:#BC6684;} input[type="text"],#main-view nav.select ul{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *,#main-view .file-icon:hover path,.template-files .on-off:hover path,.template-files li.active .on-off path{fill:#BC6684;}
+body,input[type="text"],#menu-bar,.title .options ul li:hover,li.parent ul li:hover,#main-view nav.select ul li.active{color:#BC6684;} .folder:hover,.pin:hover,.toggle-expand:hover,.resize,#menu-bar > ul > li:hover,.title .options:hover .arrow,#menu-bar > ul > li.on,.folder:hover svg,.title .options ul,li.parent ul,::-webkit-scrollbar-thumb,.on-off:hover,#templates nav.ls .opened-closed:hover,#templates nav.ls .menu-btn:hover,.slide-in > .unpinned:hover,.search .search-btn:hover,.search.do-search .search-btn,.search .clear-btn:hover,.search .found-count .prev:hover, .search .found-count .next:hover,#templates nav.ls .token .part .i:before,.tree-view nav.tabs > span.tree-view,.file-view nav.tabs > span.file-view,#main-view .template-files,#templates li.selected > .dir,#templates li.selected li.selected > .file,#templates ul.ls.folders > .selected .selected .selected > .token,#main-view nav.select ul,.template-files li.active .on-off:hover,.plus-minus:hover,#workspace .tree-view-options > div:hover{background-color:#BC6684;} input[type="text"],#main-view nav.select ul{border-color:#BC6684;} .title .options .arrow:before,#menu-bar ul li.parent:after{border-color:#BC6684 transparent transparent transparent;} .title .options ul, li.parent ul{border-color:#BC6684;} svg *,#main-view .file-icon:hover path,.template-files .on-off:hover path,.template-files li.active .on-off path{fill:#BC6684;}
 /*highlight color*/
 found.highlight:before,found.highlight:after{text-shadow:0 0 1em rgba(181,137,0,1);}
 #templates li.selected > .dir found:before,#templates li.selected > .dir found:after,#templates li.selected li.selected > .file found:before,#templates li.selected li.selected > .file found:after{text-shadow:none;}
@@ -181,12 +181,18 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #workspace .lcol .col-content,#workspace .rcol .col-content{padding:.2em;position:absolute;top:.9em;left:0;bottom:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace .lcol .col-content{top:0;}
 #workspace .col-content .scroll{font-size:54%;width:100%;height:100%;overflow:auto;box-sizing:border-box;-moz-box-sizing:border-box;}
+#workspace div[name="tree-view"] .lcol .col-content .scroll{font-size:100%;position:absolute;left:0;right:0;top:1.2em;bottom:1.2em;height:auto;padding:.2em;}
+#workspace div[name="tree-view"] .lcol .col-content .top-bar,
+#workspace div[name="tree-view"] .lcol .col-content .bottom-bar{position:absolute;left:0;right:0;height:1.2em;width:100%;padding:.2em;box-sizing:border-box;-moz-box-sizing:border-box;}
+#workspace div[name="tree-view"] .lcol .col-content .top-bar{top:0;padding-bottom:0;}
+#workspace div[name="tree-view"] .lcol .col-content .bottom-bar{bottom:0;padding-top:0;}
 #workspace .col-content h2{white-space:nowrap;font-size:120%;}
 #workspace .lcol{width:70%;left:0;}
 #workspace .rcol{width:30%;right:0;border-left:solid .1em;}
 #workspace .rcol.unpinned{border-left:dashed .1em;}
 #workspace .content.slide-in .rcol.unpinned{width:1.1em;}
 #workspace .content.slide-in .rcol.unpinned *{display:none;}
+#workspace .content.slide-in .lcol{width:auto;right:1.1em;}
 #workspace .rcol .block-wrap{padding:.5em 0 1em .4em;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace .rcol .block-wrap.minus{display:none;}
 #workspace .rcol .block-wrap .block > div{margin-bottom:.5em;}
@@ -196,8 +202,13 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #workspace .rcol .block-wrap .project-ids.block.no-project-ids{font-style:italic;text-decoration:line-through;}
 #workspace .rcol .project-ids.block .label{display:block;font-weight:bold;font-style:italic;}
 #workspace .rcol .project-ids.block input{border:dashed .1em;font-size:100%;}
+#workspace .rcol .block-wrap.tree-view-options{font-size:80%;}
+#workspace .rcol .block-wrap.tree-view-options > div{padding:.5em;border-bottom:dashed .1em;cursor:pointer;white-space:nowrap;}
+#workspace .rcol .block-wrap.tree-view-options > div:last-child{border-bottom:none;}
+#workspace .rcol .block-wrap.tree-view-options > .toggle:before{content:"";display:inline-block;height:1em;width:1em;margin-right:.5em;border:solid .1em;overflow:hidden;font-size:1em;line-height:1em;font-weight:bold;text-align:center;box-sizing:border-box;-moz-box-sizing:border-box;font-family:sans-serif;}
+#workspace .rcol .block-wrap.tree-view-options > .toggle.on:before{content:"X";}
 /*MAIN VIEW*/
-#main-view{display:block;height:65%;width:100%;position:absolute;left:0;top:0;box-sizing:border-box;-moz-box-sizing:border-box;}
+#main-view{display:block;height:75%;width:100%;position:absolute;left:0;top:0;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace.collapse-input-view > #main-view{height:auto;bottom:.9em;}
 #main-view .title{font-size:85%;width:100%;overflow:hidden;}
 #main-view .title h1{text-transform:none;}
@@ -221,7 +232,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #main-view nav.select ul{display:none;position:absolute;top:100%;left:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;height:auto;max-height:20em;overflow:auto;margin:0;padding:0;border:solid .2em transparent;}
 #main-view #project-ids nav.select ul{max-height:15em;}
 #main-view nav.select.open ul{display:block;z-index:999;}
-#main-view nav.select .lbl{position:relative;cursor:pointer;display:block;box-sizing:border-box;-moz-box-sizing:border-box;width:100%;overflow:hidden;padding:.1em 1.5em .1em .1em;border-bottom:solid .1em transparent;}
+#main-view nav.select .lbl{position:relative;cursor:pointer;display:block;box-sizing:border-box;-moz-box-sizing:border-box;width:100%;overflow:hidden;padding:.1em 1.5em .1em .1em;border-bottom:solid .1em transparent;white-space:nowrap;}
 #main-view #project-ids nav.select .lbl{padding:.4em 1.5em .4em .5em;border:dashed .1em;}
 #main-view nav.select.open .lbl{border-bottom:solid .1em;white-space:nowrap;}
 #main-view nav.select .lbl:after{content:"";width:0;height:0;border-style:solid;border-width:.2em .15em 0 .15em;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;position:absolute;right:.2em;top:0;bottom:0;margin:auto;z-index:10;font-size:2em;}
@@ -234,7 +245,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #main-view nav.select ul li.off .txt{text-decoration:line-through;font-style:italic;}
 #main-view nav.select ul li:first-child .txt,#main-view .template-files nav.select ul li.special .txt{padding-left:0;}
 /*INPUT VIEW*/
-#input-view{display:block;height:35%;width:100%;position:absolute;left:0;bottom:0;box-sizing:border-box;-moz-box-sizing:border-box;}
+#input-view{display:block;height:25%;width:100%;position:absolute;left:0;bottom:0;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace.collapse-input-view > #input-view{height:.9em;overflow:hidden;}
 #workspace.collapse-input-view > #input-view > div{display:none;}
 #input-view .size-controls{margin-top:.2em;}

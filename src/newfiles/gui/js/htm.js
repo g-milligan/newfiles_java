@@ -282,7 +282,7 @@ function htm_template_token(json){
 						val+='<span class="i">'+array[a]+'</span>';
 					}
 					//if more than two options, then add the many options class
-					if(array.length>2){manyOptionsClass=' many';}
+					if(array.length>4){manyOptionsClass=' many';}
 				}
 			}
 			//write the token part html
