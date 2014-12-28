@@ -218,6 +218,69 @@ jQuery(document).ready(function(){
 			});
 		}
 	});
+	//get the element that is scrolled to move found searches into view
+	var getScrollElem=function(type){
+		var elem;
+		switch(type){
+			case 'templates':
+				elem=temLsWrap;
+			break;
+			default:
+				
+			break;
+		}
+		return elem;
+	}
+	//move the highlighted found element into scroll view
+	var scrollToHighlight=function(elem,searchType){
+		if(searchType==undefined){searchType='templates';}
+		var scrollElem=getScrollElem(searchType);
+		if(scrollElem!=undefined){
+			//==VERTICAL==
+			//get the element's position and the view window bounds of the current sroll
+			var elemTop=elem.position().top;
+			var scrollTop=scrollElem.scrollTop();
+			elemTop+=scrollTop;
+			var elemBottom=elemTop+elem.outerHeight();
+			var scrollBottom=scrollTop+scrollElem.innerHeight();
+			//if the scroll has passed the element's position
+			if(elemTop<scrollTop){
+				scrollElem.scrollTop(elemTop); //scroll up to the element
+			}else{
+				//if the scroll is before the element's position
+				if(elemBottom>=scrollBottom){
+					scrollElem.scrollTop(elemTop); //scroll down to the element
+				}
+			}
+			//==HORIZONTAL==
+			//current scroll amount
+			var scrollLeft=scrollElem.scrollLeft();
+			//compare the left edge with where the elem is located
+			var offsetLeftEdge=scrollElem.offset().left;
+			var elemLeft=elem.offset().left;
+			//if the element is hanging off the left edge
+			if(elemLeft<=offsetLeftEdge){
+				//how far is the element element hanging off the left edge?
+				var difference=offsetLeftEdge-elemLeft;
+				//move the scroll to the left to correct the difference
+				var newScrollLeft=scrollLeft-difference;
+				if(newScrollLeft<0){newScrollLeft=0;}
+				scrollElem.scrollLeft(newScrollLeft);
+			}else{
+				//compare the right edge with where the elem is located
+				var elemRight=elemLeft+elem.outerWidth();
+				var offsetRightEdge=offsetLeftEdge+scrollElem.innerWidth();
+				//if the element is hanging off the right edge
+				if(elemRight>=offsetRightEdge){
+					//how far is the element element hanging off the right edge?
+					var difference=elemRight-offsetRightEdge;
+					//move the scroll to the right to correct the difference
+					var newScrollRight=scrollLeft+difference;
+					scrollElem.scrollLeft(newScrollRight);
+				}
+			}
+		}
+	};
 	//INCLUDE FILE RULE BOX
 	//internal function to sanitize the search string
 	var sanitizeIncludeStr=function(str){
@@ -271,6 +334,7 @@ jQuery(document).ready(function(){
 				includeInput.focus();
 				deselectTemplatesNav();
 			}else{
+				//doAdd create a new include rule or change the existing, selected include rule (triggers templateChangesMade())... will also highlight the selected files in tree view
 				//***
 			}
 		};
@@ -289,6 +353,21 @@ jQuery(document).ready(function(){
 				includeInput.val('');
 				deselectTemplatesNav();
 			}
+			//expand the include rules in the selected templates nav
+			var temLi=getTemplateLi();
+			if(temLi.hasClass('closed')){
+				//open the templates in the menu nav
+				var openBtn=temLi.find('.dir .opened-closed:first');
+				openBtn.click();
+			}
+			var includesLi=temLi.find('ul.includes > li:first');
+			if(includesLi.hasClass('closed')){
+				//open the includes in the menu nav
+				var openBtn=includesLi.find('.include .opened-closed:first');
+				openBtn.click();
+			}
+			//make sure the include rules are NOT scrolled out of view
+			scrollToHighlight(includesLi);
 		};
 		//EVENTS
 		addBtn.click(function(){doAdd();includeInput.focus();});
@@ -344,7 +423,7 @@ jQuery(document).ready(function(){
 		if(ruleStr.length>0){
 			//==LEFT NAV FILE==
 			//if this template name exists
-			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+			var temLi=getTemplateLi(temName);
 			if(temLi.length>0){
 				var includesUl=temLi.children('ul.includes:last');
 				//deselect current rule strings
@@ -432,19 +511,6 @@ jQuery(document).ready(function(){
 			}
 			return elems;
 		};
-		//get the element that is scrolled to move found searches into view
-		var getScrollElem=function(type){
-			var elem;
-			switch(type){
-				case 'templates':
-					elem=temLsWrap;
-				break;
-				default:
-					
-				break;
-			}
-			return elem;
-		}
 		//get all the found elements for a search
 		var getFoundElems=function(){
 			//get the elements whose inner text should be searched, depending on searchType
@@ -453,43 +519,6 @@ jQuery(document).ready(function(){
 			var foundElems=searchElems.has('found');
 			foundElems=foundElems.children('found');
 			return foundElems;
-		};
-		//move the highlighted found element into scroll view
-		var scrollToHighlight=function(elem){
-			var scrollElem=getScrollElem(searchType);
-			if(scrollElem!=undefined){
-				//==VERTICAL==
-				//get the element's position and the view window bounds of the current sroll
-				var elemTop=elem.position().top;
-				var scrollTop=scrollElem.scrollTop();
-				elemTop+=scrollTop;
-				var elemBottom=elemTop+elem.outerHeight();
-				var scrollBottom=scrollTop+scrollElem.innerHeight();
-				//if the scroll has passed the element's position
-				if(elemTop<scrollTop){
-					scrollElem.scrollTop(elemTop); //scroll up to the element
-				}else{
-					//if the scroll is before the element's position
-					if(elemBottom>=scrollBottom){
-						scrollElem.scrollTop(elemTop); //scroll down to the element
-					}
-				}
-				//==HORIZONTAL==
-				//get the element's position and the view window bounds of the current sroll
-				var elemLeft=elem.position().left;
-				var scrollLeft=scrollElem.scrollLeft();
-				var elemRight=elemLeft+elem.outerWidth();
-				var scrollRight=scrollLeft+scrollElem.innerWidth();
-				//if the scroll has passed the element's position
-				if(elemLeft<scrollLeft){
-					scrollElem.scrollLeft(elemLeft); //scroll left until the elem's left edge shows
-				}else{
-					//if the scroll is before the element's position
-					if(elemRight>=scrollRight){
-						scrollElem.scrollLeft(elemRight-scrollRight); //scroll left until the elem's right edge shows
-					}
-				}
-			}
 		};
 		//hightlight the next found search match
 		var highlightNext=function(){
@@ -830,6 +859,12 @@ jQuery(document).ready(function(){
 		var tem=mainTitleElem.text();
 		return tem.trim();
 	};
+	//gets the <li> element of the selected template (from the templates nav)
+	var getTemplateLi=function(temName){
+		if(temName==undefined){temName=getSelectedTemplate();}
+		var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+		return temLi;
+	};
 	bodyElem[0]['getSelectedTemplate']=getSelectedTemplate;
 	//==SELECT TEMPLATE==
 	var selectTemplate=function(temName){
@@ -842,7 +877,7 @@ jQuery(document).ready(function(){
 			//deselect existing selection
 			temLsWrap.find('ul.ls.folders > li.selected').removeClass('selected');
 			//select the new template
-			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+			var temLi=getTemplateLi(temName);
 			temLi.addClass('selected');
 			//==FILES DROPDOWN==
 			fileDropdownsWrap.children('nav.select').removeClass('active');
@@ -864,7 +899,7 @@ jQuery(document).ready(function(){
 		var currentFile=fileSelect[0]['currentSelectedFile'];
 		if(currentFile!=fName){
 			//==LEFT NAV FILE==
-			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+			var temLi=getTemplateLi(temName);
 			var fileLi=temLi.find('ul.ls.files > li[name="'+fName+'"]:first');
 			//deselect other files in this template
 			temLi.find('ul.ls.files > li.selected').removeClass('selected');
@@ -953,7 +988,7 @@ jQuery(document).ready(function(){
 				}
 				//==LEFT NAV TOKENS==
 				//target the template, by name
-				var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+				var temLi=getTemplateLi(temName);
 				if(temLi.length>0){
 					//deselect any other selected tokens in this template
 					temLi.find('ul.tokens > li[name]').removeClass('selected');
@@ -1014,7 +1049,7 @@ jQuery(document).ready(function(){
 		//if this file exists
 		if(selectedLi.length>0){
 			//==GET LEFT NAV FILE==
-			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+			var temLi=getTemplateLi(temName);
 			var fileLi=temLi.find('ul.ls.files > li[name="'+fName+'"]:first');
 			//if already on
 			if(selectedLi.hasClass('on')){
