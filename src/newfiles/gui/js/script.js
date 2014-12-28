@@ -228,6 +228,11 @@ jQuery(document).ready(function(){
 		str=replaceAll(str,'  ',' ');
 		str=replaceAll(str,'<','');
 		str=replaceAll(str,'>','');
+		str=replaceAll(str,'"','');
+		str=replaceAll(str,"'",'');
+		//make sure the rule string doesn't begin with, or end with /
+		if(str.indexOf('/')==0){str.substring('/'.length);}
+		if(str.lastIndexOf('/')==str.length-'/'.length){str=str.substring(0,str.length-'/'.length);}
 		
 		return str;
 	};
@@ -248,6 +253,11 @@ jQuery(document).ready(function(){
 		var origTxt=defaultTxt;
 		defaultTxt=sanitizeIncludeStr(defaultTxt);
 		//internal functions
+		var deselectTemplatesNav=function(){
+			//deselect any selected include rules
+			temLsWrap.find('ul.includes li.has-includes ul li.selected').removeClass('selected');
+			//*** remove <found> highlights
+		};
 		var doAdd=function(){
 			includeRuleWrap.addClass('do-add');
 			setTimeout(function(){includeRuleWrap.removeClass('do-add');},200);
@@ -259,6 +269,7 @@ jQuery(document).ready(function(){
 				//clear the default text and set focus
 				includeInput.val('');
 				includeInput.focus();
+				deselectTemplatesNav();
 			}else{
 				//***
 			}
@@ -267,6 +278,7 @@ jQuery(document).ready(function(){
 			//clear the text and set focus
 			includeRuleWrap.removeClass('text-entered');
 			includeInput.val(origTxt);
+			deselectTemplatesNav();
 		};
 		var gotFocus=function(){
 			//if the current text is the default text
@@ -275,6 +287,7 @@ jQuery(document).ready(function(){
 			if(currentTxt==defaultTxt){
 				//clear text
 				includeInput.val('');
+				deselectTemplatesNav();
 			}
 		};
 		//EVENTS
@@ -290,6 +303,7 @@ jQuery(document).ready(function(){
 				//restore the default text
 				includeInput.val(origTxt);
 				includeRuleWrap.removeClass('text-entered');
+				deselectTemplatesNav();
 			}
 		});
 		if(includeInput.focusin){
@@ -318,11 +332,54 @@ jQuery(document).ready(function(){
 					}else{
 						//default text OR blank
 						includeRuleWrap.removeClass('text-entered');
+						deselectTemplatesNav();
 					}
 				break;
 			}
 		});
 	});
+	//==SELECT INCLUDE RULE==
+	var selectIncludeRule=function(temName,ruleStr){
+		ruleStr=sanitizeIncludeStr(ruleStr);
+		if(ruleStr.length>0){
+			//==LEFT NAV FILE==
+			//if this template name exists
+			var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
+			if(temLi.length>0){
+				var includesUl=temLi.children('ul.includes:last');
+				//deselect current rule strings
+				includesUl.find('li.has-includes ul li.selected').removeClass('selected');
+				//if any include rules match this ruleStr
+				var includesLi=includesUl.find('li.has-includes ul li:contains("'+ruleStr+'")');
+				if(includesLi.length>0){
+					//for each matching include rule
+					includesLi.each(function(){
+						var thisRuleStr=jQuery(this).text();
+						thisRuleStr=sanitizeIncludeStr(thisRuleStr);
+						//if this rule matches
+						if(thisRuleStr==ruleStr){
+							//add select class
+							jQuery(this).addClass('selected');
+						}
+					});
+					//==TREE VIEW INCLUDE RULE TEXT BOX==
+					//open tree view tab 
+					goToTabView(mainViewTabs.children('.tree-view:first'));
+					//for each text box that should contain the selected include rule string
+					includeRuleWraps.each(function(i){
+						//set this include rule as the text
+						var includeInput=jQuery(this).children('input:last');
+						includeInput.val(ruleStr);
+						//the first input box receives focus
+						if(i==0){includeInput.focus();}
+						//add the text entered class
+						jQuery(this).addClass('text-entered');
+					});
+				}
+			}
+		}
+	};
+	bodyElem[0]['selectIncludeRule']=selectIncludeRule;
 	//SEARCH BOXES
 	//internal function to sanitize the search string
 	var sanitizeSearchStr=function(str){
@@ -1208,6 +1265,21 @@ jQuery(document).ready(function(){
 				{
 					'files':[fileName], 'token':tokenJson
 				});
+			});
+			//select events for include rules
+			var includeRuleElems=temLsWrap.find('ul.ls.folders li ul.includes li.has-includes ul li').not('.evs');
+			includeRuleElems.addClass('evs');
+			includeRuleElems.click(function(){
+				//get include rule string
+				var includeRuleStr=jQuery(this).text();
+				//get template name
+				var includesUl=jQuery(this).parents('ul.includes:first');
+				var temLi=includesUl.parent();
+				var temName=temLi.attr('name');
+				//select template
+				bodyElem[0].selectTemplate(temName);
+				//select include rule string
+				bodyElem[0].selectIncludeRule(temName,includeRuleStr);
 			});
 			//==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
 			//if there is no selected template
