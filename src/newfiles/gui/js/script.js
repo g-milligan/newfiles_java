@@ -73,6 +73,110 @@ jQuery(document).ready(function(){
 			}
 		}
 	};
+	//==FUNCTIONS THAT FLAG WHEN ANY CHANGES ARE MADE TO A TEMPLATE==
+	var templateChangesMade=function(temName, whatChanged, howChanged, json){
+		//if the #templateChangesMade element doesn't already exist
+		var changesMadeWrap=bodyElem.children('#templateChangesMade:last');
+		if(changesMadeWrap.length<1){
+			//create the #templateChangesMade element
+			bodyElem.append('<div style="display:none;" class="wrap" id="templateChangesMade"></div>');
+			changesMadeWrap=bodyElem.children('#templateChangesMade:last');
+		}
+		if(temName!=undefined){
+			//if a boolean value was passed INSTEAD of a template name
+			if(typeof temName=='boolean'){
+				//if false was passed
+				if(!temName){
+					//then clear the changes made
+					changesMadeWrap.html('');
+				}
+			}else{
+				//if this template exists in the left nav
+				var temLi=bodyElem[0].getTemplateLi(temName);
+				if(temLi.length>0){
+					//if changes for THIS temName don't already exist
+					var thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
+					if(thisTemChangesWrap.length<1){
+						//create the element for this template
+						changesMadeWrap.append('<div undo="0" class="template" name="'+temName+'"></div>');
+						thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
+					}
+					//if WHAT was changed is specified
+					if(whatChanged!=undefined){
+						//if a boolean value was passed INSTEAD of whatChanged
+						if(typeof whatChanged=='boolean'){
+							//if false was passed
+							if(!whatChanged){
+								//then clear the changes made FOR THIS TEMPLATE
+								thisTemChangesWrap.html('');
+							}
+						}else{
+							//get the <what> element by its name
+							var whatWrap=thisTemChangesWrap.children('what[name="'+whatChanged+'"]:first');
+							if(whatWrap.length<1){
+								//create <what> because it doesn't already exist
+								thisTemChangesWrap.append('<what name="'+whatChanged+'"></what>');
+								whatWrap=thisTemChangesWrap.children('what[name="'+whatChanged+'"]:first');
+							}
+							//if HOW it was changed is specified
+							if(howChanged!=undefined){
+								//get the <how> element by its name
+								var howWrap=whatWrap.children('how[name="'+howChanged+'"]:first');
+								if(howWrap.length<1){
+									//create <how> because it doesn't already exist
+									whatWrap.append('<how name="'+howChanged+'"></how>');
+									howWrap=whatWrap.children('how[name="'+howChanged+'"]:first');
+								}
+								//increment the most recent undo number
+								var currentUndo=thisTemChangesWrap.attr('undo');currentUndo=parseInt(currentUndo);
+								currentUndo++;thisTemChangesWrap.attr('undo',currentUndo+'');
+								//combine what/how to get a change key
+								var whatHowChange=howChanged+'-'+whatChanged;
+								switch(whatHowChange){
+									case 'add-include_rule': //add new include rule
+										var incStr=json;
+										//append to the xml to send back to Java
+										howWrap.append('<add undo="'+currentUndo+'">'+incStr+'</add>');
+										//==LEFT NAV==
+										//get the new include item's html
+										var incHtm=htm_template_include(incStr);
+										//append the new html to the list
+										var includesLi=temLi.find('ul.includes > li:first');
+										var includesUl=includesLi.children('ul:first');
+										includesUl.append(incHtm);
+										//update the include rules count
+										var countElem=includesLi.find('.include .intro .count:first');
+										var count=countElem.text();count=parseInt(count);
+										count++;countElem.text(count+'');
+										//add the has-includes class
+										includesLi.removeClass('no-includes');
+										includesLi.addClass('has-includes');
+										//attach events to the new include rule
+										bodyElem[0].evsIncludeRules();
+										//select the new include rule
+										var newLi=includesUl.children('li:last');
+										var incElem=newLi.children('.inc:first');
+										incElem.click();
+										//make sure the new include rule is within scroll view
+										bodyElem[0].scrollToHighlight(incElem);
+										break;
+									case 'mod-include_rule': //modify existing include rule
+										//***
+										break;
+									case 'del-include_rule': //delete include rule
+										var test="";
+										//***
+										break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return changesMadeWrap.html();
+	};
+	bodyElem[0]['templateChangesMade']=templateChangesMade;
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
 	//PLUS/MINUS SECTIONS
 	var plusMinusClick=function(btn){
@@ -230,11 +334,12 @@ jQuery(document).ready(function(){
 			break;
 		}
 		return elem;
-	}
+	};
+	bodyElem[0]['getScrollElem']=getScrollElem;
 	//move the highlighted found element into scroll view
 	var scrollToHighlight=function(elem,searchType){
 		if(searchType==undefined){searchType='templates';}
-		var scrollElem=getScrollElem(searchType);
+		var scrollElem=bodyElem[0].getScrollElem(searchType);
 		if(scrollElem!=undefined){
 			//==VERTICAL==
 			//get the element's position and the view window bounds of the current sroll
@@ -281,6 +386,7 @@ jQuery(document).ready(function(){
 			}
 		}
 	};
+	bodyElem[0]['scrollToHighlight']=scrollToHighlight;
 	//INCLUDE FILE RULE BOX
 	//internal function to sanitize the search string
 	var sanitizeIncludeStr=function(str){
@@ -341,8 +447,20 @@ jQuery(document).ready(function(){
 				includeInput.focus();
 				deselectTemplatesNav();
 			}else{
-				//doAdd create a new include rule or change the existing, selected include rule (triggers templateChangesMade())... will also highlight the selected files in tree view
-				//***
+				//the text is NOT blank NOR default text...
+
+				//get the template name
+				var temLi=getTemplateLi();
+				var temName=temLi.attr('name');
+				//get the existing inc element
+				var includesUl=temLi.find('ul.includes > li ul:first');
+				var existingIncElem=includesUl.find('li.selected:first');
+				//if this include rule doesn't already exist
+				if(existingIncElem.length<1){
+					//add the include rule
+					bodyElem[0].templateChangesMade(temName, 'include_rule', 'add', currentTxt);
+				}
+				//*** highlight the selected files in tree view
 			}
 		};
 		var clearTxt=function(){
@@ -976,13 +1094,14 @@ jQuery(document).ready(function(){
 		var tem=mainTitleElem.text();
 		return tem.trim();
 	};
+	bodyElem[0]['getSelectedTemplate']=getSelectedTemplate;
 	//gets the <li> element of the selected template (from the templates nav)
 	var getTemplateLi=function(temName){
 		if(temName==undefined){temName=getSelectedTemplate();}
 		var temLi=temLsWrap.find('ul.ls.folders > li[name="'+temName+'"]:first');
 		return temLi;
 	};
-	bodyElem[0]['getSelectedTemplate']=getSelectedTemplate;
+	bodyElem[0]['getTemplateLi']=getTemplateLi;
 	//==SELECT TEMPLATE==
 	var selectTemplate=function(temName){
 		//if NOT already selected
@@ -1189,6 +1308,128 @@ jQuery(document).ready(function(){
 		}
 	};
 	bodyElem[0]['toggleOnOffFile']=toggleOnOffFile;
+	//==ATTACH EVENTS, INTERNAL FUNCTIONS==
+	//evs +/- button for open/close
+	var evsToggleOpenClose=function(){
+		//add opened-closed toggle events (to elements that don't already have events added)
+		var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
+		//mark these elements as having the events attached
+		openCloseElems.addClass('evs');
+		openCloseElems.click(function(){
+			//get the parent li wrapper
+			var parentLi=jQuery(this).parents('li:first');
+			//if currently closed
+			if(parentLi.hasClass('closed')){
+				//open it
+				parentLi.removeClass('closed');
+				parentLi.addClass('opened');
+			}else{
+				//currently open, so close it
+				parentLi.addClass('closed');
+				parentLi.removeClass('opened');
+			}
+		});
+	};
+	bodyElem[0]['evsToggleOpenClose']=evsToggleOpenClose;
+	//evs on off button for files
+	var evsToggleFileOnOff=function(){
+		var onOffElems=temLsWrap.find('.on-off').not('.evs');
+		//mark these elements as having the events attached
+		onOffElems.addClass('evs');
+		onOffElems.click(function(){
+			var fileLi=jQuery(this).parents('li:first');
+			var temLi=fileLi.parents('li:first');
+			bodyElem[0].toggleOnOffFile(temLi.attr('name'),fileLi.attr('name'));
+		});
+	};
+	bodyElem[0]['evsToggleFileOnOff']=evsToggleFileOnOff;
+	//evs for templates
+	var evsTemplates=function(){
+		//select events for templates
+		var dirPathElems=temLsWrap.find('ul.ls.folders li .dir > .path').not('.evs');
+		dirPathElems.addClass('evs');
+		dirPathElems.click(function(){
+			//select the template
+			bodyElem[0].selectTemplate(jQuery(this).text());
+		});
+	};
+	bodyElem[0]['evsTemplates']=evsTemplates;
+	//evs for files
+	var evsFiles=function(){
+		//select events for files
+		var fileNameElems=temLsWrap.find('ul.ls.files li .file > .name').not('.evs');
+		fileNameElems.addClass('evs');
+		fileNameElems.click(function(){
+			var fileParent=jQuery(this).parent();
+			var liParent=fileParent.parent();
+			var temLiParent=liParent.parents('li:first');
+			var temPathBtn=temLiParent.find('.dir .path:first');
+			//select the template
+			var temName=temPathBtn.text();
+			bodyElem[0].selectTemplate(temName);
+			//select the template file
+			bodyElem[0].selectTemplateFile(temName,jQuery(this).text());
+		});
+	};
+	bodyElem[0]['evsFiles']=evsFiles;
+	//evs for tokens
+	var evsTokens=function(){
+		//select events for tokens
+		var tokenElems=temLsWrap.find('ul.ls.folders ul.ls.files ul.tokens li .token > .str').not('.evs');
+		tokenElems.addClass('evs');
+		tokenElems.click(function(){
+			var tokensUl=jQuery(this).parents('ul.tokens:first');
+			var fileLi=tokensUl.parent();
+			var fileNameBtn=fileLi.find('.file .name:first');
+			var temLi=fileLi.parents('li:first');
+			var temPathBtn=temLi.find('.dir .path:first');
+			//select the template
+			var temName=temPathBtn.text();
+			bodyElem[0].selectTemplate(temName);
+			//select the template file
+			var fileName=fileNameBtn.text();
+			bodyElem[0].selectTemplateFile(temName,fileName);
+			//select the token
+			var tokenJson=tokenNavElemToJson(jQuery(this));
+			bodyElem[0].selectTokenInstances(temName,
+			{
+				'files':[fileName], 'token':tokenJson
+			});
+		});
+	};
+	bodyElem[0]['evsTokens']=evsTokens;
+	//evs for include rules
+	var evsIncludeRules=function(){
+		//select events for include rules
+		var includeRuleElems=temLsWrap.find('ul.ls.folders li ul.includes li.has-includes ul li').not('.evs');
+		includeRuleElems.addClass('evs');
+		var delBtns=includeRuleElems.children('.del');
+		delBtns.html(getSvg('x'));
+		delBtns.click(function(){
+			//get include rule text
+			var parentLi=jQuery(this).parent();
+			var incElem=parentLi.children('.inc:first');
+			var incStr=incElem.text();
+			//get template name
+			var temLi=parentLi.parent().parent().parent().parent();
+			var temName=temLi.attr('name');
+			//make the change
+			bodyElem[0].templateChangesMade(temName, 'include_rule', 'del', incStr);
+		});
+		includeRuleElems.children('.inc').click(function(){
+			//get include rule string
+			var includeRuleStr=jQuery(this).text();
+			//get template name
+			var includesUl=jQuery(this).parents('ul.includes:first');
+			var temLi=includesUl.parent();
+			var temName=temLi.attr('name');
+			//select template
+			bodyElem[0].selectTemplate(temName);
+			//select include rule string
+			bodyElem[0].selectIncludeRule(temName,includeRuleStr);
+		});
+	};
+	bodyElem[0]['evsIncludeRules']=evsIncludeRules;
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
 	var updateTemplates=function(json){
 		if(json!=undefined){
@@ -1348,96 +1589,17 @@ jQuery(document).ready(function(){
 			});
 			//==ADD JS EVENTS TO NEW ELEMENTS==
 			//add opened-closed toggle events (to elements that don't already have events added)
-			var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
-			//mark these elements as having the events attached
-			openCloseElems.addClass('evs');
-			openCloseElems.click(function(){
-				//get the parent li wrapper
-				var parentLi=jQuery(this).parents('li:first');
-				//if currently closed
-				if(parentLi.hasClass('closed')){
-					//open it
-					parentLi.removeClass('closed');
-					parentLi.addClass('opened');
-				}else{
-					//currently open, so close it
-					parentLi.addClass('closed');
-					parentLi.removeClass('opened');
-				}
-			});
+			evsToggleOpenClose();
 			//add on-off toggle events (to elements that don't already have events added)
-			var onOffElems=temLsWrap.find('.on-off').not('.evs');
-			//mark these elements as having the events attached
-			onOffElems.addClass('evs');
-			onOffElems.click(function(){
-				var fileLi=jQuery(this).parents('li:first');
-				var temLi=fileLi.parents('li:first');
-				bodyElem[0].toggleOnOffFile(temLi.attr('name'),fileLi.attr('name'));
-			});
+			evsToggleFileOnOff();
 			//select events for templates
-			var dirPathElems=temLsWrap.find('ul.ls.folders li .dir > .path').not('.evs');
-			dirPathElems.addClass('evs');
-			dirPathElems.click(function(){
-				//select the template
-				bodyElem[0].selectTemplate(jQuery(this).text());
-			});
+			evsTemplates();
 			//select events for files
-			var fileNameElems=temLsWrap.find('ul.ls.files li .file > .name').not('.evs');
-			fileNameElems.addClass('evs');
-
-			fileNameElems.click(function(){
-				var fileParent=jQuery(this).parent();
-				var liParent=fileParent.parent();
-				var temLiParent=liParent.parents('li:first');
-				var temPathBtn=temLiParent.find('.dir .path:first');
-				//select the template
-				var temName=temPathBtn.text();
-				bodyElem[0].selectTemplate(temName);
-				//select the template file
-				bodyElem[0].selectTemplateFile(temName,jQuery(this).text());
-			});
+			evsFiles();
 			//select events for tokens
-			var tokenElems=temLsWrap.find('ul.ls.folders ul.ls.files ul.tokens li .token > .str').not('.evs');
-			tokenElems.addClass('evs');
-			tokenElems.click(function(){
-				var tokensUl=jQuery(this).parents('ul.tokens:first');
-				var fileLi=tokensUl.parent();
-				var fileNameBtn=fileLi.find('.file .name:first');
-				var temLi=fileLi.parents('li:first');
-				var temPathBtn=temLi.find('.dir .path:first');
-				//select the template
-				var temName=temPathBtn.text();
-				bodyElem[0].selectTemplate(temName);
-				//select the template file
-				var fileName=fileNameBtn.text();
-				bodyElem[0].selectTemplateFile(temName,fileName);
-				//select the token
-				var tokenJson=tokenNavElemToJson(jQuery(this));
-				bodyElem[0].selectTokenInstances(temName,
-				{
-					'files':[fileName], 'token':tokenJson
-				});
-			});
+			evsTokens();
 			//select events for include rules
-			var includeRuleElems=temLsWrap.find('ul.ls.folders li ul.includes li.has-includes ul li').not('.evs');
-			includeRuleElems.addClass('evs');
-			var delBtns=includeRuleElems.children('.del');
-			delBtns.html(getSvg('x'));
-			delBtns.click(function(){
-				//*** deleteIncludeRule
-			});
-			includeRuleElems.children('.inc').click(function(){
-				//get include rule string
-				var includeRuleStr=jQuery(this).text();
-				//get template name
-				var includesUl=jQuery(this).parents('ul.includes:first');
-				var temLi=includesUl.parent();
-				var temName=temLi.attr('name');
-				//select template
-				bodyElem[0].selectTemplate(temName);
-				//select include rule string
-				bodyElem[0].selectIncludeRule(temName,includeRuleStr);
-			});
+			evsIncludeRules();
 			//==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
 			//if there is no selected template
 			var selectedTemplate=temLsWrap.find('ul.ls.folders > li.selected');
