@@ -3,7 +3,7 @@ jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
 	var menuBarWrap=bodyElem.children('#menu-bar:first');
-	var contentWrap=bodyElem.children('#content:first');	
+	var contentWrap=bodyElem.children('#content:first');
 	var templatesWrap=contentWrap.children('#templates:first');
 	var temHeaderWrap=templatesWrap.children('header:first');
 	var temContentWrap=templatesWrap.children('.content:last');
@@ -41,9 +41,9 @@ jQuery(document).ready(function(){
 						var val=keyVal[1].trim();val=val.toLowerCase();
 						//for each target rule
 						for(var t=0;t<targetRulesArray.length;t++){
-							//if this is a target value 
+							//if this is a target value
 							if(key.indexOf(targetRulesArray[t])!=-1){
-								//preserve this target value 
+								//preserve this target value
 								//so that when the element is re-pinned, the rule can be restored
 								if(!elem[0].hasOwnProperty('restoreStyles')){
 									//set the property
@@ -145,7 +145,7 @@ jQuery(document).ready(function(){
 			});
 		}else{
 			//NOT pinned...
-			
+
 			//then pin
 			rowWrap.removeClass('slide-view');
 			rowWrap.removeClass('slide-in');
@@ -200,7 +200,7 @@ jQuery(document).ready(function(){
 			}
 		}else{
 			//currently collapsed...
-			
+
 			//so expand
 			expandParentElem.addClass('expanded');
 			expandParentElem.removeClass('collapsed');
@@ -226,7 +226,7 @@ jQuery(document).ready(function(){
 				elem=temLsWrap;
 			break;
 			default:
-				
+
 			break;
 		}
 		return elem;
@@ -296,7 +296,7 @@ jQuery(document).ready(function(){
 		//make sure the rule string doesn't begin with, or end with /
 		if(str.indexOf('/')==0){str.substring('/'.length);}
 		if(str.lastIndexOf('/')==str.length-'/'.length){str=str.substring(0,str.length-'/'.length);}
-		
+
 		return str;
 	};
 	//get the include rule wraps
@@ -419,7 +419,7 @@ jQuery(document).ready(function(){
 									incElem.click();
 								}else{
 									//more than one found element...
-									
+
 									//for each partial match
 									var commonTxt;
 									foundElems.each(function(){
@@ -433,17 +433,17 @@ jQuery(document).ready(function(){
 										if(commonTxt==undefined){commonTxt=remainingTxt;}
 										else{
 											//not the first include string to compare...
-											
+
 											//trim the commonTxt so it's NOT longer than remainingTxt
 											if(commonTxt.length>remainingTxt.length){
-												commonTxt=commonTxt.substring(remainingTxt.length);
+												commonTxt=commonTxt.substring(0,remainingTxt.length);
 											}
 											//for each letter in the remainingTxt
 											for(var c=0;c<remainingTxt.length;c++){
 												//if this letter DOESN'T match the commonTxt
 												if(remainingTxt[c]!=commonTxt[c]){
 													//trim the commonTxt to exclude the characters that are different
-													commonTxt=commonTxt.substring(c+1);
+													commonTxt=commonTxt.substring(0,c);
 													//stop comparing
 													break;
 												}
@@ -457,7 +457,10 @@ jQuery(document).ready(function(){
 									});
 									//if there is commonTxt that got partially matched
 									if(commonTxt.length>0){
-										var test="";
+										//add the commonTxt to the end of the currentTxt
+										var extendedTxt=currentTxt+commonTxt
+										//set the extended text
+										includeInput.val(extendedTxt);
 									}
 								}
 							}
@@ -547,8 +550,16 @@ jQuery(document).ready(function(){
 						//clear out any <found> highlights
 						jQuery(this).text(thisRuleStr);
 					});
+					//make sure no include rule has a <found> element
+					var foundElems=includesUl.find('li.has-includes .inc found');
+					foundElems.each(function(){
+						//remove the <found> element from the include string
+						var incElem=jQuery(this).parent();
+						var incStr=incElem.text();
+						incElem.html(incStr);
+					});
 					//==TREE VIEW INCLUDE RULE TEXT BOX==
-					//open tree view tab 
+					//open tree view tab
 					goToTabView(mainViewTabs.children('.tree-view:first'));
 					//for each text box that should contain the selected include rule string
 					includeRuleWraps.each(function(i){
@@ -576,7 +587,7 @@ jQuery(document).ready(function(){
 		str=replaceAll(str,'  ',' ');
 		str=replaceAll(str,'<','');
 		str=replaceAll(str,'>','');
-		
+
 		return str;
 	};
 	//get the search wraps
@@ -612,7 +623,7 @@ jQuery(document).ready(function(){
 					elems=temLsWrap.find('.dir > .path,.file > .name,.token .str > .part.dir,.token .str > .part.name,.token .str > .part.alias,.token .str .part > .i');
 				break;
 				default:
-					
+
 				break;
 			}
 			return elems;
@@ -647,7 +658,7 @@ jQuery(document).ready(function(){
 						nextElem=foundElems.filter('found[name="'+(highlightIndex+1)+'"]:first');
 					}else{
 						//this is the last found element...
-						
+
 						//cycle back to the first element
 						nextElem=foundElems.eq(0);
 					}
@@ -696,7 +707,7 @@ jQuery(document).ready(function(){
 						nextElem=foundElems.filter('found[name="'+(highlightIndex-1)+'"]:first');
 					}else{
 						//this is the first found element...
-						
+
 						//cycle back to the last element
 						nextElem=foundElems.filter(':last');
 					}
@@ -738,7 +749,7 @@ jQuery(document).ready(function(){
 				searchInput.focus();
 			}else{
 				//current text is NOT the default NOR blank...
-				
+
 				//if this text is different than the previous search
 				if(!searchInput[0].hasOwnProperty('currentSearch')
 						||searchInput[0].currentSearch!=currentTxt){
@@ -810,7 +821,7 @@ jQuery(document).ready(function(){
 					searchWrap.addClass('results');
 				}else{
 					//this search is not different than the previous search...
-					
+
 					//highlight the next search match
 					highlightNext();
 				}
@@ -873,15 +884,15 @@ jQuery(document).ready(function(){
 		}
 		searchInput.keydown(function(e){
 			switch(e.keyCode){
-				case 38: //up arrow 
+				case 38: //up arrow
 					if(highlightPrev()){
 						e.preventDefault();}
 				break;
-				case 40: //down arrow 
+				case 40: //down arrow
 					if(highlightNext()){
 						e.preventDefault();}
 				break;
-			}					 
+			}
 		});
 		searchInput.keyup(function(e){
 			switch(e.keyCode){
@@ -1025,7 +1036,7 @@ jQuery(document).ready(function(){
 	};
 	bodyElem[0]['selectTemplateFile']=selectTemplateFile;
 	//==SELECT NEXT FILE==
-	var selectNextFile=function(){ 
+	var selectNextFile=function(){
 		//if there is more than one option
 		var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
 		if(fileSelect.find('ul li').length>1){
@@ -1047,7 +1058,7 @@ jQuery(document).ready(function(){
 	};
 	bodyElem[0]['selectNextFile']=selectNextFile;
 	//==SELECT PREVIOUS FILE==
-	var selectPrevFile=function(){ 
+	var selectPrevFile=function(){
 		//if there is more than one option
 		var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
 		if(fileSelect.find('ul li').length>1){
@@ -1120,7 +1131,7 @@ jQuery(document).ready(function(){
 											switch(partKey){
 												case 'type':break; //already checked
 												case 'name':break; //already checked
-												default:	
+												default:
 													//if has the NOT the same value
 													if(json.token[partKey]!=tokenJson[partKey]){
 														isMatched=false;
@@ -1142,7 +1153,7 @@ jQuery(document).ready(function(){
 					});
 				}
 				//==SOME OTHER TOKEN SELECTIONS==
-				//... +++ 
+				//... +++
 			}
 		}
 	};
@@ -1218,7 +1229,7 @@ jQuery(document).ready(function(){
 					//hover
 					jQuery(this).addClass('over');
 				},function(){
-					//end hover and close, if open 
+					//end hover and close, if open
 					jQuery(this).removeClass('over');
 					jQuery(this).removeClass('open');
 				});
@@ -1402,7 +1413,7 @@ jQuery(document).ready(function(){
 				bodyElem[0].selectTemplateFile(temName,fileName);
 				//select the token
 				var tokenJson=tokenNavElemToJson(jQuery(this));
-				bodyElem[0].selectTokenInstances(temName, 
+				bodyElem[0].selectTokenInstances(temName,
 				{
 					'files':[fileName], 'token':tokenJson
 				});
@@ -1458,7 +1469,7 @@ jQuery(document).ready(function(){
 			'zIndex':999,
 			'stop':function(e,ui){
 				//when the drag stops...
-				
+
 				//calculate the percentage position where the drag stopped
 				var newLeftOffset=ui.helper.offset().left;
 				var helperWidth=ui.helper.outerWidth();
@@ -1466,7 +1477,7 @@ jQuery(document).ready(function(){
 				var windowWidth=jQuery(window).outerWidth();
 				var templatesPercent=(newRightOffset/windowWidth)*100;
 				var workspacePercent=100-templatesPercent;
-				//set the new percentage widths 
+				//set the new percentage widths
 				templatesWrap.css('width',templatesPercent+'%');
 				workspaceWrap.css('width',workspacePercent+'%');
 				//remove the extra style junk from the drag handle
@@ -1480,7 +1491,7 @@ jQuery(document).ready(function(){
 			'zIndex':999,
 			'stop':function(e,ui){
 				//when the drag stops...
-				
+
 				//calculate the percentage position where the drag stopped
 				var newTopOffset=ui.helper.offset().top;
 				var workspaceTop=workspaceWrap.offset().top;
@@ -1489,7 +1500,7 @@ jQuery(document).ready(function(){
 				var newInputHeight=workspaceHeight-newTopOffset;
 				var inputHeightPercent=(newInputHeight/workspaceHeight)*100;
 				var mainHeightPercent=100-inputHeightPercent;
-				//set the new percentage heights 
+				//set the new percentage heights
 				inputViewWrap.css('height',inputHeightPercent+'%');
 				mainViewWrap.css('height',mainHeightPercent+'%');
 				//remove the extra style junk from the drag handle
