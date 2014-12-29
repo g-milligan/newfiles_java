@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -318,8 +318,15 @@ jQuery(document).ready(function(){
 		//internal functions
 		var deselectTemplatesNav=function(){
 			//deselect any selected include rules
-			temLsWrap.find('ul.includes li.has-includes ul li.selected').removeClass('selected');
-			//*** remove <found> highlights
+			var hasIncludesLis=temLsWrap.find('ul.includes li.has-includes');
+			hasIncludesLis.find('ul li.selected').removeClass('selected');
+			//remove <found> highlights
+			var foundElems=hasIncludesLis.find('ul li .inc found');
+			foundElems.each(function(){
+				var incElem=jQuery(this).parent();
+				var incStr=incElem.text();
+				incElem.html(incStr);
+			});
 		};
 		var doAdd=function(){
 			includeRuleWrap.addClass('do-add');
@@ -390,6 +397,75 @@ jQuery(document).ready(function(){
 		}else{
 			includeInput.click(function(){gotFocus();});
 		}
+		includeInput.keydown(function(e){
+			switch(e.keyCode){
+				case 9: //tab key pressed
+					e.preventDefault();
+					var currentTxt=includeInput.val();
+					currentTxt=sanitizeIncludeStr(currentTxt);
+					//if the string is NOT blank NOR default text
+					if(currentTxt!=defaultTxt&&currentTxt.length>0){
+						var temLi=getTemplateLi();
+						var includesLi=temLi.find('ul.includes > li.has-includes:first');
+						//if has-includes
+						if(includesLi.length>0){
+							//if there are any found elements
+							var foundElems=includesLi.find('ul li .inc found');
+							if(foundElems.length>0){
+								//if there is only one found element
+								if(foundElems.length==1){
+									//set this include rule as selected since it's the only partial match
+									var incElem=foundElems.parent();
+									incElem.click();
+								}else{
+									//more than one found element...
+									
+									//for each partial match
+									var commonTxt;
+									foundElems.each(function(){
+										//get the include string
+										var incElem=jQuery(this).parent();
+										var foundTxt=jQuery(this).text();
+										var incStr=incElem.text();
+										//get the remaining unmatched text
+										var remainingTxt=incStr.substring(foundTxt.length);
+										//if this is the first include string to compare
+										if(commonTxt==undefined){commonTxt=remainingTxt;}
+										else{
+											//not the first include string to compare...
+											
+											//trim the commonTxt so it's NOT longer than remainingTxt
+											if(commonTxt.length>remainingTxt.length){
+												commonTxt=commonTxt.substring(remainingTxt.length);
+											}
+											//for each letter in the remainingTxt
+											for(var c=0;c<remainingTxt.length;c++){
+												//if this letter DOESN'T match the commonTxt
+												if(remainingTxt[c]!=commonTxt[c]){
+													//trim the commonTxt to exclude the characters that are different
+													commonTxt=commonTxt.substring(c+1);
+													//stop comparing
+													break;
+												}
+											}
+											//if there is no more commonTxt
+											if(commonTxt.length<1){
+												//stop whittling down the commonTxt
+												return false;
+											}
+										}
+									});
+									//if there is commonTxt that got partially matched
+									if(commonTxt.length>0){
+										var test="";
+									}
+								}
+							}
+						}
+					}
+				break;
+			}
+		});
 		includeInput.keyup(function(e){
 			switch(e.keyCode){
 				case 27: //escape key pressed
@@ -408,6 +484,34 @@ jQuery(document).ready(function(){
 					if(currentTxt!=defaultTxt&&currentTxt.length>0){
 						//add the text entered class
 						includeRuleWrap.addClass('text-entered');
+						//highlight the corresponding include rule text in the templates nav
+						var temLi=getTemplateLi();
+						var includesLi=temLi.find('ul.includes > li.has-includes:first');
+						//if has-includes
+						if(includesLi.length>0){
+							//get the include elements
+							var incElems=includesLi.find('ul li .inc');
+							//for each include string element
+							incElems.each(function(){
+								jQuery(this).parent().removeClass('selected');
+								var incStr=jQuery(this).text();
+								incStr=sanitizeIncludeStr(incStr);
+								//if this include rule begins with the entered text
+								if(incStr.indexOf(currentTxt)==0){
+									//if this include rule IS the entered text
+									if(incStr==currentTxt){
+										//select this include string
+										jQuery(this).click();
+									}else{
+										//entered text matches first part of the include rule...
+										incStr=incStr.replace(currentTxt,'<found class="glow"><<<>>></found>');
+										incStr=incStr.replace('<<<>>>',currentTxt);
+									}
+								}
+								//set the updated include string
+								jQuery(this).html(incStr);
+							});
+						}
 					}else{
 						//default text OR blank
 						includeRuleWrap.removeClass('text-entered');
@@ -429,17 +533,19 @@ jQuery(document).ready(function(){
 				//deselect current rule strings
 				includesUl.find('li.has-includes ul li.selected').removeClass('selected');
 				//if any include rules match this ruleStr
-				var includesLi=includesUl.find('li.has-includes ul li:contains("'+ruleStr+'")');
-				if(includesLi.length>0){
+				var includesBtn=includesUl.find('li.has-includes ul li .inc:contains("'+ruleStr+'")');
+				if(includesBtn.length>0){
 					//for each matching include rule
-					includesLi.each(function(){
+					includesBtn.each(function(){
 						var thisRuleStr=jQuery(this).text();
 						thisRuleStr=sanitizeIncludeStr(thisRuleStr);
 						//if this rule matches
 						if(thisRuleStr==ruleStr){
 							//add select class
-							jQuery(this).addClass('selected');
+							jQuery(this).parent().addClass('selected');
 						}
+						//clear out any <found> highlights
+						jQuery(this).text(thisRuleStr);
 					});
 					//==TREE VIEW INCLUDE RULE TEXT BOX==
 					//open tree view tab 
@@ -1304,7 +1410,12 @@ jQuery(document).ready(function(){
 			//select events for include rules
 			var includeRuleElems=temLsWrap.find('ul.ls.folders li ul.includes li.has-includes ul li').not('.evs');
 			includeRuleElems.addClass('evs');
-			includeRuleElems.click(function(){
+			var delBtns=includeRuleElems.children('.del');
+			delBtns.html(getSvg('x'));
+			delBtns.click(function(){
+				//*** deleteIncludeRule
+			});
+			includeRuleElems.children('.inc').click(function(){
 				//get include rule string
 				var includeRuleStr=jQuery(this).text();
 				//get template name

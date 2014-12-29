@@ -349,7 +349,7 @@ function htm_template_includes(includes){
 function htm_template_include(includeStr){
 	var htm='';
 	//==INCLUDE ITEM HTML==
-	htm+='<li>'+includeStr+'</li>';
+	htm+='<li><span class="inc">'+includeStr+'</span><span class="del"></span></li>';
 	return htm;
 }
 //get the hidden files label
