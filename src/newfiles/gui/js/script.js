@@ -192,8 +192,30 @@ jQuery(document).ready(function(){
 										break;
 									case 'del-include_rule': //delete include rule
 										var incStr=json;
-										alert('delete ' + incStr);
-										//***
+										//append to the xml to send back to Java
+										howWrap.append('<del undo="'+currentUndo+'">'+incStr+'</del>');
+										changeMade=true;
+										//==LEFT NAV==
+										//get the .inc elements to delete
+										var incElems=temLi.find('ul.includes li ul li .inc:contains("'+incStr+'")');
+										incElems.each(function(){
+											//if this is one of the matching strings to delete
+											var incStr=jQuery(this).text();
+											if(incStr==incStr){
+												//mark for deletion
+												jQuery(this).parent().addClass('del');
+											}
+										});
+										//get the items that need deletion
+										var delLis=temLi.find('ul.includes li ul li.del');
+										//how many to delete?
+										var delCount=delLis.length;
+										//delete the elements
+										delLis.remove();
+										//update the number of include rules
+										var countElem=temLi.find('ul.includes .include .intro .count:first');
+										var count=countElem.text();count=parseInt(count);
+										countElem.text((count-delCount)+'');
 										break;
 								}
 								//if the change was made
