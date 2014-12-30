@@ -420,6 +420,7 @@ jQuery(document).ready(function(){
 		//get the default text for this field
 		var defaultTxt=includeInput.attr('value');
 		var origTxt=defaultTxt;
+		includeInput[0]['origTxt']=origTxt;
 		defaultTxt=sanitizeIncludeStr(defaultTxt);
 		//internal functions
 		var doAdd=function(){
@@ -432,6 +433,7 @@ jQuery(document).ready(function(){
 			if(currentTxt==defaultTxt||currentTxt.length<1){
 				//clear the default text and set focus
 				bodyElem[0].deselectIncludeRules();
+				includeInput.val('');
 				includeInput.focus();
 			}else{
 				//the text is NOT blank NOR default text...
@@ -450,12 +452,6 @@ jQuery(document).ready(function(){
 				//*** highlight the selected files in tree view
 			}
 		};
-		var clearTxt=function(){
-			//clear the text and set focus
-			bodyElem[0].deselectIncludeRules();
-			includeRuleWrap.removeClass('text-entered');
-			includeInput.val(origTxt);
-		};
 		var gotFocus=function(){
 			//if the current text is the default text
 			var currentTxt=includeInput.val();
@@ -463,6 +459,7 @@ jQuery(document).ready(function(){
 			if(currentTxt==defaultTxt){
 				//clear text
 				bodyElem[0].deselectIncludeRules();
+				includeInput.val('');
 			}
 			//expand the include rules in the selected templates nav
 			var temLi=getTemplateLi();
@@ -483,18 +480,13 @@ jQuery(document).ready(function(){
 		//EVENTS
 		addBtn.click(function(){doAdd();includeInput.focus();});
 		//clear button click event
-		clearBtn.click(function(){clearTxt();});
+		clearBtn.click(function(){ //blur should take care of this
+			//bodyElem[0].deselectIncludeRules();
+		});
 		//search input events
 		includeInput.blur(function(){
-			//if the current text is the default text OR blank
-			var currentTxt=includeInput.val();
-			currentTxt=sanitizeIncludeStr(currentTxt);
-			if(currentTxt==defaultTxt||currentTxt.length<1){
-				//restore the default text
-				bodyElem[0].deselectIncludeRules();
-				includeInput.val(origTxt);
-				includeRuleWrap.removeClass('text-entered');
-			}
+			//restore the default text
+			bodyElem[0].deselectIncludeRules();
 		});
 		if(includeInput.focusin){
 			includeInput.focusin(function(){gotFocus();});
@@ -577,7 +569,7 @@ jQuery(document).ready(function(){
 			switch(e.keyCode){
 				case 27: //escape key pressed
 					e.preventDefault();
-					clearTxt();
+					bodyElem[0].deselectIncludeRules();
 					includeInput.val('');
 				break;
 				case 13: //enter key pressed
@@ -605,15 +597,9 @@ jQuery(document).ready(function(){
 								incStr=sanitizeIncludeStr(incStr);
 								//if this include rule begins with the entered text
 								if(incStr.indexOf(currentTxt)==0){
-									//if this include rule IS the entered text
-									if(incStr==currentTxt){
-										//select this include string
-										jQuery(this).click();
-									}else{
-										//entered text matches first part of the include rule...
-										incStr=incStr.replace(currentTxt,'<found class="glow"><<<>>></found>');
-										incStr=incStr.replace('<<<>>>',currentTxt);
-									}
+									//entered text matches first part of the include rule...
+									incStr=incStr.replace(currentTxt,'<found class="glow"><<<>>></found>');
+									incStr=incStr.replace('<<<>>>',currentTxt);
 								}
 								//set the updated include string
 								jQuery(this).html(incStr);
@@ -621,7 +607,6 @@ jQuery(document).ready(function(){
 						}
 					}else{
 						//default text OR blank
-						bodyElem[0].deselectIncludeRules();
 						includeRuleWrap.removeClass('text-entered');
 					}
 				break;
@@ -638,8 +623,8 @@ jQuery(document).ready(function(){
 			if(temLi.length>0){
 				var includesUl=temLi.children('ul.includes:last');
 				//deselect current rule strings
-				bodyElem[0].deselectIncludeRules();
-				//if any include rules match this ruleStr
+				//---bodyElem[0].deselectIncludeRules(); //blur should take care of this
+				//if any include rules match this ruleStr 
 				var includesBtn=includesUl.find('li.has-includes ul li .inc:contains("'+ruleStr+'")');
 				if(includesBtn.length>0){
 					//for each matching include rule
@@ -671,7 +656,7 @@ jQuery(document).ready(function(){
 	};
 	bodyElem[0]['selectIncludeRule']=selectIncludeRule;
 	//==DESELECT INCLUDE RULES==
-	var deselectIncludeRules=function(){
+	var deselectIncludeRules=function(focusInput){
 		//==LEFT NAV==
 		//get the include rule <li> elements
 		var includeLis=temLsWrap.find('ul.ls.folders ul.includes li ul li');
@@ -685,8 +670,15 @@ jQuery(document).ready(function(){
 			incElem.html(incStr);
 		});
 		//==TREE VIEW==
-		var includeInput=jQuery('.edit-include-rule include');
-		includeInput.val('');
+		var includeInput=jQuery('.edit-include-rule input');
+		includeInput.each(function(){
+			//if has text entered
+			var includeWrap=includeInput.parent();
+			//reset text
+			var origTxt=jQuery(this)[0].origTxt;
+			jQuery(this).val(origTxt);
+			includeWrap.removeClass('text-entered');
+		});
 	};
 	bodyElem[0]['deselectIncludeRules']=deselectIncludeRules;
 	//SEARCH BOXES
@@ -1110,8 +1102,6 @@ jQuery(document).ready(function(){
 			//select the new template
 			var temLi=getTemplateLi(temName);
 			temLi.addClass('selected');
-			//deselect include rules that could be selected
-			bodyElem[0].deselectIncludeRules();
 			//==FILES DROPDOWN==
 			fileDropdownsWrap.children('nav.select').removeClass('active');
 			var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
