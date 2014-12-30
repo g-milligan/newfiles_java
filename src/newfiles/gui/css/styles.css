@@ -88,6 +88,8 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 .loading svg path.runner{fill:#1C5200;}
 /*MENU-BAR*/
 #menu-bar{position:fixed;left:0;top:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;padding:.1em;line-height:60%;display:block;border-bottom:solid .1em;z-index:9999;}
+#menu-bar li.unsaved-changes[name="template"]:before{content:"*";font-weight:bold;}
+#menu-bar li.unsaved-changes[name="template"] li[name="save"]:after{content:"*";font-weight:bold;}
 #menu-bar > ul{padding:0;margin:0;display:inline-block;width:100%;line-height:60%;}
 #menu-bar > ul > li{position:relative;cursor:pointer;display:inline-block;font-size:44%;font-weight:bold;padding:.3em 1.5em;line-height:100%;text-transform:uppercase;float:left;}
 #menu-bar > ul > li.parent:after{content:"";display:inline-block;margin-left:.3em;width:0;height:0;border-style:solid;border-width:.5em .3em 0 .3em;}
@@ -137,6 +139,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #templates nav.ls .menu-btn{display:inline-block;width:.9em;height:.9em;margin-left:.2em;padding:.1em;cursor:pointer;visibility:hidden;}
 #templates nav.ls span:hover > .menu-btn{visibility:visible;}
 #templates nav.ls .dir .path{display:inline-block;cursor:pointer;}
+#templates nav.ls .unsaved-changes > .dir .path:before{content:"*";font-weight:bold;}
 #templates nav.ls .file .name{cursor:pointer;}
 #templates nav.ls li.special > .file .name{font-weight:bold;}
 #templates nav.ls .on-off{display:inline-block;width:.9em;height:.9em;padding:.1em;margin-right:.2em;cursor:pointer;}
@@ -218,6 +221,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #workspace.collapse-input-view > #main-view{height:auto;bottom:.9em;}
 #main-view .title{font-size:85%;width:100%;overflow:hidden;}
 #main-view .title h1{text-transform:none;}
+#main-view .title h1.unsaved-changes:before{content:"*";font-weight:bold;}
 #main-view header{padding:0 .2em;}
 #main-view nav.tabs{font-size:50%;}
 #main-view nav.tabs > span{display:inline-block;padding:.3em .8em;text-transform:uppercase;font-weight:bold;cursor:pointer;}

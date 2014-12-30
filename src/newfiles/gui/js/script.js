@@ -74,6 +74,27 @@ jQuery(document).ready(function(){
 		}
 	};
 	//==FUNCTIONS THAT FLAG WHEN ANY CHANGES ARE MADE TO A TEMPLATE==
+	var setTemUnsavedChangesClass=function(temName){
+		//if this template is currently selected
+		if(bodyElem[0].getSelectedTemplate()==temName){
+			var temLi=bodyElem[0].getTemplateLi(temName);
+			if(temLi.length>0){
+				var menuTemBtn=menuBarWrap.find('li[name="template"]:first');
+				//if this template has any unsaved changes
+				if(temLi.hasClass('unsaved-changes')){
+					//add the unsaved-changes class
+					mainTitleElem.addClass('unsaved-changes');
+					menuTemBtn.addClass('unsaved-changes');
+				}else{
+					//no unsaved changes...
+					
+					//remove the unsaved-changes class
+					mainTitleElem.removeClass('unsaved-changes');
+					menuTemBtn.removeClass('unsaved-changes');
+				}
+			}
+		}
+	};
 	var templateChangesMade=function(temName, whatChanged, howChanged, json){
 		//if the #templateChangesMade element doesn't already exist
 		var changesMadeWrap=bodyElem.children('#templateChangesMade:last');
@@ -227,6 +248,29 @@ jQuery(document).ready(function(){
 						}
 					}
 				}
+			}
+		}
+		//are there any unsaved changes for this template?
+		if(temName!=undefined&&typeof temName=='string'){
+			//if this template exists in the left nav
+			var temLi=bodyElem[0].getTemplateLi(temName);
+			if(temLi.length>0){
+				var areChanges=false;
+				var thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
+				if(thisTemChangesWrap.length>0){
+					if(thisTemChangesWrap.html().length>0){
+						areChanges=true;
+					}
+				}
+				//if there are any unsaved changes for this template
+				if(areChanges){
+					temLi.addClass('unsaved-changes');
+				}else{
+					//no unsaved changes...
+					temLi.removeClass('unsaved-changes');
+				}
+				//update other elements that may need to change the unsaved-changes class
+				setTemUnsavedChangesClass(temName);
 			}
 		}
 		return changesMadeWrap.html();
@@ -1210,6 +1254,8 @@ jQuery(document).ready(function(){
 			//==SHOW WORKSPACE==
 			//remove the no-selected-template indicator to show the workspace content
 			workspaceWrap.removeClass('no-selected-template');
+			//==INDICATE IF THIS TEMPLATE HAS UNSAVED CHANGES==
+			setTemUnsavedChangesClass(temName);
 		}
 	};
 	bodyElem[0]['selectTemplate']=selectTemplate;
