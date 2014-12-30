@@ -471,7 +471,7 @@ function htm_tree_view_dir(json){
 			rootClass=' root';
 			startRoot='<ul class="tree-root">';endRoot='</ul>';
 			rootPathHtm='<span class="path">'+root+'</span>';
-			browseBtnHtm='<span class="browse"></span>';
+			browseBtnHtm='<span class="browse">'+getSvg('cog')+'</span>';
 		}
 		//if there is an open property with an open value, then set the bool flag true
 		var isOpen=false;if(json.hasOwnProperty('is_open')){isOpen=json.is_open;}
