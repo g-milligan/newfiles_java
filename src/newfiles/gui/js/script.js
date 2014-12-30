@@ -168,7 +168,8 @@ jQuery(document).ready(function(){
 										}
 										break;
 									case 'del-include_rule': //delete include rule
-										var test="";
+										var incStr=json;
+										alert('delete ' + incStr);
 										//***
 										break;
 								}
@@ -435,6 +436,18 @@ jQuery(document).ready(function(){
 			currentTxt=sanitizeIncludeStr(currentTxt);
 			//if the current text is the default text OR blank
 			if(currentTxt==defaultTxt||currentTxt.length<1){
+				//if the text is blank
+				if(currentTxt.length<1){
+					//if there is a selected include rule to modify
+					var temLi=getTemplateLi();
+					var temName=temLi.attr('name');
+					var incElem=temLi.find('ul.includes > li ul li.selected > .inc:first');
+					if(incElem.length>0){
+						var incStr=incElem.text();
+						//delete this include rule since a BLANK string was entered to modify its value
+						bodyElem[0].templateChangesMade(temName,'include_rule','del',incStr);
+					}
+				}
 				//clear the default text and set focus
 				bodyElem[0].deselectIncludeRules();
 				includeInput.val('');
@@ -464,10 +477,12 @@ jQuery(document).ready(function(){
 				//if any include rule is already selected for modification
 				var selectedLi=includesUl.children('li.selected');
 				if(selectedLi.length>0){
-					var incElem=selectedLi.children('.inc:first');
-					var incStr=incElem.text();
-					//modify an existing include rule
-					bodyElem[0].templateChangesMade(temName,'include_rule','mod',{'new':currentTxt,'old':incStr});
+					var incElem=selectedLi.children('.inc:first'); var incStr=incElem.text();
+					//if the value is different from the old value
+					if(incStr!=currentTxt){
+						//modify an existing include rule
+						bodyElem[0].templateChangesMade(temName,'include_rule','mod',{'new':currentTxt,'old':incStr});
+					}
 				}else{
 					//new include rule to add... 
 					bodyElem[0].templateChangesMade(temName,'include_rule','add',currentTxt);
@@ -1432,7 +1447,7 @@ jQuery(document).ready(function(){
 			var temLi=parentLi.parent().parent().parent().parent();
 			var temName=temLi.attr('name');
 			//make the change
-			bodyElem[0].templateChangesMade(temName, 'include_rule', 'del', incStr);
+			bodyElem[0].templateChangesMade(temName,'include_rule','del',incStr);
 		});
 		includeRuleElems.children('.inc').click(function(){
 			//get include rule string
