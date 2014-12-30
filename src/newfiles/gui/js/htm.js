@@ -488,7 +488,11 @@ function htm_tree_view_dir(json){
 		htm+='<span class="name">'+name+'</span>';
 		htm+=browseBtnHtm;
 		htm+='</span>';
-		//*** list items under this dir
+		//list items under this dir
+		var ls=[];if(json.hasOwnProperty('ls')){ls=json.ls;}
+		if(ls.length>0){
+			//***
+		}
 		//end dir <li>
 		htm+='</li>'+endRoot;
 	}
