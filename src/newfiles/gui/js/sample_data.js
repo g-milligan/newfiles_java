@@ -100,10 +100,46 @@ function sample_json_treeview(){
 		[
 			{'dir':'css'},
 			{'dir':'img'},
-			{'name':'main.txt'},
+			{'file':'main.txt'},
 			{'dir':'test'},
 			{'dir':'txt'}
 		]
+	};
+	return json;
+}
+
+function sample_json_treeview2(){
+	var json={
+		'root':'C:/Users/gmilligan/Desktop',
+		'dir':'myprojects',
+		'ls':
+		[
+			{
+				'dir':'css',
+				'ls':
+				[
+					{'file':'include.css'},
+					{'file':'includeno.css'},
+					{'file':'includethis.html'},
+					{'file':'includethis.txt'},
+					{'file':'includethree.txt'},
+					{'file':'noinclude.txt'},
+					{'file':'startswith_includeme_endswith.css'},
+					{'dir':'stuff_hi_yep'},
+					{'file':'tooinclude.css'}
+				]
+			},
+			{'dir':'img'},
+			{'file':'main.txt'},
+			{
+				'dir':'test',
+				'ls':
+				[
+					{'dir':'deadEnd'},
+					{'dir':'thisWay'}
+				]
+			},
+			{'dir':'txt'}																																																																																 		]
 	};
 	return json;
 }

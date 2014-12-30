@@ -106,7 +106,7 @@ public class NfGui extends Application {
                     String templatesJson=getTemplatesJson();
                     mWebEngine.executeScript("document.body.updateTemplates("+templatesJson+")");
                     //build the tree view listing
-                    int maxLevels=2; //only show two levels on page load: 1) root folder AND 2) sub files/folders
+                    int maxLevels=3; //only show two levels on page load: 1) root folder AND 2) sub files/folders
                     String treeViewJson=getTreeViewJson(true,mTargetDir,maxLevels); //max level (from the target root), to start off
                     mWebEngine.executeScript("document.body.updateTreeView("+treeViewJson+")");
                     //event listener to detect when javascript makes a request to java
@@ -205,7 +205,7 @@ public class NfGui extends Application {
                                     //start file json
                                     subJson+="{";
                                     //if name
-                                    subJson+="'name':'"+subFiles[f].getName()+"'";
+                                    subJson+="'file':'"+subFiles[f].getName()+"'";
                                     //if is hidden file
                                     if(subFiles[f].isHidden()){
                                         subJson+=",'is_hidden':true";
