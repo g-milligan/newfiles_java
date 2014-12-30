@@ -441,15 +441,32 @@ jQuery(document).ready(function(){
 				//get the template name
 				var temLi=getTemplateLi();
 				var temName=temLi.attr('name');
-				//get the existing inc element
+				//get the existing inc elements (with this text)
 				var includesUl=temLi.find('ul.includes > li ul:first');
-				var existingIncElem=includesUl.find('li.selected:first');
+				var existingIncElems=includesUl.find('li .inc:contains("'+currentTxt+'")'); //***
+				
+				
+				
+				
+				/*//for each element that contains this include rule text
+				existingIncElems.each(function(){
+					var incStr=jQuery(this).text();
+					if(incStr==currentTxt){
+						jQuery(this).parent().addClass('selected');
+					}
+				});
 				//if this include rule doesn't already exist
 				if(existingIncElem.length<1){
 					//add the include rule
 					bodyElem[0].templateChangesMade(temName, 'include_rule', 'add', currentTxt);
-				}
+				}*/
+				
+				
+				
+				
 				//*** highlight the selected files in tree view
+				
+				
 			}
 		};
 		var gotFocus=function(){
@@ -505,31 +522,28 @@ jQuery(document).ready(function(){
 						var includesLi=temLi.find('ul.includes > li.has-includes:first');
 						//if has-includes
 						if(includesLi.length>0){
-							//if there are any found elements
+							//if there is more than one found element left
 							var foundElems=includesLi.find('ul li .inc found');
 							if(foundElems.length>0){
-								//if there is only one found element
-								if(foundElems.length==1){
-									//set this include rule as selected since it's the only partial match
-									var incElem=foundElems.parent();
-									incElem.click();
-								}else{
-									//more than one found element...
-
-									//for each partial match
-									var commonTxt;
-									foundElems.each(function(){
-										//get the include string
-										var incElem=jQuery(this).parent();
-										var foundTxt=jQuery(this).text();
-										var incStr=incElem.text();
+								//for each partial match
+								var commonTxt;
+								foundElems.each(function(){
+									//get the include string
+									var foundTxt=jQuery(this).text();
+									var incElem=jQuery(this).parent();
+									var incStr=incElem.text();
+									//if this is ENTIRELY matched already
+									if(incStr==foundTxt){
+										//select this incElem then
+										incElem.click();
+									}else{
 										//get the remaining unmatched text
 										var remainingTxt=incStr.substring(foundTxt.length);
 										//if this is the first include string to compare
 										if(commonTxt==undefined){commonTxt=remainingTxt;}
 										else{
 											//not the first include string to compare...
-
+	
 											//trim the commonTxt so it's NOT longer than remainingTxt
 											if(commonTxt.length>remainingTxt.length){
 												commonTxt=commonTxt.substring(0,remainingTxt.length);
@@ -550,14 +564,14 @@ jQuery(document).ready(function(){
 												return false;
 											}
 										}
-									});
-									//if there is commonTxt that got partially matched
-									if(commonTxt.length>0){
-										//add the commonTxt to the end of the currentTxt
-										var extendedTxt=currentTxt+commonTxt
-										//set the extended text
-										includeInput.val(extendedTxt);
 									}
+								});
+								//if there is commonTxt that got partially matched
+								if(commonTxt!=undefined&&commonTxt.length>0){
+									//add the commonTxt to the end of the currentTxt
+									var extendedTxt=currentTxt+commonTxt
+									//set the extended text
+									includeInput.val(extendedTxt);
 								}
 							}
 						}
@@ -588,22 +602,24 @@ jQuery(document).ready(function(){
 						var includesLi=temLi.find('ul.includes > li.has-includes:first');
 						//if has-includes
 						if(includesLi.length>0){
-							//get the include elements
-							var incElems=includesLi.find('ul li .inc');
-							//for each include string element
-							incElems.each(function(){
-								jQuery(this).parent().removeClass('selected');
-								var incStr=jQuery(this).text();
-								incStr=sanitizeIncludeStr(incStr);
-								//if this include rule begins with the entered text
-								if(incStr.indexOf(currentTxt)==0){
-									//entered text matches first part of the include rule...
-									incStr=incStr.replace(currentTxt,'<found class="glow"><<<>>></found>');
-									incStr=incStr.replace('<<<>>>',currentTxt);
-								}
-								//set the updated include string
-								jQuery(this).html(incStr);
-							});
+							//if NO include rules are already selected
+							if(includesLi.find('ul li.selected').length<1){
+								//get the include elements
+								var incElems=includesLi.find('ul li .inc');
+								//for each include string element
+								incElems.each(function(){
+									var incStr=jQuery(this).text();
+									incStr=sanitizeIncludeStr(incStr);
+									//if this include rule begins with the entered text
+									if(incStr.indexOf(currentTxt)==0){
+										//entered text matches first part of the include rule...
+										incStr=incStr.replace(currentTxt,'<found class="glow"><<<>>></found>');
+										incStr=incStr.replace('<<<>>>',currentTxt);
+									}
+									//set the updated include string
+									jQuery(this).html(incStr);
+								});
+							}
 						}
 					}else{
 						//default text OR blank
@@ -636,6 +652,8 @@ jQuery(document).ready(function(){
 							//add select class
 							jQuery(this).parent().addClass('selected');
 						}
+						//remove <found> markup
+						jQuery(this).html(thisRuleStr);
 					});
 					//==TREE VIEW INCLUDE RULE TEXT BOX==
 					//open tree view tab
