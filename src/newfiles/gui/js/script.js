@@ -431,9 +431,8 @@ jQuery(document).ready(function(){
 			//if the current text is the default text OR blank
 			if(currentTxt==defaultTxt||currentTxt.length<1){
 				//clear the default text and set focus
-				includeInput.val('');
-				includeInput.focus();
 				bodyElem[0].deselectIncludeRules();
+				includeInput.focus();
 			}else{
 				//the text is NOT blank NOR default text...
 
@@ -453,9 +452,9 @@ jQuery(document).ready(function(){
 		};
 		var clearTxt=function(){
 			//clear the text and set focus
+			bodyElem[0].deselectIncludeRules();
 			includeRuleWrap.removeClass('text-entered');
 			includeInput.val(origTxt);
-			bodyElem[0].deselectIncludeRules();
 		};
 		var gotFocus=function(){
 			//if the current text is the default text
@@ -463,7 +462,6 @@ jQuery(document).ready(function(){
 			currentTxt=sanitizeIncludeStr(currentTxt);
 			if(currentTxt==defaultTxt){
 				//clear text
-				includeInput.val('');
 				bodyElem[0].deselectIncludeRules();
 			}
 			//expand the include rules in the selected templates nav
@@ -493,9 +491,9 @@ jQuery(document).ready(function(){
 			currentTxt=sanitizeIncludeStr(currentTxt);
 			if(currentTxt==defaultTxt||currentTxt.length<1){
 				//restore the default text
+				bodyElem[0].deselectIncludeRules();
 				includeInput.val(origTxt);
 				includeRuleWrap.removeClass('text-entered');
-				bodyElem[0].deselectIncludeRules();
 			}
 		});
 		if(includeInput.focusin){
@@ -623,8 +621,8 @@ jQuery(document).ready(function(){
 						}
 					}else{
 						//default text OR blank
-						includeRuleWrap.removeClass('text-entered');
 						bodyElem[0].deselectIncludeRules();
+						includeRuleWrap.removeClass('text-entered');
 					}
 				break;
 			}
@@ -687,7 +685,8 @@ jQuery(document).ready(function(){
 			incElem.html(incStr);
 		});
 		//==TREE VIEW==
-		
+		var includeInput=jQuery('.edit-include-rule include');
+		includeInput.val('');
 	};
 	bodyElem[0]['deselectIncludeRules']=deselectIncludeRules;
 	//SEARCH BOXES
