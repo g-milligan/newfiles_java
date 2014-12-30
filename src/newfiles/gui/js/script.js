@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -237,6 +237,8 @@ jQuery(document).ready(function(){
 										var countElem=temLi.find('ul.includes .include .intro .count:first');
 										var count=countElem.text();count=parseInt(count);
 										countElem.text((count-delCount)+'');
+										//make sure the top of the include rule list is scrolled into view
+										bodyElem[0].scrollToHighlight(temLi.find('ul.includes > li:first'));
 										break;
 								}
 								//if the change was made
@@ -273,7 +275,25 @@ jQuery(document).ready(function(){
 				setTemUnsavedChangesClass(temName);
 			}
 		}else{
-			//*** remove asterisks for each template without data in changesMadeWrap
+			//no specific template name given...
+			
+			//if a real value was given for temName
+			if(temName!=undefined){
+				//if a boolean value was given for temName
+				if(typeof temName=='boolean'){
+					//if false was passed
+					if(!temName){
+						//for ALL template li's in the left nav
+						var temLis=temLsWrap.find('ul.ls.folders > li');
+						temLis.each(function(){
+							//clear the unsaved changes class for this template
+							jQuery(this).removeClass('unsaved-changes');
+							//update other elements that may need to change the unsaved-changes class
+							setTemUnsavedChangesClass(jQuery(this).attr('name'));
+						});
+					}
+				}
+			}
 		}
 		return changesMadeWrap.html();
 	};
