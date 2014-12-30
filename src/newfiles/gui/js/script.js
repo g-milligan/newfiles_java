@@ -422,18 +422,6 @@ jQuery(document).ready(function(){
 		var origTxt=defaultTxt;
 		defaultTxt=sanitizeIncludeStr(defaultTxt);
 		//internal functions
-		var deselectTemplatesNav=function(){
-			//deselect any selected include rules
-			var hasIncludesLis=temLsWrap.find('ul.includes li.has-includes');
-			hasIncludesLis.find('ul li.selected').removeClass('selected');
-			//remove <found> highlights
-			var foundElems=hasIncludesLis.find('ul li .inc found');
-			foundElems.each(function(){
-				var incElem=jQuery(this).parent();
-				var incStr=incElem.text();
-				incElem.html(incStr);
-			});
-		};
 		var doAdd=function(){
 			includeRuleWrap.addClass('do-add');
 			setTimeout(function(){includeRuleWrap.removeClass('do-add');},200);
@@ -445,7 +433,7 @@ jQuery(document).ready(function(){
 				//clear the default text and set focus
 				includeInput.val('');
 				includeInput.focus();
-				deselectTemplatesNav();
+				bodyElem[0].deselectIncludeRules();
 			}else{
 				//the text is NOT blank NOR default text...
 
@@ -467,7 +455,7 @@ jQuery(document).ready(function(){
 			//clear the text and set focus
 			includeRuleWrap.removeClass('text-entered');
 			includeInput.val(origTxt);
-			deselectTemplatesNav();
+			bodyElem[0].deselectIncludeRules();
 		};
 		var gotFocus=function(){
 			//if the current text is the default text
@@ -476,7 +464,7 @@ jQuery(document).ready(function(){
 			if(currentTxt==defaultTxt){
 				//clear text
 				includeInput.val('');
-				deselectTemplatesNav();
+				bodyElem[0].deselectIncludeRules();
 			}
 			//expand the include rules in the selected templates nav
 			var temLi=getTemplateLi();
@@ -507,7 +495,7 @@ jQuery(document).ready(function(){
 				//restore the default text
 				includeInput.val(origTxt);
 				includeRuleWrap.removeClass('text-entered');
-				deselectTemplatesNav();
+				bodyElem[0].deselectIncludeRules();
 			}
 		});
 		if(includeInput.focusin){
@@ -636,7 +624,7 @@ jQuery(document).ready(function(){
 					}else{
 						//default text OR blank
 						includeRuleWrap.removeClass('text-entered');
-						deselectTemplatesNav();
+						bodyElem[0].deselectIncludeRules();
 					}
 				break;
 			}
@@ -652,7 +640,7 @@ jQuery(document).ready(function(){
 			if(temLi.length>0){
 				var includesUl=temLi.children('ul.includes:last');
 				//deselect current rule strings
-				includesUl.find('li.has-includes ul li.selected').removeClass('selected');
+				bodyElem[0].deselectIncludeRules();
 				//if any include rules match this ruleStr
 				var includesBtn=includesUl.find('li.has-includes ul li .inc:contains("'+ruleStr+'")');
 				if(includesBtn.length>0){
@@ -665,16 +653,6 @@ jQuery(document).ready(function(){
 							//add select class
 							jQuery(this).parent().addClass('selected');
 						}
-						//clear out any <found> highlights
-						jQuery(this).text(thisRuleStr);
-					});
-					//make sure no include rule has a <found> element
-					var foundElems=includesUl.find('li.has-includes .inc found');
-					foundElems.each(function(){
-						//remove the <found> element from the include string
-						var incElem=jQuery(this).parent();
-						var incStr=incElem.text();
-						incElem.html(incStr);
 					});
 					//==TREE VIEW INCLUDE RULE TEXT BOX==
 					//open tree view tab
@@ -694,6 +672,24 @@ jQuery(document).ready(function(){
 		}
 	};
 	bodyElem[0]['selectIncludeRule']=selectIncludeRule;
+	//==DESELECT INCLUDE RULES==
+	var deselectIncludeRules=function(){
+		//==LEFT NAV==
+		//get the include rule <li> elements
+		var includeLis=temLsWrap.find('ul.ls.folders ul.includes li ul li');
+		//remove selected classes
+		includeLis.filter('.selected').removeClass('selected');
+		//for each highlighted <found> element
+		includeLis.find('.inc found').each(function(){
+			//remove <found> element from include rule text
+			var incElem=jQuery(this).parent();
+			var incStr=incElem.text();
+			incElem.html(incStr);
+		});
+		//==TREE VIEW==
+		
+	};
+	bodyElem[0]['deselectIncludeRules']=deselectIncludeRules;
 	//SEARCH BOXES
 	//internal function to sanitize the search string
 	var sanitizeSearchStr=function(str){
@@ -1115,6 +1111,8 @@ jQuery(document).ready(function(){
 			//select the new template
 			var temLi=getTemplateLi(temName);
 			temLi.addClass('selected');
+			//deselect include rules that could be selected
+			bodyElem[0].deselectIncludeRules();
 			//==FILES DROPDOWN==
 			fileDropdownsWrap.children('nav.select').removeClass('active');
 			var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
