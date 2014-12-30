@@ -161,7 +161,11 @@ jQuery(document).ready(function(){
 										bodyElem[0].scrollToHighlight(incElem);
 										break;
 									case 'mod-include_rule': //modify existing include rule
-										//***
+										var newStr=json.new;var oldStr=json.old;
+										if(newStr!=oldStr){
+											//***
+											alert('modify ' + oldStr + ' to ' + newStr);
+										}
 										break;
 									case 'del-include_rule': //delete include rule
 										var test="";
@@ -441,32 +445,33 @@ jQuery(document).ready(function(){
 				//get the template name
 				var temLi=getTemplateLi();
 				var temName=temLi.attr('name');
+				//==SELECT THIS INCLUDE RULE TEXT IF IT'S IN THE LIST==
 				//get the existing inc elements (with this text)
 				var includesUl=temLi.find('ul.includes > li ul:first');
-				var existingIncElems=includesUl.find('li .inc:contains("'+currentTxt+'")'); //***
-				
-				
-				
-				
-				/*//for each element that contains this include rule text
+				var existingIncElems=includesUl.find('li .inc:contains("'+currentTxt+'")');
+				//for each element that contains this include rule text
 				existingIncElems.each(function(){
 					var incStr=jQuery(this).text();
+					//if this text matches exactly
 					if(incStr==currentTxt){
-						jQuery(this).parent().addClass('selected');
+						//select this match
+						jQuery(this).click();
+						//stop search
+						return false;
 					}
 				});
-				//if this include rule doesn't already exist
-				if(existingIncElem.length<1){
-					//add the include rule
-					bodyElem[0].templateChangesMade(temName, 'include_rule', 'add', currentTxt);
-				}*/
-				
-				
-				
-				
-				//*** highlight the selected files in tree view
-				
-				
+				//==MODIFY EXISTING... OR ADD NEW==
+				//if any include rule is already selected for modification
+				var selectedLi=includesUl.children('li.selected');
+				if(selectedLi.length>0){
+					var incElem=selectedLi.children('.inc:first');
+					var incStr=incElem.text();
+					//modify an existing include rule
+					bodyElem[0].templateChangesMade(temName,'include_rule','mod',{'new':currentTxt,'old':incStr});
+				}else{
+					//new include rule to add... 
+					bodyElem[0].templateChangesMade(temName,'include_rule','add',currentTxt);
+				}
 			}
 		};
 		var gotFocus=function(){
@@ -497,13 +502,20 @@ jQuery(document).ready(function(){
 		//EVENTS
 		addBtn.click(function(){doAdd();includeInput.focus();});
 		//clear button click event
-		clearBtn.click(function(){ //blur should take care of this
-			//bodyElem[0].deselectIncludeRules();
-		});
-		//search input events
-		includeInput.blur(function(){
-			//restore the default text
+		clearBtn.click(function(){ 
 			bodyElem[0].deselectIncludeRules();
+		});
+		includeRuleWrap.hover(function(){
+			jQuery(this).addClass('hover');
+		},function(){
+			jQuery(this).removeClass('hover');
+		});
+		includeInput.blur(function(){
+			//if NOT over the addBtn NOR clearBtn
+			if(!includeRuleWrap.hasClass('hover')){
+				//clear out selection, <found> highlights, AND include rule text in the input box
+				bodyElem[0].deselectIncludeRules();
+			}
 		});
 		if(includeInput.focusin){
 			includeInput.focusin(function(){gotFocus();});
@@ -668,6 +680,7 @@ jQuery(document).ready(function(){
 						//add the text entered class
 						jQuery(this).addClass('text-entered');
 					});
+					//*** highlight the selected files in tree view
 				}
 			}
 		}
