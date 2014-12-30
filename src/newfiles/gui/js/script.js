@@ -12,6 +12,7 @@ jQuery(document).ready(function(){
 	var inputViewWrap=workspaceWrap.children('#input-view:last');
 	var mainViewWrap=workspaceWrap.children('#main-view:first');
 	var treeViewContent=mainViewWrap.children('.content[name="tree-view"]:first');
+	var treeViewWrap=treeViewContent.find('#tree-view:first');
 	var projectIdsWrap=treeViewContent.find('.rcol .col-content .block-wrap.project-ids:first');
 	var fileViewContent=mainViewWrap.children('.content[name="file-view"]:first');
 	var mainTitleElem=mainViewWrap.find('header .title h1:first');
@@ -1462,8 +1463,8 @@ jQuery(document).ready(function(){
 	};
 	bodyElem[0]['toggleOnOffFile']=toggleOnOffFile;
 	//==ATTACH EVENTS, INTERNAL FUNCTIONS==
-	//evs +/- button for open/close
-	var evsToggleOpenClose=function(){
+	//evs +/- button for open/close under temLsWrap
+	var evsTemToggleOpenClose=function(){
 		//add opened-closed toggle events (to elements that don't already have events added)
 		var openCloseElems=temLsWrap.find('.opened-closed').not('.evs');
 		//mark these elements as having the events attached
@@ -1483,7 +1484,7 @@ jQuery(document).ready(function(){
 			}
 		});
 	};
-	bodyElem[0]['evsToggleOpenClose']=evsToggleOpenClose;
+	bodyElem[0]['evsTemToggleOpenClose']=evsTemToggleOpenClose;
 	//evs on off button for files
 	var evsToggleFileOnOff=function(){
 		var onOffElems=temLsWrap.find('.on-off').not('.evs');
@@ -1742,7 +1743,7 @@ jQuery(document).ready(function(){
 			});
 			//==ADD JS EVENTS TO NEW ELEMENTS==
 			//add opened-closed toggle events (to elements that don't already have events added)
-			evsToggleOpenClose();
+			evsTemToggleOpenClose();
 			//add on-off toggle events (to elements that don't already have events added)
 			evsToggleFileOnOff();
 			//select events for templates
@@ -1778,9 +1779,19 @@ jQuery(document).ready(function(){
 	//==UPDATE TREE VIEW LISTING==
 	var updateTreeView=function(json){
 		if(json!=undefined){
+			//get tree view html
+			var htm=htm_tree_view_dir(json);
+			treeViewWrap.html(''); //clear old html
+			treeViewWrap.append(htm); //set html
+			//==SET TREE VIEW EVENTS==
 			//***
 		}
 	};
+	bodyElem[0]['updateTreeView']=updateTreeView;
+	if(getTestInBrowser()){
+		//for testing in a browser
+		bodyElem[0].updateTreeView(sample_json_treeview2());
+	}
 	//==WINDOW READY==
 	jQuery(window).ready(function(){
 		//==TEMPLATES RESIZE==
@@ -1938,12 +1949,12 @@ function goToTabView(tabBtn){
 }
 function toggleHiddenSystemFiles(btn){
 	btn=jQuery(btn);
-	var treeViewWrap=btn.parents('.content[name="tree-view"]:first');
+	var treeViewContent=btn.parents('.content[name="tree-view"]:first');
 	if(btn.hasClass('on')){
 		btn.removeClass('on');
-		treeViewWrap.removeClass('hidden-system-files');
+		treeViewContent.removeClass('hidden-system-files');
 	}else{
 		btn.addClass('on');
-		treeViewWrap.addClass('hidden-system-files');
+		treeViewContent.addClass('hidden-system-files');
 	}
 }

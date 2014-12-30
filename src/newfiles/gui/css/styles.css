@@ -190,7 +190,7 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #workspace .lcol .col-content,#workspace .rcol .col-content{padding:.2em;position:absolute;top:.9em;left:0;bottom:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace .lcol .col-content{top:0;}
 #workspace .col-content .scroll{font-size:54%;width:100%;height:100%;overflow:auto;box-sizing:border-box;-moz-box-sizing:border-box;}
-#workspace div[name="tree-view"] .lcol .col-content .scroll{font-size:100%;position:absolute;left:0;right:0;top:1.2em;bottom:1.2em;height:auto;padding:.2em;}
+#workspace #tree-view.scroll{font-size:100%;position:absolute;left:0;right:0;top:1.2em;bottom:1.2em;height:auto;padding:.2em;}
 #workspace div[name="tree-view"] .lcol .col-content .top-bar,
 #workspace div[name="tree-view"] .lcol .col-content .bottom-bar{position:absolute;left:0;right:0;height:1.2em;width:100%;padding:.2em;box-sizing:border-box;-moz-box-sizing:border-box;}
 #workspace div[name="tree-view"] .lcol .col-content .top-bar{top:0;padding-bottom:0;}
@@ -260,3 +260,15 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #workspace.collapse-input-view > #input-view > div{display:none;}
 #input-view .size-controls{margin-top:.2em;}
 #workspace.collapse-input-view > #input-view .size-controls{margin-top:0;border-top:solid .1em;}
+/*TREE VIEW*/
+#tree-view ul.tree-root{font-size:60%;display:block;padding:0;margin:0;}
+#tree-view ul li{list-style:none;}
+#tree-view ul li.dir-lbl{display:block;}
+#tree-view ul.tree-root ul{display:block;}
+#tree-view ul.tree-root li.closed > ul{display:none;}
+#tree-view ul li > span .opened-closed{cursor:pointer;display:inline-block;width:.7em;height:.7em;margin-right:.2em;}
+#tree-view ul li > span .opened-closed .closed,
+#tree-view ul li > span .opened-closed .opened{display:block;padding:.1em;}
+#tree-view ul li.opened > span .opened-closed .closed,
+#tree-view ul li.closed > span .opened-closed .opened{display:none;}
+#tree-view ul li > span .icon{cursor:pointer;display:inline-block;width:1em;height:1em;margin-right:.2em;}

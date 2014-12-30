@@ -188,6 +188,8 @@ public class NfGui extends Application {
                         if(isRoot){
                             //add the root path
                             json+="'root':'"+mFileMgr.getForwardSeparator(target.getParent())+"',";
+                            //root should be open on page load
+                            json+="'is_open':true,";
                         }
                         //directory name
                         json+="'dir':'"+target.getName()+"'";

@@ -95,6 +95,7 @@ function sample_json_templates2(){
 function sample_json_treeview(){
 	var json={
 		'root':'C:/Users/gmilligan/Desktop',
+		'is_open':true,
 		'dir':'myprojects',
 		'ls':
 		[
@@ -111,6 +112,7 @@ function sample_json_treeview(){
 function sample_json_treeview2(){
 	var json={
 		'root':'C:/Users/gmilligan/Desktop',
+		'is_open':true,
 		'dir':'myprojects',
 		'ls':
 		[
