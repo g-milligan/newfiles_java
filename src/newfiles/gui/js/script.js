@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -129,14 +129,16 @@ jQuery(document).ready(function(){
 								}
 								//increment the most recent undo number
 								var currentUndo=thisTemChangesWrap.attr('undo');currentUndo=parseInt(currentUndo);
-								currentUndo++;thisTemChangesWrap.attr('undo',currentUndo+'');
+								currentUndo++;
 								//combine what/how to get a change key
 								var whatHowChange=howChanged+'-'+whatChanged;
+								var changeMade=false;
 								switch(whatHowChange){
 									case 'add-include_rule': //add new include rule
 										var incStr=json;
 										//append to the xml to send back to Java
 										howWrap.append('<add undo="'+currentUndo+'">'+incStr+'</add>');
+										changeMade=true;
 										//==LEFT NAV==
 										//get the new include item's html
 										var incHtm=htm_template_include(incStr);
@@ -163,15 +165,41 @@ jQuery(document).ready(function(){
 									case 'mod-include_rule': //modify existing include rule
 										var newStr=json.new;var oldStr=json.old;
 										if(newStr!=oldStr){
-											//***
-											//alert('modify ' + oldStr + ' to ' + newStr);
+											//append to the xml to send back to Java
+											howWrap.append('<mod undo="'+currentUndo+'"><old>'+oldStr+'</old><new>'+newStr+'</new></mod>');
+											changeMade=true;
+											//==LEFT NAV==
+											//get the .inc elements to modify
+											var incElems=temLi.find('ul.includes li ul li .inc:contains("'+oldStr+'")');
+											var lastIncElem;
+											incElems.each(function(){
+												//if this is one of the matching strings to modify
+												var incStr=jQuery(this).text();
+												if(incStr==oldStr){
+													//set the new string
+													jQuery(this).html(newStr);
+													lastIncElem=jQuery(this);
+												}
+											});
+											//if at least one .inc string was modified
+											if(lastIncElem!=undefined){
+												//make sure the modified rule(s) are selected
+												lastIncElem.click();
+												//make sure the modified rule is within scroll view
+												bodyElem[0].scrollToHighlight(lastIncElem);
+											}
 										}
 										break;
 									case 'del-include_rule': //delete include rule
 										var incStr=json;
-										//alert('delete ' + incStr);
+										alert('delete ' + incStr);
 										//***
 										break;
+								}
+								//if the change was made
+								if(changeMade){
+									//set the most recent, incremented, undo number
+									thisTemChangesWrap.attr('undo',currentUndo+'');
 								}
 							}
 						}
@@ -467,6 +495,8 @@ jQuery(document).ready(function(){
 					var incStr=jQuery(this).text();
 					//if this text matches exactly
 					if(incStr==currentTxt){
+						//make sure no other rule is selected
+						bodyElem[0].deselectIncludeRules();
 						//select this match
 						jQuery(this).click();
 						//stop search
