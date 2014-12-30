@@ -106,8 +106,8 @@ public class NfGui extends Application {
                     String templatesJson=getTemplatesJson();
                     mWebEngine.executeScript("document.body.updateTemplates("+templatesJson+")");
                     //build the tree view listing
-                    int maxLevels=1;
-                    String treeViewJson=getTreeViewJson(mTargetDir,maxLevels); //max level (from the target root), to start off
+                    int maxLevels=2; //only show two levels on page load: 1) root folder AND 2) sub files/folders
+                    String treeViewJson=getTreeViewJson(true,mTargetDir,maxLevels); //max level (from the target root), to start off
                     mWebEngine.executeScript("document.body.updateTreeView("+treeViewJson+")");
                     //event listener to detect when javascript makes a request to java
                     ((EventTarget)doc).addEventListener("nf_open_folder", new EventListener(){
@@ -170,9 +170,74 @@ public class NfGui extends Application {
         return path;
     }
     //get the tree view listing JSON (limit maxLevels from the given targetDir root)
-    private String getTreeViewJson(String targetDir, int maxLevels){
+    private String getTreeViewJson(String targetDir, int maxLevels){return getTreeViewJson(false, targetDir, maxLevels);}
+    private String getTreeViewJson(boolean isRoot, String targetDir, int maxLevels){
         String json="{";
-        //***
+        //if more than zero maxLevels
+        if(maxLevels>0){
+            //use real file separator instead of /
+            targetDir=mFileMgr.getSystemSeparator(targetDir);
+            //if this targetDir exists
+            File target=new File(targetDir);
+            if(target.exists()){
+                //if is directory
+                if(target.isDirectory()){
+                    //if NOT a hidden directory
+                    if(!target.isHidden()){
+                        //if this is the root directory
+                        if(isRoot){
+                            //add the root path
+                            json+="'root':'"+mFileMgr.getForwardSeparator(target.getParent())+"',";
+                        }
+                        //directory name
+                        json+="'dir':'"+target.getName()+"'";
+                        //if still below max number of levels
+                        if(maxLevels-1>0){
+                            //get the sub files and folders under this folder path
+                            String subJson="";
+                            File[] subFiles = target.listFiles();
+                            for(int f=0;f<subFiles.length;f++){
+                                //if this is a sub file
+                                if(subFiles[f].isFile()){
+                                    //if first subJson... then start off the sub level json
+                                    if(subJson.length()<1){subJson+=",'ls':[";}
+                                    else{subJson+=",";} //separate from previous file/folder json item
+                                    //start file json
+                                    subJson+="{";
+                                    //if name
+                                    subJson+="'name':'"+subFiles[f].getName()+"'";
+                                    //if is hidden file
+                                    if(subFiles[f].isHidden()){
+                                        subJson+=",'is_hidden':true";
+                                    }
+                                    //end file json
+                                    subJson+="}";
+                                }else{
+                                    //if is sub folder
+                                    if(subFiles[f].isDirectory()){
+                                        //if NOT a hidden directory
+                                        if(!subFiles[f].isHidden()){
+                                            //if first subJson... then start off the sub level json
+                                            if(subJson.length()<1){subJson+=",'ls':[";}
+                                            else{subJson+=",";} //separate from previous file/folder json item
+                                            //recursive get sub level directory
+                                            subJson+=getTreeViewJson(subFiles[f].getPath(), maxLevels-1);
+                                        }
+                                    }
+                                }
+                            }
+                            //if there were any sub levels
+                            if(subJson.length()>0){
+                                //end the sub 'ls' array
+                                subJson+="]";
+                            }
+                            //add the sub levels to the main json
+                            json+=subJson;
+                        }
+                    }
+                }
+            }
+        }
         json+="}";
         return json;
     }

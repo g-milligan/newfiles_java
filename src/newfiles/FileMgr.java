@@ -71,7 +71,7 @@ public class FileMgr {
         String path=unformattedPath;
         //if the file separator is NOT /
         if(!File.separator.equals("/")){
-            //user / instead of the standard file separator
+            //use / instead of the standard file separator
             path=path.replace(File.separator, "/");
         }
         return path;
@@ -81,7 +81,7 @@ public class FileMgr {
         String path=unformattedPath;
         //if the file separator is NOT /
         if(!File.separator.equals("/")){
-            //user / instead of the standard file separator
+            //use the real separator instead of /
             path=path.replace("/",File.separator);
         }
         return path;
