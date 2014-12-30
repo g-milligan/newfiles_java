@@ -105,6 +105,10 @@ public class NfGui extends Application {
                     //build the templates listing
                     String templatesJson=getTemplatesJson();
                     mWebEngine.executeScript("document.body.updateTemplates("+templatesJson+")");
+                    //build the tree view listing
+                    int maxLevels=1;
+                    String treeViewJson=getTreeViewJson(mTargetDir,maxLevels); //max level (from the target root), to start off
+                    mWebEngine.executeScript("document.body.updateTreeView("+treeViewJson+")");
                     //event listener to detect when javascript makes a request to java
                     ((EventTarget)doc).addEventListener("nf_open_folder", new EventListener(){
                         public void handleEvent(Event ev){
@@ -164,6 +168,13 @@ public class NfGui extends Application {
             path=path.substring(0,path.length()-1);
         }
         return path;
+    }
+    //get the tree view listing JSON (limit maxLevels from the given targetDir root)
+    private String getTreeViewJson(String targetDir, int maxLevels){
+        String json="{";
+        //***
+        json+="}";
+        return json;
     }
     //get the templates listing JSON
     private String getTemplatesJson(){

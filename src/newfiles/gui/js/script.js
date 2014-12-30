@@ -1775,6 +1775,12 @@ jQuery(document).ready(function(){
 		//for testing in a browser
 		bodyElem[0].updateTemplates(sample_json_templates3());
 	}
+	//==UPDATE TREE VIEW LISTING==
+	var updateTreeView=function(json){
+		if(json!=undefined){
+			//***
+		}
+	};
 	//==WINDOW READY==
 	jQuery(window).ready(function(){
 		//==TEMPLATES RESIZE==
