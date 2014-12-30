@@ -1,4 +1,4 @@
-function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -164,12 +164,12 @@ jQuery(document).ready(function(){
 										var newStr=json.new;var oldStr=json.old;
 										if(newStr!=oldStr){
 											//***
-											alert('modify ' + oldStr + ' to ' + newStr);
+											//alert('modify ' + oldStr + ' to ' + newStr);
 										}
 										break;
 									case 'del-include_rule': //delete include rule
 										var incStr=json;
-										alert('delete ' + incStr);
+										//alert('delete ' + incStr);
 										//***
 										break;
 								}
