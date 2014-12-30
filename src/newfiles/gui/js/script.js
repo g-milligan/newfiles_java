@@ -272,6 +272,8 @@ jQuery(document).ready(function(){
 				//update other elements that may need to change the unsaved-changes class
 				setTemUnsavedChangesClass(temName);
 			}
+		}else{
+			//*** remove asterisks for each template without data in changesMadeWrap
 		}
 		return changesMadeWrap.html();
 	};
