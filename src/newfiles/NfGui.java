@@ -204,19 +204,22 @@ public class NfGui extends Application {
                                 for(int f=0;f<subFiles.length;f++){
                                     //if this is a sub file
                                     if(subFiles[f].isFile()){
-                                        //if first subJson... then start off the sub level json
-                                        if(subJson.length()<1){subJson+=",'ls':[";}
-                                        else{subJson+=",";} //separate from previous file/folder json item
-                                        //start file json
-                                        subJson+="{";
-                                        //if name
-                                        subJson+="'file':'"+subFiles[f].getName()+"'";
-                                        //if is hidden file
-                                        if(subFiles[f].isHidden()){
-                                            subJson+=",'is_hidden':true";
+                                        //if this file is NOT ignored in the tree view
+                                        if(!mFileMgr.isIgnoredFileInTreeView(subFiles[f])){
+                                            //if first subJson... then start off the sub level json
+                                            if(subJson.length()<1){subJson+=",'ls':[";}
+                                            else{subJson+=",";} //separate from previous file/folder json item
+                                            //start file json
+                                            subJson+="{";
+                                            //if name
+                                            subJson+="'file':'"+subFiles[f].getName()+"'";
+                                            //if is hidden file
+                                            if(subFiles[f].isHidden()){
+                                                subJson+=",'is_hidden':true";
+                                            }
+                                            //end file json
+                                            subJson+="}";
                                         }
-                                        //end file json
-                                        subJson+="}";
                                     }else{
                                         //if is sub folder
                                         if(subFiles[f].isDirectory()){

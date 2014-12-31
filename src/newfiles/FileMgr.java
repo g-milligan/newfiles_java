@@ -172,6 +172,31 @@ public class FileMgr {
         }
         return isIgnored;
     }
+    //determine if the file should be ignored in the tree-view
+    public static boolean isIgnoredFileInTreeView(File file){
+        boolean isIgnored=false;
+        //only hidden files MAY be ignored
+        if(file.isHidden()){
+            //get the file name
+            String fileName=file.getName();
+            String fileNameLower=fileName.toLowerCase();
+            //==WINDOWS SYSTEM CHECKS==
+            //if the filename contains a dot
+            if(fileNameLower.contains(".")){
+                if(fileNameLower.indexOf("ntuser.dat")==0){isIgnored=true;} //if starts with...
+                else if(fileNameLower.lastIndexOf(".blf")==fileNameLower.length()-".blf".length()){isIgnored=true;} //if ends with...
+                else if(fileNameLower.lastIndexOf(".regtrans-ms")==fileNameLower.length()-".regtrans-ms".length()){isIgnored=true;} //if ends with...
+                else if(fileNameLower.equals("ntuser.ini")){isIgnored=true;} //if is...
+                else if(fileNameLower.equals("thumbs.db")){isIgnored=true;} //if is...
+                //if NOT already ignored
+                if(!isIgnored){
+                    //==MAC SYSTEM CHECKS==
+                    //***
+                }
+            }
+        }
+        return isIgnored;
+    }
     //copy a non-text OR normal text file to some location
     public static boolean copyFileTo(File source, File dest) {
         boolean success=false;
