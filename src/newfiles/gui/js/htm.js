@@ -463,7 +463,7 @@ function htm_tree_view_dir(json){
 	var name='';if(json.hasOwnProperty('dir')){name=json.dir;}
 	//if the dir name was provided
 	if(name.length>0){
-		var rootClass='';var startRoot='';var endRoot='';var rootPathHtm='';var browseBtnHtm='';
+		var rootClass='';var startRoot='';var endRoot='';var rootPathHtm='';var optionsBtnHtm='';
 		//if is the root directory
 		var root='';if(json.hasOwnProperty('root')){root=json.root;}
 		if(root.length>0){
@@ -471,7 +471,7 @@ function htm_tree_view_dir(json){
 			rootClass=' root';
 			startRoot='<ul class="tree-root">';endRoot='</ul>';
 			rootPathHtm='<span class="path">'+root+'</span>';
-			browseBtnHtm='<span class="browse">'+getSvg('cog')+'</span>';
+			optionsBtnHtm='<span class="options">'+getSvg('cog')+'</span>';
 		}
 		//if there is an open property with an open value, then set the bool flag true
 		var isOpen=false;if(json.hasOwnProperty('is_open')){isOpen=json.is_open;}
@@ -486,15 +486,57 @@ function htm_tree_view_dir(json){
 		htm+='<span class="icon">'+getSvg('folder')+'</span>';
 		htm+=rootPathHtm;
 		htm+='<span class="name">'+name+'</span>';
-		htm+=browseBtnHtm;
+		htm+=optionsBtnHtm;
 		htm+='</span>';
 		//list items under this dir
 		var ls=[];if(json.hasOwnProperty('ls')){ls=json.ls;}
 		if(ls.length>0){
-			//***
+			//start sub item list
+			htm+='<ul>'; var subFilesHtm='';var subDirsHtm='';
+			//for each sub item
+			for(var c=0;c<ls.length;c++){
+				var subJson=ls[c];
+				//if child item is a file
+				if(subJson.hasOwnProperty('file')){
+					//get file html
+					subFilesHtm+=htm_tree_view_file(subJson);
+				}else{
+					//child item is a folder...
+					
+					//recursive get sub folder html
+					subDirsHtm+=htm_tree_view_dir(subJson);
+				}
+			}
+			//add sub folders, BEFORE sub files
+			htm+=subDirsHtm+subFilesHtm;
+			//end sub item list
+			htm+='</ul>';
+		}else{
+			//no items under this dir...
+			
+			htm+='<ul class="empty"><li>(empty)</li></ul>';
 		}
 		//end dir <li>
 		htm+='</li>'+endRoot;
+	}
+	return htm;
+}
+//get tree view file
+function htm_tree_view_file(json){
+	var htm='';
+	if(json.hasOwnProperty('file')){
+		//if hidden file
+		var isHidClass='';
+		var isHidden=false;if(json.hasOwnProperty('is_hidden')){isHidden=json.is_hidden;}
+		if(isHidden){isHidClass=' is_hidden';}
+		//start sub file
+		htm+='<li class="file'+isHidClass+'" name="'+json.file+'">';
+		htm+='<span class="file-lbl">';
+		htm+='<span class="file-ico">'+getSvg('file')+'</span>';
+		htm+='<span class="name">'+json.file+'</span>';
+		htm+='</span>';
+		//end sub file
+		htm+='</li>';
 	}
 	return htm;
 }
