@@ -70,6 +70,7 @@ found.glow:before,found.glow:after,found{color:rgba(181,137,0,1);}
 select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;border:0;background-color:transparent;}
 /*SCROLLBARS*/
 ::-webkit-scrollbar{width:.28em;height:.28em}
+#tree-view::-webkit-scrollbar{width:.2em;height:.2em}
 ::-webkit-scrollbar-track{background-color:transparent;border:none;}
 ::-webkit-scrollbar-corner{display:none;}
 /*SVG ICONS*/
@@ -265,6 +266,8 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #tree-view ul li{list-style:none;}
 #tree-view ul li.dir-lbl{display:block;}
 #tree-view ul.tree-root ul{display:block;padding-left:1.2em;}
+#tree-view ul.tree-root ul.empty{padding-left:2.2em;}
+#tree-view ul.tree-root ul.empty li{font-size:75%;font-style:italic;}
 #tree-view ul.tree-root li.closed > ul{display:none;}
 #tree-view ul li > span .opened-closed{cursor:pointer;display:inline-block;width:.7em;height:.7em;padding:.2em;}
 #tree-view ul li > span .opened-closed .closed,

@@ -1485,6 +1485,28 @@ jQuery(document).ready(function(){
 		});
 	};
 	bodyElem[0]['evsTemToggleOpenClose']=evsTemToggleOpenClose;
+	//evs +/- button for open/close under treeViewWrap
+	var evsTreeToggleOpenClose=function(){
+		//add opened-closed toggle events (to elements that don't already have events added)
+		var openCloseElems=treeViewWrap.find('.opened-closed').not('.evs');
+		//mark these elements as having the events attached
+		openCloseElems.addClass('evs');
+		openCloseElems.click(function(){
+			//get the parent li wrapper
+			var parentLi=jQuery(this).parents('li:first');
+			//if currently closed
+			if(parentLi.hasClass('closed')){
+				//open it
+				parentLi.removeClass('closed');
+				parentLi.addClass('opened');
+			}else{
+				//currently open, so close it
+				parentLi.addClass('closed');
+				parentLi.removeClass('opened');
+			}
+		});
+	};
+	bodyElem[0]['evsTreeToggleOpenClose']=evsTreeToggleOpenClose;
 	//evs on off button for files
 	var evsToggleFileOnOff=function(){
 		var onOffElems=temLsWrap.find('.on-off').not('.evs');
@@ -1784,6 +1806,8 @@ jQuery(document).ready(function(){
 			treeViewWrap.html(''); //clear old html
 			treeViewWrap.append(htm); //set html
 			//==SET TREE VIEW EVENTS==
+			//allow open and closing of folders +/-
+			evsTreeToggleOpenClose();
 			//***
 		}
 	};
