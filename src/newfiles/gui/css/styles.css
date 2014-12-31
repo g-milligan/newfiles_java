@@ -262,12 +262,12 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 #input-view .size-controls{margin-top:.2em;}
 #workspace.collapse-input-view > #input-view .size-controls{margin-top:0;border-top:solid .1em;}
 /*TREE VIEW*/
-#tree-view ul.tree-root{font-size:60%;display:block;padding:0;margin:0;}
-#tree-view ul li{list-style:none;}
-#tree-view ul li.dir-lbl{display:block;}
+#tree-view ul.tree-root{font-size:56%;display:block;padding:0;margin:0;}
+#tree-view ul li{list-style:none;white-space:nowrap;display:block;}
+#tree-view ul li .dir-lbl,#tree-view ul li .file-lbl{display:block;white-space:nowrap;padding:.1em;}
 #tree-view ul.tree-root ul{display:block;padding-left:1.2em;}
 #tree-view ul.tree-root ul.empty{padding-left:2.2em;}
-#tree-view ul.tree-root ul.empty li{font-size:75%;font-style:italic;}
+#tree-view ul.tree-root ul.empty li{font-size:80%;font-style:italic;}
 #tree-view ul.tree-root li.closed > ul{display:none;}
 #tree-view ul li > span .opened-closed{cursor:pointer;display:inline-block;width:.7em;height:.7em;padding:.2em;}
 #tree-view ul li > span .opened-closed .closed,

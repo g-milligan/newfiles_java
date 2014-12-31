@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -1507,6 +1507,29 @@ jQuery(document).ready(function(){
 		});
 	};
 	bodyElem[0]['evsTreeToggleOpenClose']=evsTreeToggleOpenClose;
+	//evs +/- open a folder from treeViewWrap
+	var evsTreeOpenFolder=function(){
+		//add opened-closed toggle events (to elements that don't already have events added)
+		var openDirElems=treeViewWrap.find('.dir-lbl > .icon').not('.evs');
+		//mark these elements as having the events attached
+		openDirElems.addClass('evs');
+		openDirElems.click(function(){
+			var path='';
+			//build the path to open
+			var dirLis=jQuery(this).parents('li.dir');
+			dirLis.each(function(i){
+				//get this dir name
+				var dirName=jQuery(this).attr('name');
+				//if NOT the first dirName... then add separator
+				if(i!=0){dirName+='/';}
+				//prepend the dir name to the path
+				path=dirName+path;
+			});
+			//request Java open this path
+			if(path.length>0){openDir(path);}
+		});
+	};
+	bodyElem[0]['evsTreeOpenFolder']=evsTreeOpenFolder;
 	//evs on off button for files
 	var evsToggleFileOnOff=function(){
 		var onOffElems=temLsWrap.find('.on-off').not('.evs');
@@ -1808,6 +1831,8 @@ jQuery(document).ready(function(){
 			//==SET TREE VIEW EVENTS==
 			//allow open and closing of folders +/-
 			evsTreeToggleOpenClose();
+			//open folder buttons
+			evsTreeOpenFolder();
 			//***
 		}
 	};
