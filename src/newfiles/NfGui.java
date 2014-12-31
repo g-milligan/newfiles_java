@@ -135,6 +135,23 @@ public class NfGui extends Application {
                                     }
                                     break;
                                 default:
+                                    //if type is NOT an empty string
+                                    type=type.trim();
+                                    if(type.length()>0){
+                                        //the "type" could be the actual path requested to open
+                                        String path=mFileMgr.getSystemSeparator(type);
+                                        File pathFile=new File(path);
+                                        //if this path exists
+                                        if(pathFile.exists()){
+                                            //if this is a file
+                                            if(pathFile.isFile()){
+                                                //get the parent directory path of this file
+                                                path=pathFile.getParent();
+                                            }
+                                            //open this directory
+                                            mFileMgr.openDirWindow(path);
+                                        }
+                                    }
                                     break;
                             }
                         }
