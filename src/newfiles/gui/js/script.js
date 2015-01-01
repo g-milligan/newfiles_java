@@ -1,4 +1,4 @@
-function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -1209,7 +1209,21 @@ jQuery(document).ready(function(){
 			//if the parent of this element has a token class
 			if(strElem.parent().hasClass('token')){
 				tokenJson={};
-				//for each token part
+				//if this token has-source
+				var parentLi=strElem.parents('li:first');
+				if(parentLi.hasClass('has-source')){
+					//add the source value to the json
+					var srcSpan=parentLi.find('span.part.source:last');
+					var srcVal=srcSpan.text();srcVal=srcVal.trim();
+					tokenJson['source']=srcVal;
+				}else{
+					//this token doesn't have a source... is it overwritten?
+					if(parentLi.hasClass('overwritten')){
+						//set overwritten
+						tokenJson['overwritten']=true;
+					}
+				}
+				//for each token part under the strElem
 				strElem.children(includePartSelector).not('.sep').each(function(){
 					//get the last class as the partName
 					var partName=jQuery(this).attr('class');
@@ -1290,13 +1304,18 @@ jQuery(document).ready(function(){
 		if(currentFile!=fName){
 			//==LEFT NAV FILE==
 			var temLi=getTemplateLi(temName);
-			var fileLi=temLi.find('ul.ls.files > li[name="'+fName+'"]:first');
+			var filesUl=temLi.children('ul.ls.files:first');
+			var fileLi=filesUl.children('li[name="'+fName+'"]:first');
 			//deselect other files in this template
-			temLi.find('ul.ls.files > li.selected').removeClass('selected');
+			filesUl.removeClass('special-selected');
+			filesUl.children('li.selected').removeClass('selected');
 			//if this left nav item exists
 			if(fileLi.length>0){
 				//select the new file
 				fileLi.addClass('selected');
+				if(fileLi.hasClass('special')){
+					filesUl.addClass('special-selected');
+				}
 			}
 			//==FILES DROPDOWN==
 			//if the select is not already correct
@@ -1587,9 +1606,12 @@ jQuery(document).ready(function(){
 			bodyElem[0].selectTemplate(temName);
 			//select the template file
 			var fileName=fileNameBtn.text();
-			bodyElem[0].selectTemplateFile(temName,fileName);
-			//select the token
+			var sourceFile=fileName;
+			//select the true source of the token, if the source is NOT the current file, ie: _filenames.xml
 			var tokenJson=tokenNavElemToJson(jQuery(this));
+			if(tokenJson.hasOwnProperty('source')){sourceFile=tokenJson.source;}
+			bodyElem[0].selectTemplateFile(temName,sourceFile);
+			//select the token
 			bodyElem[0].selectTokenInstances(temName,
 			{
 				'files':[fileName], 'token':tokenJson
