@@ -1450,6 +1450,21 @@ jQuery(document).ready(function(){
 		}
 	};
 	bodyElem[0]['selectTokenInstances']=selectTokenInstances;
+	//==GET FOLDER PATH FOR CURRENT TREE ELEMENT==
+	var getTreePathForElem=function(elem){
+		var path='';
+		//build the path to open
+		var dirLis=elem.parents('li.dir');
+		dirLis.each(function(i){
+			//get this dir name
+			var dirName=jQuery(this).attr('name');
+			//if NOT the first dirName... then add separator
+			if(i!=0){dirName+='/';}
+			//prepend the dir name to the path
+			path=dirName+path;
+		});
+		return path;
+	};
 	//==TURN FILE ON/OFF==
 	var toggleOnOffFile=function(temName,fName){
 		//==GET FILES DROPDOWN==
@@ -1518,6 +1533,21 @@ jQuery(document).ready(function(){
 				//open it
 				parentLi.removeClass('closed');
 				parentLi.addClass('opened');
+				//if the folder content data isn't loaded yet
+				var childUl=parentLi.children('ul:first');
+				if(childUl.hasClass('empty')){
+					//if NOT confirmed as empty
+					if(!childUl.hasClass('confirmed')){
+						//get the path that needs data
+						var path=getTreePathForElem(childUl);
+						if(path.length>0){
+							//add getting class
+							childUl.addClass('getting');
+							//request that Java pulls in the folder contents (if any)
+							appendToTree(path);
+						}
+					}
+				}
 			}else{
 				//currently open, so close it
 				parentLi.addClass('closed');
@@ -1533,17 +1563,8 @@ jQuery(document).ready(function(){
 		//mark these elements as having the events attached
 		openDirElems.addClass('evs');
 		openDirElems.click(function(){
-			var path='';
-			//build the path to open
-			var dirLis=jQuery(this).parents('li.dir');
-			dirLis.each(function(i){
-				//get this dir name
-				var dirName=jQuery(this).attr('name');
-				//if NOT the first dirName... then add separator
-				if(i!=0){dirName+='/';}
-				//prepend the dir name to the path
-				path=dirName+path;
-			});
+			//get the tree path for this open/close element
+			var path=getTreePathForElem(jQuery(this));
 			//request Java open this path
 			if(path.length>0){openDir(path);}
 		});
@@ -1844,12 +1865,21 @@ jQuery(document).ready(function(){
 		bodyElem[0].updateTemplates(sample_json_templates3());
 	}
 	//==UPDATE TREE VIEW LISTING==
-	var updateTreeView=function(json){
+	var updateTreeView=function(json,appendToPath){
 		if(json!=undefined){
 			//get tree view html
 			var htm=htm_tree_view_dir(json);
-			treeViewWrap.html(''); //clear old html
-			treeViewWrap.append(htm); //set html
+			//if clean slate
+			if(appendToPath==undefined){
+				//complete fresh start
+				treeViewWrap.html(''); //clear old html
+				treeViewWrap.append(htm); //set html
+			}else{
+				//appending new tree structure to the existing structure...
+				
+				//find where the new html will go
+				//***
+			}
 			//==SET TREE VIEW EVENTS==
 			//allow open and closing of folders +/-
 			evsTreeToggleOpenClose();
@@ -1964,6 +1994,24 @@ function openDir(type){
 		typeElem.text(type);
 		//trigger the event
 		document.dispatchEvent(new Event('nf_open_folder'));
+	}
+}
+//make a request to java to load a tree view folder
+function appendToTree(path,maxLevels){
+	if(path!=undefined&&typeof path=='string'){
+		if(maxLevels==undefined){maxLevels=2;}
+		//if the type data element does NOT already exist
+		var bodyElem=jQuery('body:first');
+		var dataElem=bodyElem.children('#nf_append_to_tree:last');
+		if(dataElem.length<1){
+			//create the type data element
+			bodyElem.append('<div id="nf_append_to_tree" style="display:none;"></div>');
+			dataElem=bodyElem.children('#nf_append_to_tree:last');
+		}
+		//set the type data
+		dataElem.html('<path>'+path+'</path><max_levels>'+maxLevels+'</max_levels>');
+		//trigger the event
+		document.dispatchEvent(new Event('nf_append_to_tree'));
 	}
 }
 //prevent the element or element children from being selected

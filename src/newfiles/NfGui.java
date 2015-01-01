@@ -21,6 +21,8 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
@@ -153,6 +155,44 @@ public class NfGui extends Application {
                                         }
                                     }
                                     break;
+                            }
+                        }
+                    }, false);
+                    ((EventTarget)doc).addEventListener("nf_append_to_tree", new EventListener(){
+                        public void handleEvent(Event ev){
+                            String json="";String appendPath="";
+                            //get the requested folder data
+                            Element el = doc.getElementById("nf_append_to_tree");
+                            //get the requested path
+                            String path="";
+                            NodeList pathNode=el.getElementsByTagName("path");
+                            if(pathNode!=null&&pathNode.getLength()>0){
+                                Node pathN=pathNode.item(0);
+                                path=pathN.getTextContent();path=path.trim();
+                            }
+                            //if a requested path was provided
+                            if(path.length()>0){
+                                //if this path actually exists
+                                appendPath=path;
+                                path=mFileMgr.getSystemSeparator(path);
+                                File pathFile = new File(path);
+                                if(pathFile.exists()){
+                                    //get the requested max levels
+                                    String maxLevelsStr=""; int maxLevels=2;
+                                    NodeList maxLevelsNode=el.getElementsByTagName("max_levels");
+                                    if(maxLevelsNode!=null&&maxLevelsNode.getLength()>0){
+                                        Node maxLevelsN=maxLevelsNode.item(0);
+                                        maxLevelsStr=maxLevelsN.getTextContent();maxLevelsStr=maxLevelsStr.trim();
+                                        try{maxLevels=Integer.parseInt(maxLevelsStr);}
+                                        catch(NumberFormatException e) {}
+                                    }
+                                    json=getTreeViewJson(path,maxLevels);
+                                }
+                            }
+                            //if any json was returned for the folder data
+                            if(json.length()>0){
+                                //return the json to javascript for processing
+                                mWebEngine.executeScript("document.body.updateTreeView("+json+",'"+appendPath+"')");
                             }
                         }
                     }, false);
