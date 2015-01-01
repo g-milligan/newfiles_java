@@ -316,30 +316,56 @@ public class NfGui extends Application {
                             hasFiles=true;
                             //start file json
                             json+="{'name':'"+fileName+"'";
+                            //if this template has _filenames.xml
+                            String tokensJson="";boolean hasFilenameOverwrite=false;
+                            if(mFilenameXmlOverwriteLookup.containsKey(templatePath)){
+                                //if this file has a <filename> in _filenames.xml
+                                if(mFilenameXmlOverwriteLookup.get(templatePath).containsKey(filePath)){
+                                    //if this filenames token isn't blank inside _filenames.xml
+                                    String tokenStr=mFilenameXmlOverwriteLookup.get(templatePath).get(filePath);
+                                    if(tokenStr.length()>0){
+                                        //if this is the first token
+                                        if(tokensJson.length()<1){                                  
+                                            tokensJson+=",'tokens':["; //start tokens array
+                                        }else{
+                                            //not the first token
+                                            tokensJson+=",";
+                                        }
+                                        //if the tokenStr doesn't have an attached source part, ie: --> _filenames.xml
+                                        String sourcePart=" " + mStrMgr.mTokenSourceSeparator + " " + mStrMgr.mFilenamesXml;
+                                        if(!tokenStr.contains(sourcePart)){
+                                            tokenStr+=sourcePart;
+                                        }
+                                        //get the json for this token string
+                                        tokensJson+=mTemplateData.getTokenPartsJson(tokenStr);
+                                        hasFilenameOverwrite=true;
+                                    }
+                                }
+                            }
                             //get the tokens in this file
                             ArrayList<String> tokenStrs=fileTokens.get(filePath);
                             if(tokenStrs!=null){
                                 //for each token in this file
                                 for(int t=0;t<tokenStrs.size();t++){
                                     //if this is the first token
-                                    if(t==0){                                  
-                                        json+=",'tokens':["; //start tokens array
+                                    if(tokensJson.length()<1){                                  
+                                        tokensJson+=",'tokens':["; //start tokens array
                                     }else{
                                         //not the first token
-                                        json+=",";
+                                        tokensJson+=",";
                                     }
                                     //get the token string
                                     String tokenStr=tokenStrs.get(t);
                                     //get the json for this token string
-                                    json+=mTemplateData.getTokenPartsJson(tokenStr);
-                                    //if this is the last token
-                                    if(t+1==tokenStrs.size()){
-                                        json+="]"; //end tokens array
-                                    }
+                                    tokensJson+=mTemplateData.getTokenPartsJson(tokenStr,hasFilenameOverwrite);
                                 }
                             }
+                            //if there were any tokens
+                            if(tokensJson.length()>0){
+                                tokensJson+="]"; //end tokens array
+                            }
                             //end file json
-                            json+="}";
+                            json+=tokensJson+"}";
                         }                        
                     }
                     //if has any template files, then end 'ls' file array

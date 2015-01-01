@@ -550,9 +550,16 @@ public class TemplateData {
     }
     public String getTokenPartsJson(String tokenStr){
         String[] tokenParts=tokenStr.split(mStrMgr.mTokenSeparator);
-        return getTokenPartsJson(tokenParts);
+        return getTokenPartsJson(tokenParts,false);
+    }
+    public String getTokenPartsJson(String tokenStr,boolean hasSourceOverwrite){
+        String[] tokenParts=tokenStr.split(mStrMgr.mTokenSeparator);
+        return getTokenPartsJson(tokenParts,hasSourceOverwrite);
     }
     public String getTokenPartsJson(String[] tokenParts){
+        return getTokenPartsJson(tokenParts,false);
+    }
+    public String getTokenPartsJson(String[] tokenParts,boolean hasSourceOverwrite){
         String json="{";
         //all token types have a type
         String tokenType=getTokenPart("type", tokenParts);
@@ -581,7 +588,15 @@ public class TemplateData {
                     json+=",'dir':'"+mFileMgr.getForwardSeparator(dir)+"'";
                 }
                 name=getTokenPart("name",tokenParts);if(name.length()>0){json+=",'name':'"+name+"'";}
-                source=getTokenPart("source",tokenParts);if(source.length()>0){json+=",'source':'"+source+"'";}
+                source=getTokenPart("source",tokenParts);
+                if(source.length()>0){json+=",'source':'"+source+"'";}
+                else{
+                    //if a different token from a different source should overwrite this token
+                    if(hasSourceOverwrite){
+                        //is overwritten by a <filename> in _filenames.xml
+                        json+=",'overwritten':true";
+                    }
+                }
                 break;
             case "list":
                 name=getTokenPart("name",tokenParts);if(name.length()>0){json+=",'name':'"+name+"'";}

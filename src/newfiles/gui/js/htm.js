@@ -240,7 +240,28 @@ function htm_template_tokens(tokens){
 function htm_template_token(json){
 	var htm='';
 	//==TOKEN ITEM HTML==
-	htm+='<li name="'+json.type+'">';
+	var sourceHtml='';var hasSrcClass='';
+	if(json.hasOwnProperty('source')){
+		if(typeof json.source=='string'&&json.source.length>0){
+			hasSrcClass=' class="has-source"';
+			sourceHtml+='<span class="sep before_source">'+getSvg('rarrow')+'</span>';
+			sourceHtml+='<span class="part source">'+json.source+'</span>';
+		}
+	}
+	//if this is a filename token
+	var overwrittenClass='';
+	if(json.type=='filename'){
+		//if this filename doesn't come from _filenames.xml
+		if(sourceHtml.length<1){
+			//if this filename token gets overwritten by _filenames.xml
+			var isOverwritten=false;if(json.hasOwnProperty('overwritten')){isOverwritten=json.overwritten;}
+			if(isOverwritten){
+				overwrittenClass=' class="overwritten"';
+			}
+		}
+	}
+	//start token html
+	htm+='<li name="'+json.type+'"'+hasSrcClass+overwrittenClass+'>';
 	htm+='<span class="token">';
 	htm+='<span class="start-tag">'+getSvg('lcarrot')+getSvg('lcarrot')+'</span>';
 	htm+='<span class="str">';
@@ -250,51 +271,58 @@ function htm_template_token(json){
 	for (var partKey in json){
 		//if key is an actual property of an object, (not from the prototype)
 		if (json.hasOwnProperty(partKey)){
-			//if NOT the first part
-			if(partIndex>0){
-				//separator class
-				var sepClass='after_'+lastKey+' before_'+partKey;
-				//figure out which separator image to use based on the class
-				var imgSvg='';
-				switch(sepClass){
-					case 'after_name before_alias':
-						if(aliasSep==''){aliasSep=getSvg('alias');}
-						imgSvg=aliasSep;
-					break;
-					default:
-						if(colonSep==''){colonSep=getSvg('colon');}
-						imgSvg=colonSep;
-					break;
-				}
-				//write the separator html
-				htm+='<span class="sep '+sepClass+'">'+imgSvg+'</span>';
-			}
-			//display value
-			var val=json[partKey]; var manyOptionsClass='';
-			if(typeof val!='string'){
-				if(isNaN(val)){
-					//the val is an array
-					var array=val;
-					val='';
-					//for each array item
-					for(var a=0;a<array.length;a++){
-						//add the array item html
-						val+='<span class="i">'+array[a]+'</span>';
+			//if NOT source (source should go last)
+			if(partKey!='source'){
+				//if not the overwritten property (already handled)
+				if(partKey!='overwritten'){
+					//if NOT the first part
+					if(partIndex>0){
+						//separator class
+						var sepClass='after_'+lastKey+' before_'+partKey;
+						//figure out which separator image to use based on the class
+						var imgSvg='';
+						switch(sepClass){
+							case 'after_name before_alias':
+								if(aliasSep==''){aliasSep=getSvg('alias');}
+								imgSvg=aliasSep;
+							break;
+							default:
+								if(colonSep==''){colonSep=getSvg('colon');}
+								imgSvg=colonSep;
+							break;
+						}
+						//write the separator html
+						htm+='<span class="sep '+sepClass+'">'+imgSvg+'</span>';
 					}
-					//if more than two options, then add the many options class
-					if(array.length>4){manyOptionsClass=' many';}
+					//display value
+					var val=json[partKey]; var manyOptionsClass='';
+					if(typeof val!='string'){
+						if(isNaN(val)){
+							//the val is an array
+							var array=val;
+							val='';
+							//for each array item
+							for(var a=0;a<array.length;a++){
+								//add the array item html
+								val+='<span class="i">'+array[a]+'</span>';
+							}
+							//if more than two options, then add the many options class
+							if(array.length>4){manyOptionsClass=' many';}
+						}
+					}
+					//write the token part html
+					htm+='<span class="part'+manyOptionsClass+' '+partKey+'">';
+					htm+=val;
+					htm+='</span>';
+					//next part
+					partIndex++;lastKey=partKey;
 				}
 			}
-			//write the token part html
-			htm+='<span class="part'+manyOptionsClass+' '+partKey+'">';
-			htm+=val;
-			htm+='</span>';
-			//next part
-			partIndex++;lastKey=partKey;
 		}
 	}
 	htm+='</span>';
 	htm+='<span class="end-tag">'+getSvg('rcarrot')+getSvg('rcarrot')+'</span>';
+	htm+=sourceHtml;
 	htm+='</span>';
 	htm+='</li>';
 	return htm;

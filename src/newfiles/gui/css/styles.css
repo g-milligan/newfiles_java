@@ -158,12 +158,19 @@ select{cursor:pointer;position:relative;-webkit-appearance:none;outline:none;bor
 {display:inline-block;width:inherit;}
 #templates nav.ls .token .start-tag,#templates nav.ls .token .end-tag{display:inline-block;width:1em;height:1em;opacity:.7;}
 #templates nav.ls ul.ls.folders > li.opened{margin-bottom:1em;}
+#templates nav.ls ul.tokens > li.has-source .token:before{content: "xml ";
+font-weight: bold;
+font-size: 65%;
+text-transform: uppercase;}
+#templates nav.ls ul.tokens > li.overwritten span{text-decoration:line-through;opacity:.9;}
 #templates nav.ls .token .start-tag svg,#templates nav.ls .token .end-tag svg{display:inline-block;width:50%;}
 #templates nav.ls .token .start-tag{margin-right:.2em;}
 #templates nav.ls .token .end-tag{margin-left:.2em;}
 #templates nav.ls .token .part,#templates nav.ls .token .sep{display:inline-block;}
+#templates nav.ls .token .part.source{font-style:italic;}
 #templates nav.ls .token .sep{width:1em;height:1em;}
 #templates nav.ls .token .sep.after_name.before_alias{padding:0 .3em;}
+#templates nav.ls .token .sep.before_source{padding:0 .3em;}
 #templates nav.ls .token .part.name{font-weight:bold;}
 #templates nav.ls .token .part.alias{font-weight:bold;padding-right:.3em;}
 #templates nav.ls .token .part.options{white-space:normal;}
