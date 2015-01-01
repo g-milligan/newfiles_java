@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -1465,6 +1465,48 @@ jQuery(document).ready(function(){
 		});
 		return path;
 	};
+	bodyElem[0]['getTreePathForElem']=getTreePathForElem;
+	//==GET TREE ELEMENT FOR PATH==
+	//get an <li> element, from the tree-view, at the given path
+	var getTreeElem=function(path){
+		var elem;
+		var rootUl=treeViewWrap.children('ul:first');
+		var rootLi=rootUl.children('li:first');
+		var rootPath=rootLi.attr('name');
+		//if path starts with /
+		if(path.indexOf('/')==0){
+			if(path=='/'){path=rootPath;}
+			else{path=rootPath+path;}
+		}
+		//if the given path starts the rootPath
+		if(path.indexOf(rootPath)==0){
+			//if the path extends beyond the root
+			if(path.length>rootPath.length){
+				//remove the root from the path
+				path=path.substring(rootPath.length+'/'.length);
+				//get each folder split
+				var dirs=path.split('/');
+				elem=rootLi;
+				//for each dir
+				for(var d=0;d<dirs.length;d++){
+					var dir=dirs[d];
+					//get next folder down
+					elem=elem.find('li[name="'+dir+'"]:first');
+					//if this folder/file doesn't exist
+					if(elem.length<1){
+						//return nothing and stop the search
+						elem=undefined;
+						break;
+					}
+				}
+			}else{
+				//the path selects the root <li>
+				elem=rootLi;
+			}
+		}
+		return elem;
+	};
+	bodyElem[0]['getTreeElem']=getTreeElem;
 	//==TURN FILE ON/OFF==
 	var toggleOnOffFile=function(temName,fName){
 		//==GET FILES DROPDOWN==
@@ -1877,8 +1919,22 @@ jQuery(document).ready(function(){
 			}else{
 				//appending new tree structure to the existing structure...
 				
-				//find where the new html will go
-				//***
+				//if there is an <li> element, with this appendToPath
+				var appendToLi=getTreeElem(appendToPath);
+				if(appendToLi!=undefined&&appendToLi.length>0){
+					//get the parent and the name of this li
+					var liName=appendToLi.attr('name');
+					var ulParent=appendToLi.parent();
+					//append the new tree branches to the existing tree and remove the old, less complete, branch
+					appendToLi.after(htm);appendToLi.remove();
+					//make sure the new branch is open
+					var newLi=ulParent.children('li[name="'+liName+'"]:first');
+					if(newLi.hasClass('closed')){
+						//make sure it's open
+						newLi.addClass('opened');
+						newLi.removeClass('closed');
+					}
+				}
 			}
 			//==SET TREE VIEW EVENTS==
 			//allow open and closing of folders +/-
