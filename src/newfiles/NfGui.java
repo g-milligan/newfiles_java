@@ -199,6 +199,14 @@ public class NfGui extends Application {
                             }
                         }
                     }, false);
+                    ((EventTarget)doc).addEventListener("nf_browse_tree_root", new EventListener(){
+                        public void handleEvent(Event ev){
+                            //get the current tree root path
+                            Element el = doc.getElementById("nf_browse_tree_root");
+                            String currentPath=el.getTextContent();
+                            //***
+                        }
+                    }, false);
                     //DONE SETTING WEB EVENTS, INDICATE DONE
                     System.out.println(" GUI window ready...");
                 }

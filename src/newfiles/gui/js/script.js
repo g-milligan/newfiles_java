@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -1603,6 +1603,21 @@ jQuery(document).ready(function(){
 		});
 	};
 	bodyElem[0]['evsTreeToggleOpenClose']=evsTreeToggleOpenClose;
+	//tree root options button
+	var evsTreeRootOptionsBtn=function(){
+		//get the browse button
+		var optionsBtn=treeViewWrap.find('ul.tree-root > li.dir.root > .dir-lbl > .options:first').not('.evs');
+		optionsBtn.addClass('evs');
+		optionsBtn.click(function(){
+			//get the current root path
+			var rootUl=treeViewWrap.children('ul.tree-root:first');
+			var rootLi=rootUl.children('li:first');
+			var currentPath=rootLi.attr('name');
+			//browse for new root path
+			browseTreeRoot(currentPath);
+		});
+	};
+	bodyElem[0]['evsTreeRootOptionsBtn']=evsTreeRootOptionsBtn;
 	//evs +/- open a folder from treeViewWrap
 	var evsTreeOpenFolder=function(){
 		//add opened-closed toggle events (to elements that don't already have events added)
@@ -1948,6 +1963,8 @@ jQuery(document).ready(function(){
 			evsTreeToggleOpenClose();
 			//open folder buttons
 			evsTreeOpenFolder();
+			//root folder options button
+			evsTreeRootOptionsBtn();
 			//***
 		}
 	};
@@ -2068,6 +2085,23 @@ function failedAppendToTree(path){
 		elemLi.removeClass('processing');
 		//indicate that this element was confirmed as empty
 		elemLi.children('.empty:first').addClass('confirmed');
+	}
+}
+//browse tree root folder
+function browseTreeRoot(currentRootPath){
+	if(currentRootPath!=undefined&&typeof currentRootPath=='string'){
+		//if the type data element does NOT already exist
+		var bodyElem=jQuery('body:first');
+		var dataElem=bodyElem.children('#nf_browse_tree_root:last');
+		if(dataElem.length<1){
+			//create the type data element
+			bodyElem.append('<div id="nf_browse_tree_root" style="display:none;"></div>');
+			dataElem=bodyElem.children('#nf_browse_tree_root:last');
+		}
+		//set the type data
+		dataElem.html(currentRootPath);
+		//trigger the event
+		document.dispatchEvent(new Event('nf_browse_tree_root'));
 	}
 }
 //make a request to java to load a tree view folder
