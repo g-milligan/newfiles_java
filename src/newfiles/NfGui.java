@@ -358,7 +358,7 @@ public class NfGui extends Application {
                             else{json+=",";}
                             hasFiles=true;
                             //start file json
-                            json+="{'name':'"+fileName+"'";
+                            json+="{'name':'"+mStrMgr.sanitizeJsonValue(fileName)+"'";
                             //if this template has _filenames.xml
                             String tokensJson="";boolean hasFilenameOverwrite=false;
                             if(mFilenameXmlOverwriteLookup.containsKey(templatePath)){

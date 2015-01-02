@@ -272,6 +272,7 @@ text-transform: uppercase;}
 #tree-view ul.tree-root{font-size:56%;display:block;padding:0;margin:0;}
 #tree-view ul li{list-style:none;white-space:nowrap;display:block;}
 #tree-view ul li .dir-lbl,#tree-view ul li .file-lbl{display:block;white-space:nowrap;padding:.1em;}
+#tree-view ul li .file-lbl{padding-left:1.2em;}
 #tree-view ul.tree-root ul{display:block;padding-left:1.2em;}
 #tree-view ul.tree-root ul.empty{padding-left:2.2em;}
 #tree-view ul.tree-root ul.empty li{font-size:80%;font-style:italic;}
