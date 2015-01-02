@@ -1565,35 +1565,40 @@ jQuery(document).ready(function(){
 	var evsTreeToggleOpenClose=function(){
 		//add opened-closed toggle events (to elements that don't already have events added)
 		var openCloseElems=treeViewWrap.find('.opened-closed').not('.evs');
+		//prevent select on these open/close buttons
+		preventSelect(openCloseElems);
 		//mark these elements as having the events attached
 		openCloseElems.addClass('evs');
 		openCloseElems.click(function(){
 			//get the parent li wrapper
 			var parentLi=jQuery(this).parents('li:first');
-			//if currently closed
-			if(parentLi.hasClass('closed')){
-				//open it
-				parentLi.removeClass('closed');
-				parentLi.addClass('opened');
-				//if the folder content data isn't loaded yet
-				var childUl=parentLi.children('ul:first');
-				if(childUl.hasClass('empty')){
-					//if NOT confirmed as empty
-					if(!childUl.hasClass('confirmed')){
-						//get the path that needs data
-						var path=getTreePathForElem(childUl);
-						if(path.length>0){
-							//add getting class
-							childUl.addClass('getting');
-							//request that Java pulls in the folder contents (if any)
-							appendToTree(path);
+			//if NOT already processing
+			if(!parentLi.hasClass('processing')){
+				//if currently closed
+				if(parentLi.hasClass('closed')){
+					//open it
+					parentLi.removeClass('closed');
+					parentLi.addClass('opened');
+					//if the folder content data isn't loaded yet
+					var childUl=parentLi.children('ul:first');
+					if(childUl.hasClass('empty')){
+						//if NOT confirmed as empty... yet
+						if(!childUl.hasClass('confirmed')){
+							//get the path that needs data
+							var path=getTreePathForElem(childUl);
+							if(path.length>0){
+								//add getting class
+								parentLi.addClass('processing');
+								//request that Java pulls in the folder contents (if any)
+								appendToTree(path);
+							}
 						}
 					}
+				}else{
+					//currently open, so close it
+					parentLi.addClass('closed');
+					parentLi.removeClass('opened');
 				}
-			}else{
-				//currently open, so close it
-				parentLi.addClass('closed');
-				parentLi.removeClass('opened');
 			}
 		});
 	};
@@ -1602,6 +1607,8 @@ jQuery(document).ready(function(){
 	var evsTreeOpenFolder=function(){
 		//add opened-closed toggle events (to elements that don't already have events added)
 		var openDirElems=treeViewWrap.find('.dir-lbl > .icon').not('.evs');
+		//prevent select on these folder buttons
+		preventSelect(openDirElems);
 		//mark these elements as having the events attached
 		openDirElems.addClass('evs');
 		openDirElems.click(function(){
@@ -2050,6 +2057,17 @@ function openDir(type){
 		typeElem.text(type);
 		//trigger the event
 		document.dispatchEvent(new Event('nf_open_folder'));
+	}
+}
+//failed to append to the tree, perhapse because the folder that was opened is actually empty
+function failedAppendToTree(path){
+	//if the element that was trying to open is found
+	var elemLi=bodyElem[0].getTreeElem(path);
+	if(elemLi!=undefined&&elemLi.length>0){
+		//element is no longer processing 
+		elemLi.removeClass('processing');
+		//indicate that this element was confirmed as empty
+		elemLi.children('.empty:first').addClass('confirmed');
 	}
 }
 //make a request to java to load a tree view folder

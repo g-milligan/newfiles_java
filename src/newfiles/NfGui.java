@@ -193,6 +193,9 @@ public class NfGui extends Application {
                             if(json.length()>0){
                                 //return the json to javascript for processing
                                 mWebEngine.executeScript("document.body.updateTreeView("+json+",'"+appendPath+"')");
+                            }else{
+                                //failed to get json data (this folder could be empty)
+                                mWebEngine.executeScript("document.body.failedAppendToTree('"+appendPath+"')");
                             }
                         }
                     }, false);

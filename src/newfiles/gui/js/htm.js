@@ -542,7 +542,7 @@ function htm_tree_view_dir(json){
 		}else{
 			//no items under this dir...
 			
-			htm+='<ul class="empty"><li>&lt;empty&gt;</li></ul>';
+			htm+='<ul class="empty"><li><span class="text">&lt;empty&gt;</span></li></ul>';
 		}
 		//end dir <li>
 		htm+='</li>'+endRoot;
