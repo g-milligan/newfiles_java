@@ -2014,22 +2014,43 @@ jQuery(document).ready(function(){
 				treeViewWrap.append(htm); //set html
 			}else{
 				//appending new tree structure to the existing structure...
-				
-				//if there is an <li> element, with this appendToPath
-				var appendToLi=getTreeElem(appendToPath);
-				if(appendToLi!=undefined&&appendToLi.length>0){
-					//get the parent and the name of this li
-					var liName=appendToLi.attr('name');
-					var ulParent=appendToLi.parent();
-					//append the new tree branches to the existing tree and remove the old, less complete, branch
-					appendToLi.after(htm);appendToLi.remove();
-					//make sure the new branch is open
-					var newLi=ulParent.children('li[name="'+liName+'"]:first');
-					if(newLi.hasClass('closed')){
-						//make sure it's open
-						newLi.addClass('opened');
-						newLi.removeClass('closed');
+
+				//if this is a FOLDER not a FILE
+				var doAppend=true;
+				if(json.hasOwnProperty('dir')){
+					//if there were NO sub files/folders to append
+					if(!json.hasOwnProperty('ls')){
+						doAppend=false;
 					}
+				}else{
+					//if doesn't have file data either
+					if(!json.hasOwnProperty('file')){doAppend=false;}
+				}
+				//did the json data have the required data?
+				if(doAppend){
+					//if there is an <li> element, with this appendToPath
+					var appendToLi=getTreeElem(appendToPath);
+					if(appendToLi!=undefined&&appendToLi.length>0){
+						//get the parent and the name of this li
+						var liName=appendToLi.attr('name');
+						var ulParent=appendToLi.parent();
+						//save li state, to be restored on the replacement li
+						var isSelected=false;if(appendToLi.hasClass('selected')){isSelected=true;}
+						//append the new tree branches to the existing tree and remove the old, less complete, branch
+						appendToLi.after(htm);appendToLi.remove();
+						//make sure the new branch is open
+						var newLi=ulParent.children('li[name="'+liName+'"]:first');
+						if(newLi.hasClass('closed')){
+							//make sure it's open
+							newLi.addClass('opened');
+							newLi.removeClass('closed');
+							//restore state for this replacement li
+							if(isSelected){newLi.addClass('selected');}
+						}
+					}
+				}else{
+					//json value didn't have the required data
+					failedAppendToTree(appendToPath);
 				}
 			}
 			//==SET TREE VIEW EVENTS==
@@ -2154,7 +2175,7 @@ function openDir(type){
 //failed to append to the tree, perhapse because the folder that was opened is actually empty
 function failedAppendToTree(path){
 	//if the element that was trying to open is found
-	var elemLi=bodyElem[0].getTreeElem(path);
+	var elemLi=document.body.getTreeElem(path);
 	if(elemLi!=undefined&&elemLi.length>0){
 		//element is no longer processing 
 		elemLi.removeClass('processing');
