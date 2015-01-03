@@ -6,6 +6,7 @@ build.xml
 /run/mac/nf
 /dist/newfiles_run.jar
 README.TXT
+.DS_Store
 
 #exclude directories
 /nbproject
