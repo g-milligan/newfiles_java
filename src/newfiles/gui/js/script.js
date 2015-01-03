@@ -2122,6 +2122,10 @@ function appendToTree(path,maxLevels){
 		document.dispatchEvent(new Event('nf_append_to_tree'));
 	}
 }
+//refresh the tree to reflect changes outside of the newfiles gui
+function refreshTree(){
+	//***
+}
 //prevent the element or element children from being selected
 function preventSelect(elem){
 	elem.bind('selectstart',function(e){e.preventDefault();return false;});

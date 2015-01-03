@@ -245,7 +245,7 @@ public class NfGui extends Application {
     }
     //get the formatted path for a template directory
     private String getFormattedDir(String unformattedPath){
-        String path=unformattedPath;
+        String path=mStrMgr.sanitizeJsonValue(unformattedPath);
         //if the path starts with the templates root
         if(path.indexOf(mTemplatesRoot)==0){
             //remove the templates root from the start
@@ -287,7 +287,7 @@ public class NfGui extends Application {
                             json+="'is_open':true,";
                         }
                         //directory name
-                        json+="'dir':'"+target.getName()+"'";
+                        json+="'dir':'"+mStrMgr.sanitizeJsonValue(target.getName())+"'";
                         //if still below max number of levels
                         if(maxLevels-1>0){
                             //get the sub files and folders under this folder path
@@ -307,7 +307,7 @@ public class NfGui extends Application {
                                             //start file json
                                             subJson+="{";
                                             //if name
-                                            subJson+="'file':'"+subFiles[f].getName()+"'";
+                                            subJson+="'file':'"+mStrMgr.sanitizeJsonValue(subFiles[f].getName())+"'";
                                             //if is hidden file
                                             if(subFiles[f].isHidden()){
                                                 subJson+=",'is_hidden':true";
@@ -384,7 +384,7 @@ public class NfGui extends Application {
                                 ignoredFilesJson+=",";
                             }
                             //add the name to the list of ignored files
-                            ignoredFilesJson+="'"+fileName+"'";
+                            ignoredFilesJson+="'"+mStrMgr.sanitizeJsonValue(fileName)+"'";
                         }
                         //if NOT an ignored file OR is the _filenames.xml file
                         if(fileName.indexOf("_")!=0||fileName.equals(mStrMgr.mFilenamesXml)){
@@ -465,7 +465,7 @@ public class NfGui extends Application {
                             if(r!=0){includeRulesJson+=",";}
                             //create the rule's json item
                             String rule=mFileMgr.getForwardSeparator(includeRules.get(r));
-                            includeRulesJson+="'"+rule+"'";
+                            includeRulesJson+="'"+mStrMgr.sanitizeJsonValue(rule)+"'";
                         }
                         //end the include rules json
                         includeRulesJson+="]";
@@ -500,7 +500,7 @@ public class NfGui extends Application {
                             json+="{";
                             //add to the token name to the json
                             String tokenName=inFileNameTokens.get(p);
-                            json+="'name':'"+tokenName+"'";
+                            json+="'name':'"+mStrMgr.sanitizeJsonValue(tokenName)+"'";
                             //if this template has any tokens WITH OPTIONS
                             if(tokenNamesWithOptions!=null){
                                 //if this project id has fixed options
@@ -515,7 +515,7 @@ public class NfGui extends Application {
                                             //if not the first option, then add separator
                                             if(o!=0){json+=",";}
                                             //add option value
-                                            json+="'"+options.get(o)+"'";
+                                            json+="'"+mStrMgr.sanitizeJsonValue(options.get(o))+"'";
                                         }
                                         //end options list
                                         json+="]";
