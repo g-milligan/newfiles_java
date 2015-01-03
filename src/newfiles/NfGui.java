@@ -234,6 +234,15 @@ public class NfGui extends Application {
                             }
                         }
                     }, false);
+                    ((EventTarget)doc).addEventListener("nf_refresh_tree_path", new EventListener(){
+                        public void handleEvent(Event ev){
+                            //get the current tree root path
+                            Element el = doc.getElementById("nf_refresh_tree_path");
+                            String currentPath=el.getTextContent();
+                            String path=mFileMgr.getSystemSeparator(currentPath);
+                            //*** refresh this path
+                        }
+                    }, false);
                     //DONE SETTING WEB EVENTS, INDICATE DONE
                     System.out.println(" GUI window ready...");
                 }

@@ -491,7 +491,7 @@ function htm_tree_view_dir(json){
 	var name='';if(json.hasOwnProperty('dir')){name=json.dir;}
 	//if the dir name was provided
 	if(name.length>0){
-		var rootClass='';var startRoot='';var endRoot='';var rootPathHtm='';var optionsBtnHtm='';
+		var rootClass='';var startRoot='';var endRoot='';var rootPathHtm='';var optionsBtnHtm='';var selectedRootClass='';
 		//if is the root directory
 		var root='';if(json.hasOwnProperty('root')){root=json.root;}
 		if(root.length>0){
@@ -500,12 +500,13 @@ function htm_tree_view_dir(json){
 			startRoot='<ul class="tree-root">';endRoot='</ul>';
 			rootPathHtm='<span class="path">'+root+'</span>';
 			optionsBtnHtm='<span class="options">'+getSvg('cog')+'</span>';
+			selectedRootClass=' selected';
 		}
 		//if there is an open property with an open value, then set the bool flag true
 		var isOpen=false;if(json.hasOwnProperty('is_open')){isOpen=json.is_open;}
 		var isOpenClass=' closed';if(isOpen){isOpenClass=' opened';}
 		//start dir <li>
-		htm+=startRoot+'<li class="dir'+rootClass+isOpenClass+'" name="'+root+name+'">';
+		htm+=startRoot+'<li class="dir'+rootClass+isOpenClass+selectedRootClass+'" name="'+root+name+'">';
 		htm+='<span class="dir-lbl">';
 		htm+='<span class="opened-closed">';
 		htm+='<span class="opened">'+getSvg('minus')+'</span>';

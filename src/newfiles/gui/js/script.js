@@ -1268,6 +1268,40 @@ jQuery(document).ready(function(){
 		return temLi;
 	};
 	bodyElem[0]['getTemplateLi']=getTemplateLi;
+	//==GET TREE VIEW ROOT==
+	//gets the <li> element of the root tree view folder
+	var getTreeRootLi=function(){
+		var rootUl=treeViewWrap.children('ul:first');
+		var rootLi=rootUl.children('li:first');
+		return rootLi;
+	};
+	bodyElem[0]['getTreeRootLi']=getTreeRootLi;
+	//get the selected li element in the tree
+	var getSelectedTreeLi=function(){
+		var selLi=getTreeRootLi();
+		//if the root is NOT selected
+		if(!selLi.hasClass('selected')){
+			//find the selected <li> somewhere under the root
+			selLi=selLi.find('.selected:first');
+		}
+		return selLi;
+	};
+	bodyElem[0]['getSelectedTreeLi']=getSelectedTreeLi;
+	//get the path of the selected file or folder in the tree view 
+	var getSelectedTreePath=function(){
+		var path='';
+		var selLi=getSelectedTreeLi();
+		//if the root is NOT selected
+		if(!selLi.hasClass('root')){
+			//get the path for this sub li
+			path=bodyElem[0].getTreePathForElem(selLi);
+		}else{
+			//the root is selected so just get the path from the name
+			path=selLi.attr('name');
+		}
+		return path;
+	};
+	bodyElem[0]['getSelectedTreePath']=getSelectedTreePath;
 	//==SELECT TEMPLATE==
 	var selectTemplate=function(temName){
 		//if NOT already selected
@@ -1450,16 +1484,42 @@ jQuery(document).ready(function(){
 		}
 	};
 	bodyElem[0]['selectTokenInstances']=selectTokenInstances;
+	//==SELECT TREE NODE (FILE OR FOLDER)==
+	var selectTreeNode=function(path){
+		//if the element for this path exists
+		var pathLi=bodyElem[0].getTreeElem(path);
+		if(pathLi!=undefined&&pathLi.length>0){
+			//if NOT already selected
+			if(!pathLi.hasClass('selected')){
+				//==TREE VIEW==
+				//deselect any current selected node
+				treeViewWrap.find('ul.tree-root li.selected').removeClass('selected');
+				//select this clicked node
+				pathLi.addClass('selected');
+				//==TEMPLATES NAV==
+				//***
+			}
+		}
+	};
+	bodyElem[0]['selectTreeNode']=selectTreeNode;
 	//==GET FOLDER PATH FOR CURRENT TREE ELEMENT==
 	var getTreePathForElem=function(elem){
 		var path='';
+		//if this element is <li> with a name
+		if(elem[0].tagName.toLowerCase()=='li'){
+			var liName=elem.attr('name');
+			if(liName!=undefined&&liName.length>0){
+				//the path ends with the current li's name value
+				path=liName;
+			}
+		}
 		//build the path to open
 		var dirLis=elem.parents('li.dir');
 		dirLis.each(function(i){
 			//get this dir name
 			var dirName=jQuery(this).attr('name');
 			//if NOT the first dirName... then add separator
-			if(i!=0){dirName+='/';}
+			if(path.length>0){dirName+='/';}
 			//prepend the dir name to the path
 			path=dirName+path;
 		});
@@ -1470,8 +1530,7 @@ jQuery(document).ready(function(){
 	//get an <li> element, from the tree-view, at the given path
 	var getTreeElem=function(path){
 		var elem;
-		var rootUl=treeViewWrap.children('ul:first');
-		var rootLi=rootUl.children('li:first');
+		var rootLi=getTreeRootLi();
 		var rootPath=rootLi.attr('name');
 		//if path starts with /
 		if(path.indexOf('/')==0){
@@ -1610,14 +1669,29 @@ jQuery(document).ready(function(){
 		optionsBtn.addClass('evs');
 		optionsBtn.click(function(){
 			//get the current root path
-			var rootUl=treeViewWrap.children('ul.tree-root:first');
-			var rootLi=rootUl.children('li:first');
+			var rootLi=getTreeRootLi();
 			var currentPath=rootLi.attr('name');
 			//browse for new root path
 			browseTreeRoot(currentPath);
 		});
 	};
 	bodyElem[0]['evsTreeRootOptionsBtn']=evsTreeRootOptionsBtn;
+	//add the events to select tree view nodes
+	var evsTreeSelectNode=function(){
+		var rootUl=treeViewWrap.children('ul.tree-root:first');
+		var selBtns=rootUl.find('.dir-lbl > .path, .dir-lbl > .name, .file-lbl > .name').not('evs');
+		selBtns.addClass('evs');
+		selBtns.click(function(){
+			//if NOT already selected
+			var parentLi=jQuery(this).parents('li:first');
+			if(!parentLi.hasClass('selected')){
+				//select the tree node
+				var path=getTreePathForElem(parentLi);
+				selectTreeNode(path);
+			}
+		});
+	};
+	bodyElem[0]['evsTreeSelectNode']=evsTreeSelectNode;
 	//evs +/- open a folder from treeViewWrap
 	var evsTreeOpenFolder=function(){
 		//add opened-closed toggle events (to elements that don't already have events added)
@@ -1965,7 +2039,8 @@ jQuery(document).ready(function(){
 			evsTreeOpenFolder();
 			//root folder options button
 			evsTreeRootOptionsBtn();
-			//***
+			//add ability to select tree nodes
+			evsTreeSelectNode();
 		}
 	};
 	bodyElem[0]['updateTreeView']=updateTreeView;
@@ -2123,8 +2198,22 @@ function appendToTree(path,maxLevels){
 	}
 }
 //refresh the tree to reflect changes outside of the newfiles gui
-function refreshTree(){
-	//***
+function refreshTreePath(path){
+	if(path==undefined){path=document.body.getSelectedTreePath();}
+	if(path.length>0){
+		//if the type data element does NOT already exist
+		var bodyElem=jQuery('body:first');
+		var dataElem=bodyElem.children('#nf_refresh_tree_path:last');
+		if(dataElem.length<1){
+			//create the type data element
+			bodyElem.append('<div id="nf_refresh_tree_path" style="display:none;"></div>');
+			dataElem=bodyElem.children('#nf_refresh_tree_path:last');
+		}
+		//set the type data
+		dataElem.html(path);
+		//trigger the event
+		document.dispatchEvent(new Event('nf_refresh_tree_path'));
+	}
 }
 //prevent the element or element children from being selected
 function preventSelect(elem){
