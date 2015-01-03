@@ -31,7 +31,7 @@ li.parent ul li{font-size:95%;text-transform:none;}
 svg{display:inline-block;width:100%;height:100%;}
 .search,.edit-include-rule{position:relative;}
 .search input,.edit-include-rule input{padding-right:2.3em;opacity:.7;font-style:italic;font-weight:normal;}
-.search.text-entered input,.edit-include-rule.text-entered input{opacity:1;font-style:normal;padding-left:1.5em;} 
+.search.text-entered input,.edit-include-rule.text-entered input{opacity:1;font-style:normal;padding-left:1.5em;}
 .search .search-btn,.search .clear-btn,.edit-include-rule .add-btn,.edit-include-rule .clear-btn{opacity:.5;width:2.3em;height:2em;position:absolute;right:.8em;font-size:50%;top:0;left:auto;bottom:0;cursor:pointer;border:solid .2em transparent;box-sizing:border-box;-moz-box-sizing:border-box;}
 #main-view .search .search-btn,#main-view .edit-include-rule .add-btn{right:0;}
 #main-view .search .clear-btn,#main-view .edit-include-rule .clear-btn{left:0;}
@@ -244,7 +244,7 @@ text-transform: uppercase;}
 #main-view .template-files .file-icon{position:absolute;left:0;top:0;bottom:0;margin:auto;width:.6em;height:.6em;display:block;cursor:pointer;}
 /*file dropdown*/
 #main-view nav.select{position:relative;width:100%;display:block;font-size:50%;z-index:999;box-sizing:border-box;-moz-box-sizing:border-box;}
-#main-view #project-ids nav.select{font-size:100%;}
+#main-view #project-ids nav.select{font-size:100%;z-index:995;}
 #main-view .template-files nav.select{display:none;}
 #main-view .template-files nav.select.active{display:block;}
 #main-view nav.select ul{display:none;position:absolute;top:100%;left:0;width:100%;box-sizing:border-box;-moz-box-sizing:border-box;height:auto;max-height:20em;overflow:auto;margin:0;padding:0;border:solid .2em transparent;}
