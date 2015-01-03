@@ -91,6 +91,12 @@ public class NfGui extends Application {
         mTemplateData=new TemplateData();
         mBuildTemplate=new BuildTemplate(mTargetDir, mBatchFileName, mTemplatesRoot);
     }
+    private void updateTreeRoot(String targetDir){
+        //build the tree view listing
+        int maxLevels=2; //only show two levels on page load: 1) root folder AND 2) direct child files/folders
+        String treeViewJson=getTreeViewJson(true,targetDir,maxLevels); //max level (from the target root), to start off
+        mWebEngine.executeScript("document.body.updateTreeView("+treeViewJson+")");
+    }
     //configure and attach events wo the web view
     private void startWebView(){
         //get the web view home page URL
@@ -110,9 +116,7 @@ public class NfGui extends Application {
                     String templatesJson=getTemplatesJson();
                     mWebEngine.executeScript("document.body.updateTemplates("+templatesJson+")");
                     //build the tree view listing
-                    int maxLevels=2; //only show two levels on page load: 1) root folder AND 2) direct child files/folders
-                    String treeViewJson=getTreeViewJson(true,mTargetDir,maxLevels); //max level (from the target root), to start off
-                    mWebEngine.executeScript("document.body.updateTreeView("+treeViewJson+")");
+                    updateTreeRoot(mTargetDir);
                     //event listener to detect when javascript makes a request to java
                     ((EventTarget)doc).addEventListener("nf_open_folder", new EventListener(){
                         public void handleEvent(Event ev){
@@ -209,7 +213,7 @@ public class NfGui extends Application {
                             String path=mFileMgr.getSystemSeparator(currentPath);
                             //open the browse for directory window
                             DirectoryChooser dirChooser=new DirectoryChooser();
-                            dirChooser.setTitle("Target Project Root");
+                            dirChooser.setTitle("Browse Project Root");
                             //if the current directory still exists
                             File initDir=new File(path);
                             if(initDir.exists()){
@@ -222,7 +226,10 @@ public class NfGui extends Application {
                             if(selectedDir!=null){
                                 //if the chosen directory is different from the previous directory
                                 if(!selectedDir.getPath().equals(initDir.getPath())){
-                                    //***
+                                    //change the target root
+                                    mTargetDir=selectedDir.getPath();
+                                    //update the tree root
+                                    updateTreeRoot(mTargetDir);
                                 }
                             }
                         }
