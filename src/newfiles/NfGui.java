@@ -19,6 +19,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
+import javafx.stage.DirectoryChooser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -74,6 +75,7 @@ public class NfGui extends Application {
     private WebView mWebView;
     private WebEngine mWebEngine;
     private Scene mScene;
+    private Stage mStage;
     //objects
     private static StrMgr mStrMgr;
     private static FileMgr mFileMgr;
@@ -204,7 +206,25 @@ public class NfGui extends Application {
                             //get the current tree root path
                             Element el = doc.getElementById("nf_browse_tree_root");
                             String currentPath=el.getTextContent();
-                            //***
+                            String path=mFileMgr.getSystemSeparator(currentPath);
+                            //open the browse for directory window
+                            DirectoryChooser dirChooser=new DirectoryChooser();
+                            dirChooser.setTitle("Target Project Root");
+                            //if the current directory still exists
+                            File initDir=new File(path);
+                            if(initDir.exists()){
+                                //set the current directory as the initial directory
+                                dirChooser.setInitialDirectory(initDir);
+                            }
+                            //get the chosen directory
+                            File selectedDir=dirChooser.showDialog(mStage);
+                            //if a directory was chosen
+                            if(selectedDir!=null){
+                                //if the chosen directory is different from the previous directory
+                                if(!selectedDir.getPath().equals(initDir.getPath())){
+                                    //***
+                                }
+                            }
                         }
                     }, false);
                     //DONE SETTING WEB EVENTS, INDICATE DONE
@@ -793,6 +813,7 @@ public class NfGui extends Application {
     private Image getGuiImage(String fileName){return new Image(getClass().getResourceAsStream(mStrMgr.mGuiRootDir+"img/"+fileName)); }
     @Override
     public void start(Stage stage) {
+        mStage=stage;
         //normal init
         initObjects();
         //start web view, include attach events, configuration, setting load URL
@@ -800,16 +821,16 @@ public class NfGui extends Application {
         // create the scene
         int windowWidth=getScreenWorkingWidth();windowWidth=(int)(windowWidth*.88); //% of width
         int windowHeight=getScreenWorkingHeight();windowHeight=(int)(windowHeight*.88); //% of height
-        stage.setTitle(mStrMgr.mGuiTitle+" \""+mNewfiles.VERSION_ALIAS+"\" ("+mNewfiles.VERSION_NUMBER+"_"+mNewfiles.PATCH_NUMBER+") | "+mStrMgr.mPandowerxUrl);
+        mStage.setTitle(mStrMgr.mGuiTitle+" \""+mNewfiles.VERSION_ALIAS+"\" ("+mNewfiles.VERSION_NUMBER+"_"+mNewfiles.PATCH_NUMBER+") | "+mStrMgr.mPandowerxUrl);
         mScene = new Scene(mWebView,windowWidth,windowHeight, Color.web("#666970"));
-        //set the scene to the stage
-        stage.setScene(mScene); 
+        //set the scene to the mStage
+        mStage.setScene(mScene); 
         //get icon image(s)
         Image icon32 = getGuiImage("logo_newfiles_32.png"); 
         //set icon image(s)
-        stage.getIcons().add(icon32);
+        mStage.getIcons().add(icon32);
         //show the window
-        stage.show();
+        mStage.show();
     }
     //close Newfiles (terminal, GUI window, all of it)
     public void close(){
