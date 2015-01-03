@@ -281,6 +281,7 @@ text-transform: uppercase;}
 #tree-view ul.tree-root li.processing > ul.empty li:before{content:"...";font-size:150%;display:inline-block;line-height:.5em;}
 #tree-view ul.tree-root li.closed > ul{display:none;}
 #tree-view ul li > span .opened-closed{cursor:pointer;display:inline-block;width:.7em;height:.7em;padding:.2em;}
+#tree-view ul li.processing > span .opened-closed{visibility:hidden;}
 #tree-view ul li > span .opened-closed .closed,
 #tree-view ul li > span .opened-closed .opened{display:block;padding:.1em;}
 #tree-view ul li.opened > span .opened-closed .closed,
