@@ -56,7 +56,13 @@ public class StrMgr {
     
     //sanitize json value
     public String sanitizeJsonValue(String val){
+        //escape single quotes
         val=val.replace("'", "&#39;");
+        //remove new line characters
+        val=val.replace("\r\n", "");
+        val=val.replace("\r", "");
+        val=val.replace("\n", "");
+        //return sanitized value
         return val;
     }
     //accepts a string blob and returns a sub-string that begins and ends with a beginning and ending sub-string
