@@ -88,7 +88,7 @@ jQuery(document).ready(function(){
 					menuTemBtn.addClass('unsaved-changes');
 				}else{
 					//no unsaved changes...
-					
+
 					//remove the unsaved-changes class
 					mainTitleElem.removeClass('unsaved-changes');
 					menuTemBtn.removeClass('unsaved-changes');
@@ -277,7 +277,7 @@ jQuery(document).ready(function(){
 			}
 		}else{
 			//no specific template name given...
-			
+
 			//if a real value was given for temName
 			if(temName!=undefined){
 				//if a boolean value was given for temName
@@ -603,7 +603,7 @@ jQuery(document).ready(function(){
 						bodyElem[0].templateChangesMade(temName,'include_rule','mod',{'new':currentTxt,'old':incStr});
 					}
 				}else{
-					//new include rule to add... 
+					//new include rule to add...
 					bodyElem[0].templateChangesMade(temName,'include_rule','add',currentTxt);
 				}
 			}
@@ -636,7 +636,7 @@ jQuery(document).ready(function(){
 		//EVENTS
 		addBtn.click(function(){doAdd();includeInput.focus();});
 		//clear button click event
-		clearBtn.click(function(){ 
+		clearBtn.click(function(){
 			bodyElem[0].deselectIncludeRules();
 		});
 		includeRuleWrap.hover(function(){
@@ -689,7 +689,7 @@ jQuery(document).ready(function(){
 										if(commonTxt==undefined){commonTxt=remainingTxt;}
 										else{
 											//not the first include string to compare...
-	
+
 											//trim the commonTxt so it's NOT longer than remainingTxt
 											if(commonTxt.length>remainingTxt.length){
 												commonTxt=commonTxt.substring(0,remainingTxt.length);
@@ -786,7 +786,7 @@ jQuery(document).ready(function(){
 				var includesUl=temLi.children('ul.includes:last');
 				//deselect current rule strings
 				//---bodyElem[0].deselectIncludeRules(); //blur should take care of this
-				//if any include rules match this ruleStr 
+				//if any include rules match this ruleStr
 				var includesBtn=includesUl.find('li.has-includes ul li .inc:contains("'+ruleStr+'")');
 				if(includesBtn.length>0){
 					//for each matching include rule
@@ -1287,7 +1287,7 @@ jQuery(document).ready(function(){
 		return selLi;
 	};
 	bodyElem[0]['getSelectedTreeLi']=getSelectedTreeLi;
-	//get the path of the selected file or folder in the tree view 
+	//get the path of the selected file or folder in the tree view
 	var getSelectedTreePath=function(){
 		var path='';
 		var selLi=getSelectedTreeLi();
@@ -1534,8 +1534,22 @@ jQuery(document).ready(function(){
 		var rootPath=rootLi.attr('name');
 		//if path starts with /
 		if(path.indexOf('/')==0){
-			if(path=='/'){path=rootPath;}
-			else{path=rootPath+path;}
+			//if the path is ONLY /
+			if(path=='/'){path=rootPath;} //then replace / with the full root path
+			else{
+				//the path starts with / but also has additional stuff after /...
+
+				//if the root path ALSO starts with /
+				if(rootPath.indexOf('/')==0){
+					//if the path (that starts with /) does NOT start with rootPath (rootPath also starts with /)
+					if(path.indexOf(rootPath)!=0){
+						path=rootPath+path; //make sure the rootPath is tacked on to the front
+					}
+				}else{
+					//the root path does NOT also start with /
+					path=rootPath+path; //make sure the rootPath is tacked on to the front
+				}
+			}
 		}
 		//if the given path starts the rootPath
 		if(path.indexOf(rootPath)==0){
@@ -2177,7 +2191,7 @@ function failedAppendToTree(path){
 	//if the element that was trying to open is found
 	var elemLi=document.body.getTreeElem(path);
 	if(elemLi!=undefined&&elemLi.length>0){
-		//element is no longer processing 
+		//element is no longer processing
 		elemLi.removeClass('processing');
 		//indicate that this element was confirmed as empty
 		elemLi.children('.empty:first').addClass('confirmed');
