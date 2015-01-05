@@ -74,8 +74,12 @@ jQuery(document).ready(function(){
 			}
 		}
 	};
-	//==FUNCTIONS THAT FLAG WHEN ANY CHANGES ARE MADE TO A TEMPLATE==
-	var setTemUnsavedChangesClass=function(temName){
+        //==FUNCTIONS TO FLAG ANY PROJECT CHANGES==
+        var setProjUnsavedChangesFlag=function(temName){
+            //***
+        };
+	//==FUNCTIONS TO FLAG ANY TEMPLATE CHANGES==
+	var setTemUnsavedChangesFlag=function(temName){
 		//if this template is currently selected
 		if(bodyElem[0].getSelectedTemplate()==temName){
 			var temLi=bodyElem[0].getTemplateLi(temName);
@@ -96,209 +100,363 @@ jQuery(document).ready(function(){
 			}
 		}
 	};
+        //create the basic changes data XML structure
+        var createGetChangeDataWraps=function(temName, whatChanged, howChanged, wrapId){
+            var wrapElems={'complete':false};
+            //if the #wrapId element doesn't already exist
+            var changesMadeWrap=bodyElem.children('#'+wrapId+':last');
+            if(changesMadeWrap.length<1){
+                //create the #wrapId element
+                bodyElem.append('<div style="display:none;" class="wrap" id="'+wrapId+'"></div>');
+                changesMadeWrap=bodyElem.children('#'+wrapId+':last');
+            }
+            wrapElems['changesMadeWrap']=changesMadeWrap;
+            if(temName!=undefined){
+                //if a boolean value was passed INSTEAD of a template name
+                if(typeof temName=='boolean'){
+                    //if false was passed
+                    if(!temName){
+                        //then clear the changes made
+                        changesMadeWrap.html('');
+                    }
+                }else{
+                    //if this template exists in the left nav
+                    var temLi=bodyElem[0].getTemplateLi(temName);
+                    if(temLi.length>0){
+                        wrapElems['temLi']=temLi;
+                        //if changes for THIS temName don't already exist
+                        var thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
+                        if(thisTemChangesWrap.length<1){
+                            //create the element for this template
+                            changesMadeWrap.append('<div undo="0" class="template" name="'+temName+'"></div>');
+                            thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
+                        }
+                        wrapElems['thisTemChangesWrap']=thisTemChangesWrap;
+                        //if WHAT was changed is specified
+                        if(whatChanged!=undefined){
+                            //if a boolean value was passed INSTEAD of whatChanged
+                            if(typeof whatChanged=='boolean'){
+                                //if false was passed
+                                if(!whatChanged){
+                                    //then clear the changes made FOR THIS TEMPLATE
+                                    thisTemChangesWrap.html('');
+                                }
+                            }else{
+                                //get the <what> element by its name
+                                var whatWrap=thisTemChangesWrap.children('what[name="'+whatChanged+'"]:first');
+                                if(whatWrap.length<1){
+                                    //create <what> because it doesn't already exist
+                                    thisTemChangesWrap.append('<what name="'+whatChanged+'"></what>');
+                                    whatWrap=thisTemChangesWrap.children('what[name="'+whatChanged+'"]:first');
+                                }
+                                wrapElems['whatWrap']=whatWrap;
+                                //if HOW it was changed is specified
+                                if(howChanged!=undefined){
+                                    //get the <how> element by its name
+                                    var howWrap=whatWrap.children('how[name="'+howChanged+'"]:first');
+                                    if(howWrap.length<1){
+                                        //create <how> because it doesn't already exist
+                                        whatWrap.append('<how name="'+howChanged+'"></how>');
+                                        howWrap=whatWrap.children('how[name="'+howChanged+'"]:first');
+                                    }
+                                    wrapElems['howWrap']=howWrap;
+                                    wrapElems['complete']=true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return wrapElems;
+        };
 	var templateChangesMade=function(temName, whatChanged, howChanged, json){
-		//if the #templateChangesMade element doesn't already exist
-		var changesMadeWrap=bodyElem.children('#templateChangesMade:last');
-		if(changesMadeWrap.length<1){
-			//create the #templateChangesMade element
-			bodyElem.append('<div style="display:none;" class="wrap" id="templateChangesMade"></div>');
-			changesMadeWrap=bodyElem.children('#templateChangesMade:last');
-		}
-		if(temName!=undefined){
-			//if a boolean value was passed INSTEAD of a template name
-			if(typeof temName=='boolean'){
-				//if false was passed
-				if(!temName){
-					//then clear the changes made
-					changesMadeWrap.html('');
-				}
-			}else{
-				//if this template exists in the left nav
-				var temLi=bodyElem[0].getTemplateLi(temName);
-				if(temLi.length>0){
-					//if changes for THIS temName don't already exist
-					var thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
-					if(thisTemChangesWrap.length<1){
-						//create the element for this template
-						changesMadeWrap.append('<div undo="0" class="template" name="'+temName+'"></div>');
-						thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
-					}
-					//if WHAT was changed is specified
-					if(whatChanged!=undefined){
-						//if a boolean value was passed INSTEAD of whatChanged
-						if(typeof whatChanged=='boolean'){
-							//if false was passed
-							if(!whatChanged){
-								//then clear the changes made FOR THIS TEMPLATE
-								thisTemChangesWrap.html('');
-							}
-						}else{
-							//get the <what> element by its name
-							var whatWrap=thisTemChangesWrap.children('what[name="'+whatChanged+'"]:first');
-							if(whatWrap.length<1){
-								//create <what> because it doesn't already exist
-								thisTemChangesWrap.append('<what name="'+whatChanged+'"></what>');
-								whatWrap=thisTemChangesWrap.children('what[name="'+whatChanged+'"]:first');
-							}
-							//if HOW it was changed is specified
-							if(howChanged!=undefined){
-								//get the <how> element by its name
-								var howWrap=whatWrap.children('how[name="'+howChanged+'"]:first');
-								if(howWrap.length<1){
-									//create <how> because it doesn't already exist
-									whatWrap.append('<how name="'+howChanged+'"></how>');
-									howWrap=whatWrap.children('how[name="'+howChanged+'"]:first');
-								}
-								//increment the most recent undo number
-								var currentUndo=thisTemChangesWrap.attr('undo');currentUndo=parseInt(currentUndo);
-								currentUndo++;
-								//combine what/how to get a change key
-								var whatHowChange=howChanged+'-'+whatChanged;
-								var changeMade=false;
-								switch(whatHowChange){
-									case 'add-include_rule': //add new include rule
-										var incStr=json;
-										//append to the xml to send back to Java
-										howWrap.append('<add undo="'+currentUndo+'">'+incStr+'</add>');
-										changeMade=true;
-										//==LEFT NAV==
-										//get the new include item's html
-										var incHtm=htm_template_include(incStr);
-										//append the new html to the list
-										var includesLi=temLi.find('ul.includes > li:first');
-										var includesUl=includesLi.children('ul:first');
-										includesUl.append(incHtm);
-										//update the include rules count
-										var countElem=includesLi.find('.include .intro .count:first');
-										var count=countElem.text();count=parseInt(count);
-										count++;countElem.text(count+'');
-										//add the has-includes class
-										includesLi.removeClass('no-includes');
-										includesLi.addClass('has-includes');
-										//attach events to the new include rule
-										bodyElem[0].evsIncludeRules();
-										//select the new include rule
-										var newLi=includesUl.children('li:last');
-										var incElem=newLi.children('.inc:first');
-										incElem.click();
-										//make sure the new include rule is within scroll view
-										bodyElem[0].scrollToHighlight(incElem);
-										break;
-									case 'mod-include_rule': //modify existing include rule
-										var newStr=json.new;var oldStr=json.old;
-										if(newStr!=oldStr){
-											//append to the xml to send back to Java
-											howWrap.append('<mod undo="'+currentUndo+'"><old>'+oldStr+'</old><new>'+newStr+'</new></mod>');
-											changeMade=true;
-											//==LEFT NAV==
-											//get the .inc elements to modify
-											var incElems=temLi.find('ul.includes li ul li .inc:contains("'+oldStr+'")');
-											var lastIncElem;
-											incElems.each(function(){
-												//if this is one of the matching strings to modify
-												var incStr=jQuery(this).text();
-												if(incStr==oldStr){
-													//set the new string
-													jQuery(this).html(newStr);
-													lastIncElem=jQuery(this);
-												}
-											});
-											//if at least one .inc string was modified
-											if(lastIncElem!=undefined){
-												//make sure the modified rule(s) are selected
-												lastIncElem.click();
-												//make sure the modified rule is within scroll view
-												bodyElem[0].scrollToHighlight(lastIncElem);
-											}
-										}
-										break;
-									case 'del-include_rule': //delete include rule
-										var incStr=json;
-										//append to the xml to send back to Java
-										howWrap.append('<del undo="'+currentUndo+'">'+incStr+'</del>');
-										changeMade=true;
-										//==LEFT NAV==
-										//get the .inc elements to delete
-										var incElems=temLi.find('ul.includes li ul li .inc:contains("'+incStr+'")');
-										incElems.each(function(){
-											//if this is one of the matching strings to delete
-											var incStr=jQuery(this).text();
-											if(incStr==incStr){
-												//mark for deletion
-												jQuery(this).parent().addClass('del');
-											}
-										});
-										//get the items that need deletion
-										var delLis=temLi.find('ul.includes li ul li.del');
-										//how many to delete?
-										var delCount=delLis.length;
-										//delete the elements
-										delLis.remove();
-										//update the number of include rules
-										var countElem=temLi.find('ul.includes .include .intro .count:first');
-										var count=countElem.text();count=parseInt(count);
-										countElem.text((count-delCount)+'');
-										//make sure the top of the include rule list is scrolled into view
-										bodyElem[0].scrollToHighlight(temLi.find('ul.includes > li:first'));
-										break;
-								}
-								//if the change was made
-								if(changeMade){
-									//set the most recent, incremented, undo number
-									thisTemChangesWrap.attr('undo',currentUndo+'');
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		//are there any unsaved changes for this template?
-		if(temName!=undefined&&typeof temName=='string'){
-			//if this template exists in the left nav
-			var temLi=bodyElem[0].getTemplateLi(temName);
-			if(temLi.length>0){
-				var areChanges=false;
-				var thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
-				if(thisTemChangesWrap.length>0){
-					if(thisTemChangesWrap.html().length>0){
-						areChanges=true;
-					}
-				}
-				//if there are any unsaved changes for this template
-				if(areChanges){
-					temLi.addClass('unsaved-changes');
-				}else{
-					//no unsaved changes...
-					temLi.removeClass('unsaved-changes');
-				}
-				//update other elements that may need to change the unsaved-changes class
-				setTemUnsavedChangesClass(temName);
-			}
-		}else{
-			//no specific template name given...
+            //create the data wraps if they don't already exist... if ALL of the wraps could be retrieved with the given data
+            var wrapElems=createGetChangeDataWraps(temName, whatChanged, howChanged, 'templateChangesMade');
+            var changesMadeWrap=wrapElems.changesMadeWrap; //changesMadeWrap should be available no matter what
+            if(wrapElems.complete){
+                //get the remaining wrap elems (all complete)
+                var thisTemChangesWrap=wrapElems.thisTemChangesWrap; var temLi=wrapElems.temLi;
+                var whatWrap=wrapElems.whatWrap; var howWrap=wrapElems.howWrap;
+                //increment the most recent undo number
+                var currentUndo=thisTemChangesWrap.attr('undo');currentUndo=parseInt(currentUndo); currentUndo++;
+                //combine what/how to get a change key
+                var whatHowChange=howChanged+'-'+whatChanged; var changeMade=false;
+                //handle different types of changes
+                switch(whatHowChange){
+                    case 'add-include_rule': //add new include rule
+                        var incStr=json;
+                        //append to the xml to send back to Java
+                        howWrap.append('<add undo="'+currentUndo+'">'+incStr+'</add>');
+                        changeMade=true;
+                        //==LEFT NAV==
+                        //get the new include item's html
+                        var incHtm=htm_template_include(incStr);
+                        //append the new html to the list
+                        var includesLi=temLi.find('ul.includes > li:first');
+                        var includesUl=includesLi.children('ul:first');
+                        includesUl.append(incHtm);
+                        //update the include rules count
+                        var countElem=includesLi.find('.include .intro .count:first');
+                        var count=countElem.text();count=parseInt(count);
+                        count++;countElem.text(count+'');
+                        //add the has-includes class
+                        includesLi.removeClass('no-includes');
+                        includesLi.addClass('has-includes');
+                        //attach events to the new include rule
+                        bodyElem[0].evsIncludeRules();
+                        //select the new include rule
+                        var newLi=includesUl.children('li:last');
+                        var incElem=newLi.children('.inc:first');
+                        incElem.click();
+                        //make sure the new include rule is within scroll view
+                        bodyElem[0].scrollToHighlight(incElem);
+                        break;
+                    case 'mod-include_rule': //modify existing include rule
+                        var newStr=json.new;var oldStr=json.old;
+                        if(newStr!=oldStr){
+                            //append to the xml to send back to Java
+                            howWrap.append('<mod undo="'+currentUndo+'"><old>'+oldStr+'</old><new>'+newStr+'</new></mod>');
+                            changeMade=true;
+                            //==LEFT NAV==
+                            //get the .inc elements to modify
+                            var incElems=temLi.find('ul.includes li ul li .inc:contains("'+oldStr+'")');
+                            var lastIncElem;
+                            incElems.each(function(){
+                                //if this is one of the matching strings to modify
+                                var incStr=jQuery(this).text();
+                                if(incStr==oldStr){
+                                    //set the new string
+                                    jQuery(this).html(newStr);
+                                    lastIncElem=jQuery(this);
+                                }
+                            });
+                            //if at least one .inc string was modified
+                            if(lastIncElem!=undefined){
+                                //make sure the modified rule(s) are selected
+                                lastIncElem.click();
+                                //make sure the modified rule is within scroll view
+                                bodyElem[0].scrollToHighlight(lastIncElem);
+                            }
+                        }
+                        break;
+                    case 'del-include_rule': //delete include rule
+                        var incStr=json;
+                        //append to the xml to send back to Java
+                        howWrap.append('<del undo="'+currentUndo+'">'+incStr+'</del>');
+                        changeMade=true;
+                        //==LEFT NAV==
+                        //get the .inc elements to delete
+                        var incElems=temLi.find('ul.includes li ul li .inc:contains("'+incStr+'")');
+                        incElems.each(function(){
+                            //if this is one of the matching strings to delete
+                            var incStr=jQuery(this).text();
+                            if(incStr==incStr){
+                                //mark for deletion
+                                jQuery(this).parent().addClass('del');
+                            }
+                        });
+                        //get the items that need deletion
+                        var delLis=temLi.find('ul.includes li ul li.del');
+                        //how many to delete?
+                        var delCount=delLis.length;
+                        //delete the elements
+                        delLis.remove();
+                        //update the number of include rules
+                        var countElem=temLi.find('ul.includes .include .intro .count:first');
+                        var count=countElem.text();count=parseInt(count);
+                        countElem.text((count-delCount)+'');
+                        //make sure the top of the include rule list is scrolled into view
+                        bodyElem[0].scrollToHighlight(temLi.find('ul.includes > li:first'));
+                        break;
+                }
+                //if the change was made
+                if(changeMade){
+                    //set the most recent, incremented, undo number
+                    thisTemChangesWrap.attr('undo',currentUndo+'');
+                }
+            }
+            //==HANDLE THE CHANGES MADE FLAG CLASSES==
+            //are there any unsaved changes for this template?
+            if(temName!=undefined&&typeof temName=='string'){
+                //if this template exists in the left nav
+                var temLi=bodyElem[0].getTemplateLi(temName);
+                if(temLi.length>0){
+                    var areChanges=false;
+                    var thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
+                    if(thisTemChangesWrap.length>0){
+                        if(thisTemChangesWrap.html().length>0){
+                            areChanges=true;
+                        }
+                    }
+                    //if there are any unsaved changes for this template
+                    if(areChanges){
+                        temLi.addClass('unsaved-changes');
+                    }else{
+                        //no unsaved changes...
+                        temLi.removeClass('unsaved-changes');
+                    }
+                    //update other elements that may need to change the unsaved-changes class
+                    setTemUnsavedChangesFlag(temName);
+                }
+            }else{
+                //no specific template name given...
 
-			//if a real value was given for temName
-			if(temName!=undefined){
-				//if a boolean value was given for temName
-				if(typeof temName=='boolean'){
-					//if false was passed
-					if(!temName){
-						//for ALL template li's in the left nav
-						var temLis=temLsWrap.find('ul.ls.folders > li');
-						temLis.each(function(){
-							//clear the unsaved changes class for this template
-							jQuery(this).removeClass('unsaved-changes');
-							//update other elements that may need to change the unsaved-changes class
-							setTemUnsavedChangesClass(jQuery(this).attr('name'));
-						});
-					}
-				}
-			}
-		}
-		return changesMadeWrap.html();
+                //if a real value was given for temName
+                if(temName!=undefined){
+                    //if a boolean value was given for temName
+                    if(typeof temName=='boolean'){
+                        //if false was passed
+                        if(!temName){
+                            //for ALL template li's in the left nav
+                            var temLis=temLsWrap.find('ul.ls.folders > li');
+                            temLis.each(function(){
+                                //clear the unsaved changes class for this template
+                                jQuery(this).removeClass('unsaved-changes');
+                                //update other elements that may need to change the unsaved-changes class
+                                setTemUnsavedChangesFlag(jQuery(this).attr('name'));
+                            });
+                        }
+                    }
+                }
+            }
+            return changesMadeWrap.html();
 	};
 	bodyElem[0]['templateChangesMade']=templateChangesMade;
+        //==PROJECT VALUE CHANGE MADE==
+        //VAR EXAMPLE:
+        //temName = 'MyTemplate'
+        //whatChanged = 'token_value'
+        //howChanged = 'set'
+        //json = {'name':'token name', 'value':'set token value'} 
+        //LIST VAR EXAMPLE:
+        //temName = 'MyTemplate'
+        //whatChanged = 'token_value'
+        //howChanged = 'add'
+        //json = {'name':'list name=>token name', 'value':'set token value'}
+        var projectChangesMade=function(temName, whatChanged, howChanged, json){
+            //combine what/how to get a change key
+            var whatHowChange=howChanged+'-'+whatChanged; var howWrapName=howChanged;
+            switch(whatHowChange){
+                case 'del-token_value': howWrapName='set'; break; //no delete wrap, just edit the existing set wrap
+            }
+            //create the data wraps if they don't already exist... if ALL of the wraps could be retrieved with the given data
+            var wrapElems=createGetChangeDataWraps(temName, whatChanged, howWrapName, 'projectChangesMade');
+            var changesMadeWrap=wrapElems.changesMadeWrap; //changesMadeWrap should be available no matter what
+            if(wrapElems.complete){
+                //get the remaining wrap elems (all complete)
+                var thisTemChangesWrap=wrapElems.thisTemChangesWrap; var temLi=wrapElems.temLi;
+                var whatWrap=wrapElems.whatWrap; var howWrap=wrapElems.howWrap;
+                //can't undo project changes
+                thisTemChangesWrap.removeAttr('undo'); 
+                //internal functions
+                var getCreateElem=function(parentElem, tagName, attrName){
+                    //if this child element doesn't already exist
+                    var childElem=parentElem.children(tagName+'[name="'+attrName+'"]:first');
+                    if(childElem.length<1){
+                        //then create it
+                        parentElem.append('<'+tagName+' name="'+attrName+'"></'+tagName+'>');
+                        childElem=parentElem.children(tagName+'[name="'+attrName+'"]:first');
+                    }
+                    return childElem;
+                };
+                //get/create the appropriate <token> element hierarchy for the given tokenName (which can describe nested=>names)
+                var getTokenElem=function(tokenName){
+                    var elem;
+                    //if describes a nested name
+                    if(tokenName.indexOf('=>')!=-1){
+                        elem=howWrap;
+                        while(tokenName.indexOf('=>')!=-1){
+                            //if tokenName starts with =>
+                            if(tokenName.indexOf('=>')==0){
+                                //remove => from the front of tokenName
+                                tokenName=tokenName.substring('=>'.length); tokenName=tokenName.trim();
+                            }
+                            //get the next token name 
+                            var nextName=tokenName;
+                            //if => is still in nextName
+                            if(nextName.indexOf('=>')!=-1){
+                                //remove the string at and after =>
+                                nextName=nextName.substring(0,nextName.indexOf('=>'));
+                            }
+                            //remove the nextName from the start of tokenName
+                            tokenName=tokenName.substring(nextName.length); 
+                            tokenName=tokenName.trim(); nextName=nextName.trim(); //trim
+                            //get the next sub elem
+                            elem=getCreateElem(elem,'token',nextName);
+                        }
+                    }else{
+                        //token name doesn't describe a nested name
+                        tokenName=tokenName.trim();
+                        elem=getCreateElem(howWrap,'token',tokenName);
+                    }
+                    return elem;
+                };
+                var changeMade=false;
+                //handle different types of changes
+                switch(whatHowChange){
+                    case 'set-token_value': //set the value of a token
+                        //get or create this token element in xml
+                        var tokenElem=getTokenElem(json.name);
+                        //if there is more than one child value
+                        var childValElems=tokenElem.children('value');
+                        if(childValElems.length>1){
+                            //remove all of these child values because "set" will overwrite, not modify
+                            childValElems.remove(); changeMade=true;
+                        }else if(childValElems.length<1){
+                            //no values yet... set this new value element
+                            tokenElem.append('<value></value>');changeMade=true;
+                        }
+                        //determine if the value has changed
+                        var valElem=tokenElem.children('value:first');
+                        var prevVal=valElem.html();
+                        if(prevVal!=json.value){changeMade=true;}
+                        //set the new value
+                        valElem.html(json.value);
+                    break;
+                    case 'add-token_value': //add the value of a token (ie: inside of a list)
+                        //*** unlike set-token_value, add will NOT overwrite the previous value
+                    break;
+                    case 'del-token_value': //delete all or some values for a token
+                        //get or create this token element in xml
+                        var tokenElem=getTokenElem(json.name);
+                        //for each token value inside the token element
+                        tokenElem.children('value').each(function(i){
+                            //if delete value by index
+                            if(json.hasOwnProperty('index')){
+                                if(i==json.index){
+                                    jQuery(this).addClass('del'); //delete at this index
+                                }
+                            }else{
+                                //if delete value by value
+                                if(json.hasOwnProperty('value')){
+                                    if(jQuery(this).html()==json.value){
+                                        jQuery(this).addClass('del'); //delete this value
+                                    }
+                                }else{
+                                    //delete all values under this token
+                                    jQuery(this).addClass('del');
+                                }
+                            }
+                        });
+                        //if any of this token's values were selected for deletion
+                        var delValElems=tokenElem.children('value.del');
+                        if(delValElems.length>0){
+                            //do the value-delete 
+                            delValElems.remove();
+                            changeMade=true;
+                        }
+                        //if this token element doesn't contain anything anymore
+                        if(tokenElem.children().length<1){
+                            //also remove this <token>
+                            tokenElem.remove();
+                        }
+                    break;
+                }
+                //*** update the progress pending classes
+            }
+            return changesMadeWrap.html();
+        };
+        bodyElem[0]['projectChangesMade']=projectChangesMade;
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
 	//PLUS/MINUS SECTIONS
 	var plusMinusClick=function(btn){
@@ -1326,7 +1484,7 @@ jQuery(document).ready(function(){
 			//remove the no-selected-template indicator to show the workspace content
 			workspaceWrap.removeClass('no-selected-template');
 			//==INDICATE IF THIS TEMPLATE HAS UNSAVED CHANGES==
-			setTemUnsavedChangesClass(temName);
+			setTemUnsavedChangesFlag(temName);
 		}
 	};
 	bodyElem[0]['selectTemplate']=selectTemplate;
@@ -1497,7 +1655,7 @@ jQuery(document).ready(function(){
 				//select this clicked node
 				pathLi.addClass('selected');
 				//==TEMPLATES NAV==
-				//***
+				//*** select the corresponding template file, if any (check if all project id's are filled out yet)
 			}
 		}
 	};
@@ -1792,6 +1950,37 @@ jQuery(document).ready(function(){
 		});
 	};
 	bodyElem[0]['evsTokens']=evsTokens;
+	//evs for project id change (blur input)
+	var evsEditProjectId=function(){
+            var doInputEdit=function(inputElem){
+                //if value isn't blank
+                var idVal=inputElem.val(); idVal=idVal.trim();
+                if(idVal.length>0){
+                    //get active template name
+                    var temName=getSelectedTemplate();
+                    //get token data
+                    var inputParent=inputElem.parent(); var inputLabel=inputParent.children('.label:first');
+                    var idName=inputLabel.text(); idName=idName.trim();
+                    //handle project id edit
+                    projectChangesMade(temName, 'token_value', 'set', {'name':idName,'value':idVal});
+                }
+            };
+            //input elements for project ids
+            var projIdInputs=projectIdsWrap.find('input.id-val').not('.evs');
+            projIdInputs.addClass('evs');
+            //input blur
+            projIdInputs.blur(function(){doInputEdit(jQuery(this));});
+            //input key pressed
+            projIdInputs.keyup(function(e){
+		switch(e.keyCode){
+                    case 13: //enter key pressed
+                        e.preventDefault();
+                        doInputEdit(jQuery(this));
+                    break;
+                }
+            });
+	};
+	bodyElem[0]['evsEditProjectId']=evsEditProjectId;
 	//evs for include rules
 	var evsIncludeRules=function(){
 		//select events for include rules
@@ -1942,13 +2131,32 @@ jQuery(document).ready(function(){
 								//fire change event
 								var parentId=thisDropDown.parents('[id]:first').attr('id');
 								switch(parentId){
-									case 'main-view': //main view file dropdown
-										//select the template
-										var temName=thisDropDown.attr('name');
-										bodyElem[0].selectTemplate(temName);
-										//select the template file
-										bodyElem[0].selectTemplateFile(temName,retVal);
-									break;
+                                                                    case 'main-view': //main view file dropdown
+                                                                        //select the template
+                                                                        var temName=thisDropDown.attr('name');
+                                                                        bodyElem[0].selectTemplate(temName);
+                                                                        //select the template file
+                                                                        bodyElem[0].selectTemplateFile(temName,retVal);
+                                                                        break;
+                                                                    case 'project-ids':
+                                                                        //get the token name for this dropdown
+                                                                        var fieldWrap=thisDropDown.parent();
+                                                                        var idName=fieldWrap.attr('name');
+                                                                        //get the template name for this dropdown
+                                                                        var temName=fieldWrap.parent().attr('name');
+                                                                        //if NOT selected the default value
+                                                                        var valAttr=listItems.filter('.active:first').attr('val');
+                                                                        retVal=retVal.trim();
+                                                                        if (retVal.length>0&&valAttr!='...'){
+                                                                            //handle project id edit
+                                                                            projectChangesMade(temName, 'token_value', 'set', {'name':idName,'value':retVal});
+                                                                        }else{
+                                                                            //selected the default value...
+
+                                                                            //handle project id delete
+                                                                            projectChangesMade(temName, 'token_value', 'del', {'name':idName});
+                                                                        }
+                                                                        break;
 								}
 							}
 						}
@@ -1994,6 +2202,8 @@ jQuery(document).ready(function(){
 			evsTokens();
 			//select events for include rules
 			evsIncludeRules();
+                        //detect when a project id has been modified
+                        evsEditProjectId();
 			//==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
 			//if there is no selected template
 			var selectedTemplate=temLsWrap.find('ul.ls.folders > li.selected');
