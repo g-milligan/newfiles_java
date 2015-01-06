@@ -74,31 +74,99 @@ jQuery(document).ready(function(){
 			}
 		}
 	};
+        //==FUNCTION TO CHECK/SET ALL-PROJECT-IDS FLAG
+        var checkHasAllProjectIds=function(temName){
+            var hasAllProjectIds=false;
+            //if this template exists
+            var temLi=bodyElem[0].getTemplateLi(temName);
+            if(temLi.length>0){
+                //if this template has ANY changes
+                if(temLi.hasClass('project-changes')){
+                    //get the project id wrapper
+                    var projBlockWrap=projectIdsWrap.children('.block[name="'+temName+'"]:first');
+                    //for each project id field wrap
+                    projBlockWrap.children().each(function(c){
+                        //innocent until proven... missing any id
+                        if(c==0){hasAllProjectIds=true;}
+                        //if this is an input project id
+                        var inputElem=jQuery(this).children('input:first');
+                        if(inputElem.length>0){
+                            //if this value is blank
+                            var inputVal=inputElem.val(); inputVal=inputVal.trim();
+                            if(inputVal.length<1){
+                                //this project does NOT have all id's defined... end loop through fields
+                                hasAllProjectIds=false; return false;
+                            }
+                        }else{
+                            //this is a dropdown project id
+                            var selectElem=jQuery(this).children('nav.select:first');
+                            var selOpt=selectElem.find('ul li.active');
+                            var selVal=selOpt.attr('val');
+                            //if this dropdown doesn't have a selected item (default item is selected)
+                            if(selVal=='...'||selVal==''){
+                                //this project does NOT have all id's defined... end loop through fields
+                                hasAllProjectIds=false; return false;
+                            }
+                        }
+                    });
+                    //if all of the project ids are filled out
+                    if(hasAllProjectIds){
+                        bodyElem.addClass('all-project-ids');
+                    }else{
+                       bodyElem.removeClass('all-project-ids'); 
+                    }
+                }
+            }
+            return hasAllProjectIds;
+        };
         //==FUNCTIONS TO FLAG ANY PROJECT CHANGES==
         var setProjUnsavedChangesFlag=function(temName){
-            //***
+            //if this template is currently selected
+            if(bodyElem[0].getSelectedTemplate()==temName){
+                var temLi=bodyElem[0].getTemplateLi(temName);
+                if(temLi.length>0){
+                    //==SET OR REMOVE project-changes CLASSES==
+                    var menuProjBtn=menuBarWrap.find('li[name="project"]:first');
+                    //if this template has any unsaved changes
+                    if(temLi.hasClass('project-changes')){
+                        //add the project-changes class
+                        mainTitleElem.addClass('project-changes');
+                        menuProjBtn.addClass('project-changes');
+                        //==SET OR REMOVE all-project-ids CLASS
+                        checkHasAllProjectIds(temName);
+                    }else{
+                        //no unsaved changes...
+
+                        //remove the project-changes class
+                        mainTitleElem.removeClass('project-changes');
+                        menuProjBtn.removeClass('project-changes');
+                        //==REMOVE all-project-ids CLASS (SINCE WE KNOW THERE ARE NO UNSAVED CHANGES)==
+                        bodyElem.removeClass('all-project-ids');
+                    }
+                }
+            }
         };
 	//==FUNCTIONS TO FLAG ANY TEMPLATE CHANGES==
 	var setTemUnsavedChangesFlag=function(temName){
-		//if this template is currently selected
-		if(bodyElem[0].getSelectedTemplate()==temName){
-			var temLi=bodyElem[0].getTemplateLi(temName);
-			if(temLi.length>0){
-				var menuTemBtn=menuBarWrap.find('li[name="template"]:first');
-				//if this template has any unsaved changes
-				if(temLi.hasClass('unsaved-changes')){
-					//add the unsaved-changes class
-					mainTitleElem.addClass('unsaved-changes');
-					menuTemBtn.addClass('unsaved-changes');
-				}else{
-					//no unsaved changes...
+            //if this template is currently selected
+            if(bodyElem[0].getSelectedTemplate()==temName){
+                var temLi=bodyElem[0].getTemplateLi(temName);
+                if(temLi.length>0){
+                    var menuTemBtn=menuBarWrap.find('li[name="template"]:first');
+                    //if this template has any unsaved changes
+                    if(temLi.hasClass('template-changes')){
+                        //add the template-changes class
+                        mainTitleElem.addClass('template-changes');
+                        menuTemBtn.addClass('template-changes');
+                    }else{
+                        //no unsaved changes...
 
-					//remove the unsaved-changes class
-					mainTitleElem.removeClass('unsaved-changes');
-					menuTemBtn.removeClass('unsaved-changes');
-				}
-			}
-		}
+                        //remove the template-changes class
+                        mainTitleElem.removeClass('template-changes');
+                        menuTemBtn.removeClass('template-changes');
+                    }
+                }
+            }
 	};
         //create the basic changes data XML structure
         var createGetChangeDataWraps=function(temName, whatChanged, howChanged, wrapId){
@@ -269,38 +337,26 @@ jQuery(document).ready(function(){
                         bodyElem[0].scrollToHighlight(temLi.find('ul.includes > li:first'));
                         break;
                 }
+                //==UNDO INDEX TRACKING==
                 //if the change was made
                 if(changeMade){
                     //set the most recent, incremented, undo number
                     thisTemChangesWrap.attr('undo',currentUndo+'');
                 }
-            }
-            //==HANDLE THE CHANGES MADE FLAG CLASSES==
-            //are there any unsaved changes for this template?
-            if(temName!=undefined&&typeof temName=='string'){
-                //if this template exists in the left nav
-                var temLi=bodyElem[0].getTemplateLi(temName);
-                if(temLi.length>0){
-                    var areChanges=false;
-                    var thisTemChangesWrap=changesMadeWrap.children('div[name="'+temName+'"]:first');
-                    if(thisTemChangesWrap.length>0){
-                        if(thisTemChangesWrap.html().length>0){
-                            areChanges=true;
-                        }
-                    }
-                    //if there are any unsaved changes for this template
-                    if(areChanges){
-                        temLi.addClass('unsaved-changes');
-                    }else{
-                        //no unsaved changes...
-                        temLi.removeClass('unsaved-changes');
-                    }
-                    //update other elements that may need to change the unsaved-changes class
-                    setTemUnsavedChangesFlag(temName);
+                //==TEMPLATE CHANGES MADE FLAGGING==
+                //if this template has ANY changes AT ALL
+                if(thisTemChangesWrap.html().length>0){
+                    //flag that this template has unsaved changes, if not flagged already
+                    temLi.addClass('template-changes');
+                }else{
+                    //no unsaved changes...
+                    temLi.removeClass('template-changes');
                 }
+                //update other elements that may need to change the template-changes class (based on if temLi has this class)
+                setTemUnsavedChangesFlag(temName);
             }else{
-                //no specific template name given...
-
+                //not all of the wraps were retrieved based on the given input...
+                
                 //if a real value was given for temName
                 if(temName!=undefined){
                     //if a boolean value was given for temName
@@ -311,15 +367,15 @@ jQuery(document).ready(function(){
                             var temLis=temLsWrap.find('ul.ls.folders > li');
                             temLis.each(function(){
                                 //clear the unsaved changes class for this template
-                                jQuery(this).removeClass('unsaved-changes');
-                                //update other elements that may need to change the unsaved-changes class
+                                jQuery(this).removeClass('template-changes');
+                                //update other elements that may need to change the template-changes class
                                 setTemUnsavedChangesFlag(jQuery(this).attr('name'));
                             });
                         }
                     }
                 }
             }
-            return changesMadeWrap.html();
+            return changesMadeWrap[0].outerHTML;
 	};
 	bodyElem[0]['templateChangesMade']=templateChangesMade;
         //==PROJECT VALUE CHANGE MADE==
@@ -452,9 +508,39 @@ jQuery(document).ready(function(){
                         }
                     break;
                 }
-                //*** update the progress pending classes
+                //==PROJECT CHANGES MADE FLAGGING==
+                //if this template has ANY changes AT ALL
+                if(thisTemChangesWrap.html().length>0){
+                    //flag that this template's project has unsaved changes, if not flagged already
+                    temLi.addClass('project-changes');
+                }else{
+                    //no unsaved changes...
+                    temLi.removeClass('project-changes');
+                }
+                //update other elements that may need to change the project-changes class (based on if temLi has this class)
+                setProjUnsavedChangesFlag(temName);
+            }else{
+                //not all of the wraps were retrieved based on the given input...
+                
+                //if a real value was given for temName
+                if(temName!=undefined){
+                    //if a boolean value was given for temName
+                    if(typeof temName=='boolean'){
+                        //if false was passed
+                        if(!temName){
+                            //for ALL template li's in the left nav
+                            var temLis=temLsWrap.find('ul.ls.folders > li');
+                            temLis.each(function(){
+                                //clear the unsaved changes class for this template
+                                jQuery(this).removeClass('project-changes');
+                                //update other elements that may need to change the project-changes class
+                                setProjUnsavedChangesFlag(jQuery(this).attr('name'));
+                            });
+                        }
+                    }
+                }
             }
-            return changesMadeWrap.html();
+            return changesMadeWrap[0].outerHTML;
         };
         bodyElem[0]['projectChangesMade']=projectChangesMade;
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
@@ -935,47 +1021,47 @@ jQuery(document).ready(function(){
 	});
 	//==SELECT INCLUDE RULE==
 	var selectIncludeRule=function(temName,ruleStr){
-		ruleStr=sanitizeIncludeStr(ruleStr);
-		if(ruleStr.length>0){
-			//==LEFT NAV FILE==
-			//if this template name exists
-			var temLi=getTemplateLi(temName);
-			if(temLi.length>0){
-				var includesUl=temLi.children('ul.includes:last');
-				//deselect current rule strings
-				//---bodyElem[0].deselectIncludeRules(); //blur should take care of this
-				//if any include rules match this ruleStr
-				var includesBtn=includesUl.find('li.has-includes ul li .inc:contains("'+ruleStr+'")');
-				if(includesBtn.length>0){
-					//for each matching include rule
-					includesBtn.each(function(){
-						var thisRuleStr=jQuery(this).text();
-						thisRuleStr=sanitizeIncludeStr(thisRuleStr);
-						//if this rule matches
-						if(thisRuleStr==ruleStr){
-							//add select class
-							jQuery(this).parent().addClass('selected');
-						}
-						//remove <found> markup
-						jQuery(this).html(thisRuleStr);
-					});
-					//==TREE VIEW INCLUDE RULE TEXT BOX==
-					//open tree view tab
-					goToTabView(mainViewTabs.children('.tree-view:first'));
-					//for each text box that should contain the selected include rule string
-					includeRuleWraps.each(function(i){
-						//set this include rule as the text
-						var includeInput=jQuery(this).children('input:last');
-						includeInput.val(ruleStr);
-						//the first input box receives focus
-						if(i==0){includeInput.focus();}
-						//add the text entered class
-						jQuery(this).addClass('text-entered');
-					});
-					//*** highlight the selected files in tree view
-				}
-			}
-		}
+            ruleStr=sanitizeIncludeStr(ruleStr);
+            if(ruleStr.length>0){
+                //==LEFT NAV FILE==
+                //if this template name exists
+                var temLi=getTemplateLi(temName);
+                if(temLi.length>0){
+                    var includesUl=temLi.children('ul.includes:last');
+                    //deselect current rule strings
+                    //---bodyElem[0].deselectIncludeRules(); //blur should take care of this
+                    //if any include rules match this ruleStr
+                    var includesBtn=includesUl.find('li.has-includes ul li .inc:contains("'+ruleStr+'")');
+                    if(includesBtn.length>0){
+                        //for each matching include rule
+                        includesBtn.each(function(){
+                            var thisRuleStr=jQuery(this).text();
+                            thisRuleStr=sanitizeIncludeStr(thisRuleStr);
+                            //if this rule matches
+                            if(thisRuleStr==ruleStr){
+                                //add select class
+                                jQuery(this).parent().addClass('selected');
+                            }
+                            //remove <found> markup
+                            jQuery(this).html(thisRuleStr);
+                        });
+                        //==TREE VIEW INCLUDE RULE TEXT BOX==
+                        //open tree view tab
+                        goToTabView(mainViewTabs.children('.tree-view:first'));
+                        //for each text box that should contain the selected include rule string
+                        includeRuleWraps.each(function(i){
+                            //set this include rule as the text
+                            var includeInput=jQuery(this).children('input:last');
+                            includeInput.val(ruleStr);
+                            //the first input box receives focus
+                            if(i==0){includeInput.focus();}
+                            //add the text entered class
+                            jQuery(this).addClass('text-entered');
+                        });
+                        //*** highlight the selected INCLUDE files in tree view
+                    }
+                }
+            }
 	};
 	bodyElem[0]['selectIncludeRule']=selectIncludeRule;
 	//==DESELECT INCLUDE RULES==
@@ -1485,38 +1571,52 @@ jQuery(document).ready(function(){
 			workspaceWrap.removeClass('no-selected-template');
 			//==INDICATE IF THIS TEMPLATE HAS UNSAVED CHANGES==
 			setTemUnsavedChangesFlag(temName);
+                        //==INDICATE IF THIS TEMPLATE'S PROJECT HAS UNSAVED CHANGES==
+                        setProjUnsavedChangesFlag(temName);
 		}
 	};
 	bodyElem[0]['selectTemplate']=selectTemplate;
 	//==SELECT FILE==
 	var selectTemplateFile=function(temName,fName){
-		//if this file from this template is not already selected
-		var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
-		var currentFile=fileSelect[0]['currentSelectedFile'];
-		if(currentFile!=fName){
-			//==LEFT NAV FILE==
-			var temLi=getTemplateLi(temName);
-			var filesUl=temLi.children('ul.ls.files:first');
-			var fileLi=filesUl.children('li[name="'+fName+'"]:first');
-			//deselect other files in this template
-			filesUl.removeClass('special-selected');
-			filesUl.children('li.selected').removeClass('selected');
-			//if this left nav item exists
-			if(fileLi.length>0){
-				//select the new file
-				fileLi.addClass('selected');
-				if(fileLi.hasClass('special')){
-					filesUl.addClass('special-selected');
-				}
-			}
-			//==FILES DROPDOWN==
-			//if the select is not already correct
-			if(fileSelect[0].val()!=fName){
-				//set the correct select option
-				fileSelect[0].val(fName);
-			}
-			fileSelect[0]['currentSelectedFile']=fName;
-		}
+            //if this file from this template is not already selected (in the main dropdown)
+            var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
+            var currentFile=fileSelect[0]['currentSelectedFile'];
+            if(currentFile!=fName){
+                fileSelect[0]['currentSelectedFile']=fName;
+                //==LEFT NAV FILE==
+                var temLi=getTemplateLi(temName);
+                var filesUl=temLi.children('ul.ls.files:first');
+                var fileLi=filesUl.children('li[name="'+fName+'"]:first');
+                //if NOT already selected (in the left nav)
+                if(!fileLi.hasClass('selected')){
+                    //deselect other files in this template
+                    filesUl.removeClass('special-selected');
+                    filesUl.children('li.selected').removeClass('selected');
+                    //if this left nav item exists
+                    if(fileLi.length>0){
+                        //select the new file
+                        fileLi.addClass('selected');
+                        //if this is a special file, ie: _filenames.xml
+                        if(fileLi.hasClass('special')){
+                                filesUl.addClass('special-selected');
+                        }else{
+                            //NOT a special file like _filenames.xml...
+
+                            //==TREE-VIEW FILE==
+                            //if all of the project id's are filled out
+                            if(bodyElem.hasClass('all-project-ids')){
+                                //*** try to select the corresponding TEMPLATE file in the tree view
+                            }
+                        }
+                    }
+                }
+                //==FILES DROPDOWN==
+                //if the select is not already correct
+                if(fileSelect[0].val()!=fName){
+                    //set the correct select option
+                    fileSelect[0].val(fName);
+                }
+            }
 	};
 	bodyElem[0]['selectTemplateFile']=selectTemplateFile;
 	//==SELECT NEXT FILE==
@@ -1644,20 +1744,18 @@ jQuery(document).ready(function(){
 	bodyElem[0]['selectTokenInstances']=selectTokenInstances;
 	//==SELECT TREE NODE (FILE OR FOLDER)==
 	var selectTreeNode=function(path){
-		//if the element for this path exists
-		var pathLi=bodyElem[0].getTreeElem(path);
-		if(pathLi!=undefined&&pathLi.length>0){
-			//if NOT already selected
-			if(!pathLi.hasClass('selected')){
-				//==TREE VIEW==
-				//deselect any current selected node
-				treeViewWrap.find('ul.tree-root li.selected').removeClass('selected');
-				//select this clicked node
-				pathLi.addClass('selected');
-				//==TEMPLATES NAV==
-				//*** select the corresponding template file, if any (check if all project id's are filled out yet)
-			}
-		}
+            //if the element for this path exists
+            var pathLi=bodyElem[0].getTreeElem(path);
+            if(pathLi!=undefined&&pathLi.length>0){
+                //if NOT already selected
+                if(!pathLi.hasClass('selected')){
+                    //==TREE VIEW==
+                    //deselect any current selected node
+                    treeViewWrap.find('ul.tree-root li.selected').removeClass('selected');
+                    //select this clicked node
+                    pathLi.addClass('selected');
+                }
+            }
 	};
 	bodyElem[0]['selectTreeNode']=selectTreeNode;
 	//==GET FOLDER PATH FOR CURRENT TREE ELEMENT==
@@ -1953,16 +2051,19 @@ jQuery(document).ready(function(){
 	//evs for project id change (blur input)
 	var evsEditProjectId=function(){
             var doInputEdit=function(inputElem){
+                //get active template name
+                var temName=getSelectedTemplate();
+                //get token data
+                var inputParent=inputElem.parent(); var inputLabel=inputParent.children('.label:first');
+                var idName=inputLabel.text(); idName=idName.trim();
                 //if value isn't blank
                 var idVal=inputElem.val(); idVal=idVal.trim();
                 if(idVal.length>0){
-                    //get active template name
-                    var temName=getSelectedTemplate();
-                    //get token data
-                    var inputParent=inputElem.parent(); var inputLabel=inputParent.children('.label:first');
-                    var idName=inputLabel.text(); idName=idName.trim();
                     //handle project id edit
                     projectChangesMade(temName, 'token_value', 'set', {'name':idName,'value':idVal});
+                }else{
+                    //the field is blank... make sure this token value is blank
+                    projectChangesMade(temName, 'token_value', 'del', {'name':idName,'value':idVal});
                 }
             };
             //input elements for project ids
@@ -2215,8 +2316,6 @@ jQuery(document).ready(function(){
 					//find the first template select button
 					var firstTemBtn=firstDirElem.children('.path:first');
 					firstTemBtn.click(); //select the first template by default on app load
-					var firstOpenBtn=firstDirElem.children('.opened-closed:first');
-					firstOpenBtn.click(); //open (+) this first template on app load
 				}
 			}
 		}
