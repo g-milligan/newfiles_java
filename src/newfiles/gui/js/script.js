@@ -1,4 +1,4 @@
-function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -1678,6 +1678,11 @@ jQuery(document).ready(function(){
                                 });
                                 //if there is a filenames token string (should be)
                                 if(fnameTokenStr.length>0){
+                                    var escapeHtml=function(str){
+                                        str=replaceAll(str,'<','|___gt___|');
+                                        str=replaceAll(str,'>','|___lt___|');
+                                        return str;
+                                    };
                                     //get the template file's name
                                     var temFileName=fileLi.attr('name');
                                     //get the token source
@@ -1706,7 +1711,7 @@ jQuery(document).ready(function(){
                                                 //get the set token value 
                                                 var tokenVal=getTokenValue(temName,nameStr);
                                                 //add to the xml
-                                                aliasValsXml+="<alias_val name='"+nameStr+"'><alias><!--"+aliasStr+"--></alias><val><!--"+tokenVal+"--></val></alias_val>";
+                                                aliasValsXml+="<alias_val name='"+nameStr+"'><alias>"+escapeHtml(aliasStr)+"</alias><val>"+escapeHtml(tokenVal)+"</val></alias_val>";
                                             }
                                         });
                                     }
@@ -1716,11 +1721,11 @@ jQuery(document).ready(function(){
                                     }
                                     //put together the XML request to send to Java so java can resolve the real file path
                                     var requestXml='';
-                                    requestXml+='<template_name><!--'+temName+'--></template_name>';
-                                    requestXml+='<file_name><!--'+temFileName+'--></file_name>';
-                                    requestXml+='<token><!--'+fnameTokenStr+'--></token>';
+                                    requestXml+='<template_name>'+escapeHtml(temName)+'</template_name>';
+                                    requestXml+='<file_name>'+escapeHtml(temFileName)+'</file_name>';
+                                    requestXml+='<token>'+escapeHtml(fnameTokenStr)+'</token>';
                                     if(temFileName!=sourceStr){
-                                        requestXml+='<token_source><!--'+sourceStr+'--></token_source>';
+                                        requestXml+='<token_source>'+escapeHtml(sourceStr)+'</token_source>';
                                     }
                                     requestXml+=aliasValsXml;
                                     //set the request xml into the DOM

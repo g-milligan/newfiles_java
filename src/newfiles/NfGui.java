@@ -20,6 +20,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.stage.DirectoryChooser;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -245,9 +246,19 @@ public class NfGui extends Application {
                     }, false);
                     ((EventTarget)doc).addEventListener("nf_request_project_file_path", new EventListener(){
                         public void handleEvent(Event ev){
-                            //get the current tree root path
+                            //get the requested file path data
                             Element el = doc.getElementById("nf_request_project_file_path");
-                            //*** decipher file path based on the given info in el
+                            //get key data elements
+                            Node temNameElem=el.getElementsByTagName("template_name").item(0);
+                            Node fileNameElem=el.getElementsByTagName("file_name").item(0);
+                            Node tokenElem=el.getElementsByTagName("token").item(0);
+                            Node aliasValsElem=el.getElementsByTagName("alias_vals").item(0);
+                            //get key data values
+                            String temName=""; String fileName="";String tokenStr="";
+                            if(temNameElem!=null){temName=temNameElem.getTextContent();temName=unescapeHtml(temName);}
+                            if(fileNameElem!=null){fileName=fileNameElem.getTextContent();fileName=unescapeHtml(fileName);}
+                            if(tokenElem!=null){tokenStr=tokenElem.getTextContent();tokenStr=unescapeHtml(tokenStr);}
+                            //***
                         }
                     }, false);
                     //DONE SETTING WEB EVENTS, INDICATE DONE
@@ -258,6 +269,11 @@ public class NfGui extends Application {
         //FINISH AND LOAD WEBVIEW
         //=======================
         mWebEngine.load(indexPath.toExternalForm());
+    }
+    private String unescapeHtml(String str){
+        str=str.replace("|___gt___|", ">");
+        str=str.replace("|___lt___|", "<");
+        return str;
     }
     //get the formatted path for a template directory
     private String getFormattedDir(String unformattedPath){
