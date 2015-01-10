@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -543,6 +543,49 @@ jQuery(document).ready(function(){
             return changesMadeWrap[0].outerHTML;
         };
         bodyElem[0]['projectChangesMade']=projectChangesMade;
+        //==GET A TOKEN VALUE==
+        var getTokenValue=function(temName,tokName){
+            var val='';
+            //if a template name and token name are BOTH give
+            if(temName!=undefined&&tokName!=undefined){
+                //if there are any project changes
+                var changesMadeWrap=bodyElem.children('#projectChangesMade:last');
+                if(changesMadeWrap.length>0){
+                    //if this template has any changes
+                    var thisTemChangesWrap=changesMadeWrap.children('.template[name="'+temName+'"]:first');
+                    if(thisTemChangesWrap.length>0){
+                        //if there are any token values
+                        var whatWrap=thisTemChangesWrap.children('what[name="token_value"]:first');
+                        if(whatWrap.length>0){
+                            //if there are any set values
+                            var howWrap=whatWrap.children('how[name="set"]:first');
+                            if(howWrap.length>0){
+                                //if this token name could be found
+                                var tokenElem=howWrap.children('token[name="'+tokName+'"]:first');
+                                if(tokenElem.length>0){
+                                    //ONLY one value
+                                    var valueElems=tokenElem.children('value');
+                                    if(valueElems.length==1){
+                                        val=valueElems.html(); //get the one value for this token name
+                                    }else{
+                                        //if more than one value
+                                        if(valueElems.length>0){
+                                            val=[];
+                                            valueElems.each(function(){
+                                                var oneVal=jQuery(this).html();
+                                                val.push(oneVal); //add one of the token name's values to the array
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return val;
+        };
+        bodyElem[0]['getTokenValue']=getTokenValue;
 	//==DEFINE EVENTS THAT DON'T HAVE TO BE RE-DEFINED AFTER DYNAMIC CONTENT CHANGES==
 	//PLUS/MINUS SECTIONS
 	var plusMinusClick=function(btn){
@@ -704,53 +747,55 @@ jQuery(document).ready(function(){
 	bodyElem[0]['getScrollElem']=getScrollElem;
 	//move the highlighted found element into scroll view
 	var scrollToHighlight=function(elem,searchType){
+            if(elem!=undefined&&elem.length>0){
 		if(searchType==undefined){searchType='templates';}
 		var scrollElem=bodyElem[0].getScrollElem(searchType);
 		if(scrollElem!=undefined){
-			//==VERTICAL==
-			//get the element's position and the view window bounds of the current sroll
-			var elemTop=elem.position().top;
-			var scrollTop=scrollElem.scrollTop();
-			elemTop+=scrollTop;
-			var elemBottom=elemTop+elem.outerHeight();
-			var scrollBottom=scrollTop+scrollElem.innerHeight();
-			//if the scroll has passed the element's position
-			if(elemTop<scrollTop){
-				scrollElem.scrollTop(elemTop); //scroll up to the element
-			}else{
-				//if the scroll is before the element's position
-				if(elemBottom>=scrollBottom){
-					scrollElem.scrollTop(elemTop); //scroll down to the element
-				}
-			}
-			//==HORIZONTAL==
-			//current scroll amount
-			var scrollLeft=scrollElem.scrollLeft();
-			//compare the left edge with where the elem is located
-			var offsetLeftEdge=scrollElem.offset().left;
-			var elemLeft=elem.offset().left;
-			//if the element is hanging off the left edge
-			if(elemLeft<=offsetLeftEdge){
-				//how far is the element element hanging off the left edge?
-				var difference=offsetLeftEdge-elemLeft;
-				//move the scroll to the left to correct the difference
-				var newScrollLeft=scrollLeft-difference;
-				if(newScrollLeft<0){newScrollLeft=0;}
-				scrollElem.scrollLeft(newScrollLeft);
-			}else{
-				//compare the right edge with where the elem is located
-				var elemRight=elemLeft+elem.outerWidth();
-				var offsetRightEdge=offsetLeftEdge+scrollElem.innerWidth();
-				//if the element is hanging off the right edge
-				if(elemRight>=offsetRightEdge){
-					//how far is the element element hanging off the right edge?
-					var difference=elemRight-offsetRightEdge;
-					//move the scroll to the right to correct the difference
-					var newScrollRight=scrollLeft+difference;
-					scrollElem.scrollLeft(newScrollRight);
-				}
-			}
+                    //==VERTICAL==
+                    //get the element's position and the view window bounds of the current sroll
+                    var elemTop=elem.position().top;
+                    var scrollTop=scrollElem.scrollTop();
+                    elemTop+=scrollTop;
+                    var elemBottom=elemTop+elem.outerHeight();
+                    var scrollBottom=scrollTop+scrollElem.innerHeight();
+                    //if the scroll has passed the element's position
+                    if(elemTop<scrollTop){
+                        scrollElem.scrollTop(elemTop); //scroll up to the element
+                    }else{
+                        //if the scroll is before the element's position
+                        if(elemBottom>=scrollBottom){
+                            scrollElem.scrollTop(elemTop); //scroll down to the element
+                        }
+                    }
+                    //==HORIZONTAL==
+                    //current scroll amount
+                    var scrollLeft=scrollElem.scrollLeft();
+                    //compare the left edge with where the elem is located
+                    var offsetLeftEdge=scrollElem.offset().left;
+                    var elemLeft=elem.offset().left;
+                    //if the element is hanging off the left edge
+                    if(elemLeft<=offsetLeftEdge){
+                        //how far is the element element hanging off the left edge?
+                        var difference=offsetLeftEdge-elemLeft;
+                        //move the scroll to the left to correct the difference
+                        var newScrollLeft=scrollLeft-difference;
+                        if(newScrollLeft<0){newScrollLeft=0;}
+                        scrollElem.scrollLeft(newScrollLeft);
+                    }else{
+                        //compare the right edge with where the elem is located
+                        var elemRight=elemLeft+elem.outerWidth();
+                        var offsetRightEdge=offsetLeftEdge+scrollElem.innerWidth();
+                        //if the element is hanging off the right edge
+                        if(elemRight>=offsetRightEdge){
+                            //how far is the element element hanging off the right edge?
+                            var difference=elemRight-offsetRightEdge;
+                            //move the scroll to the right to correct the difference
+                            var newScrollRight=scrollLeft+difference;
+                            scrollElem.scrollLeft(newScrollRight);
+                        }
+                    }
 		}
+            }
 	};
 	bodyElem[0]['scrollToHighlight']=scrollToHighlight;
 	//INCLUDE FILE RULE BOX
@@ -1546,6 +1591,155 @@ jQuery(document).ready(function(){
 		return path;
 	};
 	bodyElem[0]['getSelectedTreePath']=getSelectedTreePath;
+        //==GET ALL TOKEN LI ELEMENTS FOR fileLi
+        var getTokenLiElems=function(fileLi, tokenTypes){
+            var tokenLis;
+            //if this fileLi is defined
+            if(fileLi!=undefined&&fileLi.length==1){
+                //if this fileLi has ANY tokens
+                if(fileLi.hasClass('has-tokens')){
+                    //get the tokens ul for this fileLi
+                    var tokensUl=fileLi.children('ul.tokens:last');
+                    //select the token types (or select all types if no types are specified)
+                    var tokensSelector='li';
+                    if(tokenTypes!=undefined){
+                        if(tokenTypes.length>0){
+                            tokensSelector='';
+                            //for each token type
+                            for(var t=0;t<tokenTypes.length;t++){
+                                //if not first type, then add separator
+                                if(t!=0){tokensSelector+=',';}
+                                //add this token type to the selector
+                                tokensSelector+='li[name="'+tokenTypes[t]+'"]';
+                            }
+                        }
+                    }
+                    //if there are any selected tokens
+                    tokenLis=tokensUl.children(tokensSelector);
+                    //if there are no selected tokens, then return undefined
+                    if(tokenLis.length<1){tokenLis=undefined;}
+                }
+            }
+            return tokenLis;
+        };
+        bodyElem[0]['getTokenLiElems']=getTokenLiElems;
+        //==GET RESOLVED FILE PATH FOR FILE LI ELEMENT
+        var requestProjectFilePath=function(fileLi){
+            //if ALL project ID values are known (set by the user)
+            if(bodyElem.hasClass('all-project-ids')){
+                //if this fileLi is defined
+                if(fileLi!=undefined&&fileLi.length==1){
+                    //if this is NOT a special file (like _filenames.xml)
+                    if(!fileLi.hasClass('special')){
+                        path='/';
+                        //get token li elements
+                        var fnameLis=getTokenLiElems(fileLi,['filename']);
+                        //if there are any filename tokens for this file
+                        if(fnameLis!=undefined){
+                            var useXml=false; var fnameLi;
+                            //if there is more than one filename token
+                            if(fnameLis.length>0){
+                                //try: only use the filename that came from the _filenames.xml source
+                                fnameLi=fnameLis.filter('.has-source').eq(0);
+                                //if there is no such sourced filename (should be) ... just use the first filename otherwise
+                                if(fnameLi.length<1){fnameLi=fnameLis.eq(0);}
+                                else{useXml=true;} //else the filename came from _filenames source (good)
+                            }else{
+                                //only one filename token
+                                fnameLi=fnameLis.eq(0);
+                            }
+                            //if the filename is defined in _filenames.xml
+                            var varLis;
+                            if(useXml){
+                                //try to get the var tokens from _filenames.xml
+                                var filesUl=fileLi.parent();
+                                var fnamesLi=filesUl.children('li.special:first');
+                                if(fnamesLi.length>0){
+                                    //get the var token li elements (they could contain aliases used in the filename path)
+                                    varLis=getTokenLiElems(fnamesLi,['var']);
+                                }
+                            }else{
+                                //filename NOT defined in _filenames.xml...
+
+                                //get the var token li elements (they could contain aliases used in the filename path)
+                                varLis=getTokenLiElems(fileLi,['var']);
+                            }
+                            //if varLis has been retrieved from either the template file OR the _filenames.xml file
+                            if(varLis!=undefined){
+                                //get the str element for this filename token
+                                var tokenStrElem=fnameLi.find('.token > .str:first');
+                                //for each token part
+                                var fnameTokenStr='';
+                                tokenStrElem.children('.part').each(function(p){
+                                    //if NOT the first token part.. then add separator
+                                    if(p!=0){fnameTokenStr+=':';}
+                                    //append the token string part
+                                    fnameTokenStr+=jQuery(this).html();
+                                });
+                                //if there is a filenames token string (should be)
+                                if(fnameTokenStr.length>0){
+                                    //get the template file's name
+                                    var temFileName=fileLi.attr('name');
+                                    //get the token source
+                                    var sourceStr=temFileName;
+                                    var sourcePartElem=fnameLi.find('.token > .source:last');
+                                    if(sourcePartElem.length>0){sourceStr=sourcePartElem.html();}
+                                    //for each var token
+                                    var aliasValsXml='';
+                                    var aliasFileName='';
+                                    //get the template name
+                                    var temName=fileLi.parents('li:first').attr('name');
+                                    //if there are any var tokens
+                                    if(varLis.length>0){
+                                        //get the name of the file where the aliases are written
+                                        aliasFileName=varLis.eq(0).parents('li:first').attr('name');
+                                        //for each var token
+                                        varLis.each(function(){
+                                            var strElem=jQuery(this).find('.token > .str:first');
+                                            //if this var token has an alias
+                                            var aliasElem=strElem.children('.part.alias:last');
+                                            if(aliasElem.length>0){
+                                                var aliasStr=aliasElem.html();
+                                                //get the name part
+                                                var nameElem=strElem.children('.part.name:last');
+                                                var nameStr=nameElem.html();
+                                                //get the set token value 
+                                                var tokenVal=getTokenValue(temName,nameStr);
+                                                //add to the xml
+                                                aliasValsXml+="<alias_val name='"+nameStr+"'><alias><!--"+aliasStr+"--></alias><val><!--"+tokenVal+"--></val></alias_val>";
+                                            }
+                                        });
+                                    }
+                                    //if there were any relevant aliases
+                                    if(aliasValsXml.length>0){
+                                        aliasValsXml="<alias_vals name='"+aliasFileName+"'>"+aliasValsXml+"</alias_vals>";
+                                    }
+                                    //put together the XML request to send to Java so java can resolve the real file path
+                                    var requestXml='';
+                                    requestXml+='<template_name><!--'+temName+'--></template_name>';
+                                    requestXml+='<file_name><!--'+temFileName+'--></file_name>';
+                                    requestXml+='<token><!--'+fnameTokenStr+'--></token>';
+                                    if(temFileName!=sourceStr){
+                                        requestXml+='<token_source><!--'+sourceStr+'--></token_source>';
+                                    }
+                                    requestXml+=aliasValsXml;
+                                    //set the request xml into the DOM
+                                    var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                                    if(dataWrap.length<1){
+                                        bodyElem.append('<div id="nf_request_project_file_path" style="display:none;"></div>');
+                                        dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                                    }
+                                    dataWrap.html(requestXml);
+                                    //trigger the event
+                                    document.dispatchEvent(new Event('nf_request_project_file_path'));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        bodyElem[0]['requestProjectFilePath']=requestProjectFilePath;
 	//==SELECT TEMPLATE==
 	var selectTemplate=function(temName){
 		//if NOT already selected
@@ -1578,6 +1772,7 @@ jQuery(document).ready(function(){
 	bodyElem[0]['selectTemplate']=selectTemplate;
 	//==SELECT FILE==
 	var selectTemplateFile=function(temName,fName){
+            var fileLi;
             //if this file from this template is not already selected (in the main dropdown)
             var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
             var currentFile=fileSelect[0]['currentSelectedFile'];
@@ -1586,7 +1781,7 @@ jQuery(document).ready(function(){
                 //==LEFT NAV FILE==
                 var temLi=getTemplateLi(temName);
                 var filesUl=temLi.children('ul.ls.files:first');
-                var fileLi=filesUl.children('li[name="'+fName+'"]:first');
+                fileLi=filesUl.children('li[name="'+fName+'"]:first');
                 //if NOT already selected (in the left nav)
                 if(!fileLi.hasClass('selected')){
                     //deselect other files in this template
@@ -1598,15 +1793,14 @@ jQuery(document).ready(function(){
                         fileLi.addClass('selected');
                         //if this is a special file, ie: _filenames.xml
                         if(fileLi.hasClass('special')){
-                                filesUl.addClass('special-selected');
+                            filesUl.addClass('special-selected');
                         }else{
                             //NOT a special file like _filenames.xml...
 
                             //==TREE-VIEW FILE==
-                            //if all of the project id's are filled out
-                            if(bodyElem.hasClass('all-project-ids')){
-                                //*** try to select the corresponding TEMPLATE file in the tree view
-                            }
+                            //if the file name could be retrieved (all project ids are filled out)
+                            requestProjectFilePath(fileLi);
+                            //***
                         }
                     }
                 }
@@ -1617,50 +1811,55 @@ jQuery(document).ready(function(){
                     fileSelect[0].val(fName);
                 }
             }
+            return fileLi; //returns the fileLi from the left nav
 	};
 	bodyElem[0]['selectTemplateFile']=selectTemplateFile;
 	//==SELECT NEXT FILE==
 	var selectNextFile=function(){
-		//if there is more than one option
-		var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
-		if(fileSelect.find('ul li').length>1){
-			//get the selected option
-			var selFileOption=fileSelect.find('ul li.active:first');
-			if(selFileOption.length<1){
-				//just get the first option if the selected one isn't found
-				selFileOption=fileSelect.find('ul li:first');
-			}
-			//try to get the next option
-			var nextOption=selFileOption.next('li:first');
-			if(nextOption.length<1){
-				//or just cycle back to the first option
-				nextOption=fileSelect.find('ul li:first');
-			}
-			//select the new option
-			selectTemplateFile(fileSelect.attr('name'),nextOption.attr('val'));
-		}
+            //if there is more than one option
+            var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
+            if(fileSelect.find('ul li').length>1){
+                //get the selected option
+                var selFileOption=fileSelect.find('ul li.active:first');
+                if(selFileOption.length<1){
+                    //just get the first option if the selected one isn't found
+                    selFileOption=fileSelect.find('ul li:first');
+                }
+                //try to get the next option
+                var nextOption=selFileOption.next('li:first');
+                if(nextOption.length<1){
+                    //or just cycle back to the first option
+                    nextOption=fileSelect.find('ul li:first');
+                }
+                //select the new option
+                var fileLi=selectTemplateFile(fileSelect.attr('name'),nextOption.attr('val'));
+                //scroll to selected file
+                scrollToHighlight(fileLi);
+            }
 	};
 	bodyElem[0]['selectNextFile']=selectNextFile;
 	//==SELECT PREVIOUS FILE==
 	var selectPrevFile=function(){
-		//if there is more than one option
-		var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
-		if(fileSelect.find('ul li').length>1){
-			//get the selected option
-			var selFileOption=fileSelect.find('ul li.active:first');
-			if(selFileOption.length<1){
-				//just get the first option if the selected one isn't found
-				selFileOption=fileSelect.find('ul li:first');
-			}
-			//try to get the prev option
-			var prevOption=selFileOption.prev('li:first');
-			if(prevOption.length<1){
-				//or just cycle back to the last option
-				prevOption=fileSelect.find('ul li:last');
-			}
-			//select the new option
-			selectTemplateFile(fileSelect.attr('name'),prevOption.attr('val'));
-		}
+            //if there is more than one option
+            var fileSelect=fileDropdownsWrap.children('nav.select.active:first');
+            if(fileSelect.find('ul li').length>1){
+                //get the selected option
+                var selFileOption=fileSelect.find('ul li.active:first');
+                if(selFileOption.length<1){
+                    //just get the first option if the selected one isn't found
+                    selFileOption=fileSelect.find('ul li:first');
+                }
+                //try to get the prev option
+                var prevOption=selFileOption.prev('li:first');
+                if(prevOption.length<1){
+                    //or just cycle back to the last option
+                    prevOption=fileSelect.find('ul li:last');
+                }
+                //select the new option
+                var fileLi=selectTemplateFile(fileSelect.attr('name'),prevOption.attr('val'));
+                //scroll to selected file
+                scrollToHighlight(fileLi);
+            }
 	};
 	bodyElem[0]['selectPrevFile']=selectPrevFile;
 	//==SELECT TOKEN==
@@ -2237,7 +2436,9 @@ jQuery(document).ready(function(){
                                                                         var temName=thisDropDown.attr('name');
                                                                         bodyElem[0].selectTemplate(temName);
                                                                         //select the template file
-                                                                        bodyElem[0].selectTemplateFile(temName,retVal);
+                                                                        var fileLi=bodyElem[0].selectTemplateFile(temName,retVal);
+                                                                        //make sure the selected file is scrolled into view in the left nav
+                                                                        scrollToHighlight(fileLi);
                                                                         break;
                                                                     case 'project-ids':
                                                                         //get the token name for this dropdown
