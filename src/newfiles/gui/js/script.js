@@ -1,4 +1,4 @@
-function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -111,9 +111,21 @@ jQuery(document).ready(function(){
                     });
                     //if all of the project ids are filled out
                     if(hasAllProjectIds){
+                        //indicate that all project id's are obtained
                         bodyElem.addClass('all-project-ids');
+                        //resolve all of the template file paths
+                        bodyElem[0].requestProjectFilePaths(temName,function(){
+                            //set the project paths, retrieved from Java
+                            bodyElem[0].projectChangesMade(temName, 'project_file_paths', 'set');
+                        });
                     }else{
-                       bodyElem.removeClass('all-project-ids'); 
+                        //if all project ids were previously filled out
+                        if(bodyElem.hasClass('all-project-ids')){
+                            //indicate that one or more project id's are NOT filled out
+                            bodyElem.removeClass('all-project-ids'); 
+                            //remove project file paths since some project id's will be missing from the paths
+                            bodyElem[0].projectChangesMade(temName, 'project_file_paths', 'del');
+                        }
                     }
                 }
             }
@@ -438,12 +450,12 @@ jQuery(document).ready(function(){
                             tokenName=tokenName.substring(nextName.length); 
                             tokenName=tokenName.trim(); nextName=nextName.trim(); //trim
                             //get the next sub elem
-                            elem=getCreateElem(elem,'token',nextName);
+                            elem=getCreateElem(elem,'item',nextName);
                         }
                     }else{
                         //token name doesn't describe a nested name
                         tokenName=tokenName.trim();
-                        elem=getCreateElem(howWrap,'token',tokenName);
+                        elem=getCreateElem(howWrap,'item',tokenName);
                     }
                     return elem;
                 };
@@ -507,6 +519,34 @@ jQuery(document).ready(function(){
                             tokenElem.remove();
                         }
                     break;
+                    case 'set-project_file_paths':
+                        //if there is data
+                        var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                        if(dataWrap.length>0){
+                            var temData=dataWrap.children('tem[name="'+temName+'"]:first');
+                            if(temData.length>0){
+                                //if the new data is different from the old xml
+                                var newXml=temData.html();
+                                var oldXml=howWrap.html();
+                                if(oldXml.length<1||oldXml!=newXml){
+                                    //set the new file path data
+                                    howWrap.html(newXml);
+                                    changeMade=true;
+                                }
+                                //clear out the pending request XML
+                                temData.html('');
+                            }
+                        }
+                    break;
+                    case 'del-project_file_paths':
+                        //if there was data
+                        var oldXml=howWrap.html();
+                        if(oldXml.length>0){
+                            //delete the previous data
+                            howWrap.html('');
+                            changeMade=true;
+                        }
+                    break;
                 }
                 //==PROJECT CHANGES MADE FLAGGING==
                 //if this template has ANY changes AT ALL
@@ -544,27 +584,28 @@ jQuery(document).ready(function(){
         };
         bodyElem[0]['projectChangesMade']=projectChangesMade;
         //==GET A TOKEN VALUE==
-        var getTokenValue=function(temName,tokName){
+        var getTokenValue=function(temName,itemName,valueType){
             var val='';
             //if a template name and token name are BOTH give
-            if(temName!=undefined&&tokName!=undefined){
+            if(temName!=undefined&&itemName!=undefined){
                 //if there are any project changes
                 var changesMadeWrap=bodyElem.children('#projectChangesMade:last');
                 if(changesMadeWrap.length>0){
                     //if this template has any changes
                     var thisTemChangesWrap=changesMadeWrap.children('.template[name="'+temName+'"]:first');
                     if(thisTemChangesWrap.length>0){
+                        if(valueType==undefined){valueType='token_value';}
                         //if there are any token values
-                        var whatWrap=thisTemChangesWrap.children('what[name="token_value"]:first');
+                        var whatWrap=thisTemChangesWrap.children('what[name="'+valueType+'"]:first');
                         if(whatWrap.length>0){
                             //if there are any set values
                             var howWrap=whatWrap.children('how[name="set"]:first');
                             if(howWrap.length>0){
-                                //if this token name could be found
-                                var tokenElem=howWrap.children('token[name="'+tokName+'"]:first');
-                                if(tokenElem.length>0){
+                                //if this item name could be found (if this is a project_file_paths type, then the item refers to the template file's name... otherwise the item refers to a token name)
+                                var itemElem=howWrap.children('item[name="'+itemName+'"]:first');
+                                if(itemElem.length>0){
                                     //ONLY one value
-                                    var valueElems=tokenElem.children('value');
+                                    var valueElems=itemElem.children('value');
                                     if(valueElems.length==1){
                                         val=valueElems.html(); //get the one value for this token name
                                     }else{
@@ -1491,58 +1532,136 @@ jQuery(document).ready(function(){
 	//==FUNCTIONS ATTACHED TO THE BODY ELEMENT==
 	//convert <span class="str">...</span>, in the templates nav, to a JSON
 	var tokenNavElemToJson=function(strElem,includePartSelector){
-		if(includePartSelector==undefined){includePartSelector='.part';}
-		var tokenJson;
-		//if this element has a str class
-		if(strElem.hasClass('str')){
-			//if the parent of this element has a token class
-			if(strElem.parent().hasClass('token')){
-				tokenJson={};
-				//if this token has-source
-				var parentLi=strElem.parents('li:first');
-				if(parentLi.hasClass('has-source')){
-					//add the source value to the json
-					var srcSpan=parentLi.find('span.part.source:last');
-					var srcVal=srcSpan.text();srcVal=srcVal.trim();
-					tokenJson['source']=srcVal;
-				}else{
-					//this token doesn't have a source... is it overwritten?
-					if(parentLi.hasClass('overwritten')){
-						//set overwritten
-						tokenJson['overwritten']=true;
-					}
-				}
-				//for each token part under the strElem
-				strElem.children(includePartSelector).not('.sep').each(function(){
-					//get the last class as the partName
-					var partName=jQuery(this).attr('class');
-					partName=partName.split(' ');
-					partName=partName[partName.length-1];
-					//if this part name isn't already in the json
-					if(!tokenJson.hasOwnProperty(partName)){
-						//if the part contains options
-						var partVal='';
-						var iElems=jQuery(this).children('.i');
-						if(iElems.length>0){
-							partVal=[];
-							//for each option
-							iElems.each(function(){
-								//add the option value to the array
-								var val=jQuery(this).text();val=val.trim();
-								partVal.push(val);
-							});
-						}else{
-							//set the option value
-							partVal=jQuery(this).text();partVal=partVal.trim();
-						}
-						//add the part name/value to the json
-						tokenJson[partName]=partVal;
-					}
-				});
-			}
-		}
-		return tokenJson;
+            if(includePartSelector==undefined){includePartSelector='.part';}
+            var tokenJson;
+            //if this element has a str class
+            if(strElem.hasClass('str')){
+                //if the parent of this element has a token class
+                if(strElem.parent().hasClass('token')){
+                    tokenJson={};
+                    //if this token has-source
+                    var parentLi=strElem.parents('li:first');
+                    if(parentLi.hasClass('has-source')){
+                        //add the source value to the json
+                        var srcSpan=parentLi.find('span.part.source:last');
+                        var srcVal=srcSpan.text();srcVal=srcVal.trim();
+                        tokenJson['source']=srcVal;
+                    }else{
+                        //this token doesn't have a source... is it overwritten?
+                        if(parentLi.hasClass('overwritten')){
+                            //set overwritten
+                            tokenJson['overwritten']=true;
+                        }
+                    }
+                    //for each token part under the strElem
+                    strElem.children(includePartSelector).not('.sep').each(function(){
+                        //get the last class as the partName
+                        var partName=jQuery(this).attr('class');
+                        partName=partName.split(' ');
+                        partName=partName[partName.length-1];
+                        //if this part name isn't already in the json
+                        if(!tokenJson.hasOwnProperty(partName)){
+                            //if the part contains options
+                            var partVal='';
+                            var iElems=jQuery(this).children('.i');
+                            if(iElems.length>0){
+                                partVal=[];
+                                //for each option
+                                iElems.each(function(){
+                                    //add the option value to the array
+                                    var val=jQuery(this).text();val=val.trim();
+                                    partVal.push(val);
+                                });
+                            }else{
+                                //set the option value
+                                partVal=jQuery(this).text();partVal=partVal.trim();
+                            }
+                            //add the part name/value to the json
+                            tokenJson[partName]=partVal;
+                        }
+                    });
+                }
+            }
+            return tokenJson;
 	};
+        bodyElem[0]['tokenNavElemToJson']=tokenNavElemToJson;
+	//convert <span class="str">...</span>, in the templates nav, to template code token string
+	var tokenNavElemToString=function(strElem){
+            var tokenStr='';
+            //start/end tags
+            var startTag='<<';var endTag='>>';
+            //token separators
+            var sep=':';
+            var aliasSep='=>';
+            var sourceSep=' --> ';
+            var optionSep='|';
+            //get token parts
+            var getPart=function(partName,includeSep){
+                var partVal='';
+                //if NOT source part
+                if(partName!='source'){
+                    //if part element exists under .str
+                    var partElem=strElem.children('.part.'+partName+':first');
+                    if(partElem.length>0){
+                        //if NOT options part
+                        if(partName!='options'){
+                            //get the value
+                            partVal=partElem.html();
+                        }else{
+                            //for each option
+                            partElem.children('.i').each(function(i){
+                                //if NOT first option... add option separator
+                                if(partVal.length>0){partVal+=optionSep;}
+                                //add option
+                                partVal+=jQuery(this).html();
+                            });
+                        }
+                    }
+                }else{
+                    var sourceElem=strElem.parent().children('.part.source:last');
+                    if(sourceElem.length>0){
+                        partVal=sourceElem.html();
+                    }
+                }
+                if(includeSep==undefined){includeSep=true;}
+                if(includeSep){
+                    if(partVal.length>0){
+                        switch(partName){
+                            case 'type':break;
+                            case 'alias':
+                                partVal=aliasSep+partVal;
+                                break;
+                             case 'source':
+                                 partVal=sourceSep+partVal;
+                                break;
+                            default:
+                                partVal=sep+partVal;
+                                break;
+                        }
+                    }
+                }
+                return partVal;
+            };
+            var tokenType=getPart('type');
+            if(tokenType.length>0){
+                //start token string with type
+                tokenStr+=startTag+tokenType;
+                //depending on the token type...
+                switch(tokenType){
+                    case 'var':
+                        tokenStr+=getPart('casing')+getPart('options')+getPart('name')+getPart('alias')+endTag;
+                        break;
+                    case 'filename':
+                        tokenStr+=getPart('casing')+getPart('dir')+getPart('name')+endTag+getPart('source');
+                        break;
+                    case 'list':
+                        tokenStr+=getPart('name')+endTag;
+                        break;
+                }
+            }
+            return tokenStr;
+	};
+        bodyElem[0]['tokenNavElemToString']=tokenNavElemToString;
 	//==GET SELECTED TEMPLATE==
 	var getSelectedTemplate=function(){
 		//get the selected template from the main view title element
@@ -1625,116 +1744,175 @@ jQuery(document).ready(function(){
         bodyElem[0]['getTokenLiElems']=getTokenLiElems;
         //==GET RESOLVED FILE PATH FOR FILE LI ELEMENT
         var requestProjectFilePath=function(fileLi){
+            var newData=false;
             //if ALL project ID values are known (set by the user)
             if(bodyElem.hasClass('all-project-ids')){
                 //if this fileLi is defined
                 if(fileLi!=undefined&&fileLi.length==1){
                     //if this is NOT a special file (like _filenames.xml)
                     if(!fileLi.hasClass('special')){
-                        path='/';
-                        //get token li elements
-                        var fnameLis=getTokenLiElems(fileLi,['filename']);
-                        //if there are any filename tokens for this file
-                        if(fnameLis!=undefined){
-                            var useXml=false; var fnameLi;
-                            //if there is more than one filename token
-                            if(fnameLis.length>0){
-                                //try: only use the filename that came from the _filenames.xml source
-                                fnameLi=fnameLis.filter('.has-source').eq(0);
-                                //if there is no such sourced filename (should be) ... just use the first filename otherwise
-                                if(fnameLi.length<1){fnameLi=fnameLis.eq(0);}
-                                else{useXml=true;} //else the filename came from _filenames source (good)
-                            }else{
-                                //only one filename token
-                                fnameLi=fnameLis.eq(0);
-                            }
-                            //if the filename is defined in _filenames.xml
-                            var varLis;
-                            if(useXml){
-                                //try to get the var tokens from _filenames.xml
-                                var filesUl=fileLi.parent();
-                                var fnamesLi=filesUl.children('li.special:first');
-                                if(fnamesLi.length>0){
-                                    //get the var token li elements (they could contain aliases used in the filename path)
-                                    varLis=getTokenLiElems(fnamesLi,['var']);
+                        //get the template name
+                        var temName=fileLi.parents('li:first').attr('name');
+                        //get the template file's name
+                        var temFileName=fileLi.attr('name');
+                        //if this file path isn't already resolved
+                        var path=getTokenValue(temName, temFileName, 'project_file_paths');
+                        if(path.length<1){
+                            //get token li elements
+                            var fnameLis=getTokenLiElems(fileLi,['filename']);
+                            //if there are any filename tokens for this file
+                            if(fnameLis!=undefined){
+                                var useXml=false; var fnameLi;
+                                //if there is more than one filename token
+                                if(fnameLis.length>0){
+                                    //try: only use the filename that came from the _filenames.xml source
+                                    fnameLi=fnameLis.filter('.has-source').eq(0);
+                                    //if there is no such sourced filename (should be) ... just use the first filename otherwise
+                                    if(fnameLi.length<1){fnameLi=fnameLis.eq(0);}
+                                    else{useXml=true;} //else the filename came from _filenames source (good)
+                                }else{
+                                    //only one filename token
+                                    fnameLi=fnameLis.eq(0);
                                 }
-                            }else{
-                                //filename NOT defined in _filenames.xml...
+                                //if the filename is defined in _filenames.xml
+                                var varLis;
+                                if(useXml){
+                                    //try to get the var tokens from _filenames.xml
+                                    var filesUl=fileLi.parent();
+                                    var fnamesLi=filesUl.children('li.special:first');
+                                    if(fnamesLi.length>0){
+                                        //get the var token li elements (they could contain aliases used in the filename path)
+                                        varLis=getTokenLiElems(fnamesLi,['var']);
+                                    }
+                                }else{
+                                    //filename NOT defined in _filenames.xml...
 
-                                //get the var token li elements (they could contain aliases used in the filename path)
-                                varLis=getTokenLiElems(fileLi,['var']);
-                            }
-                            //if varLis has been retrieved from either the template file OR the _filenames.xml file
-                            if(varLis!=undefined){
-                                //get the str element for this filename token
-                                var tokenStrElem=fnameLi.find('.token > .str:first');
-                                //for each token part
-                                var fnameTokenStr='';
-                                tokenStrElem.children('.part').each(function(p){
-                                    //if NOT the first token part.. then add separator
-                                    if(p!=0){fnameTokenStr+=':';}
-                                    //append the token string part
-                                    fnameTokenStr+=jQuery(this).html();
-                                });
-                                //if there is a filenames token string (should be)
-                                if(fnameTokenStr.length>0){
-                                    var escapeHtml=function(str){
-                                        str=replaceAll(str,'<','|___gt___|');
-                                        str=replaceAll(str,'>','|___lt___|');
-                                        return str;
-                                    };
-                                    //get the template file's name
-                                    var temFileName=fileLi.attr('name');
-                                    //get the token source
-                                    var sourceStr=temFileName;
-                                    var sourcePartElem=fnameLi.find('.token > .source:last');
-                                    if(sourcePartElem.length>0){sourceStr=sourcePartElem.html();}
-                                    //for each var token
-                                    var aliasValsXml='';
-                                    var aliasFileName='';
-                                    //get the template name
-                                    var temName=fileLi.parents('li:first').attr('name');
-                                    //if there are any var tokens
-                                    if(varLis.length>0){
-                                        //get the name of the file where the aliases are written
-                                        aliasFileName=varLis.eq(0).parents('li:first').attr('name');
+                                    //get the var token li elements (they could contain aliases used in the filename path)
+                                    varLis=getTokenLiElems(fileLi,['var']);
+                                }
+                                //if varLis has been retrieved from either the template file OR the _filenames.xml file
+                                if(varLis!=undefined){
+                                    //get the str element for this filename token
+                                    var tokenStrElem=fnameLi.find('.token > .str:first');
+                                    //get the token string
+                                    var fnameTokenStr=tokenNavElemToString(tokenStrElem);
+                                    //if there is a filenames token string (should be)
+                                    if(fnameTokenStr.length>0){
+                                        var escapeHtml=function(str){
+                                            str=replaceAll(str,'<','|___lt___|');
+                                            str=replaceAll(str,'>','|___gt___|');
+                                            return str;
+                                        };
                                         //for each var token
-                                        varLis.each(function(){
-                                            var strElem=jQuery(this).find('.token > .str:first');
-                                            //if this var token has an alias
-                                            var aliasElem=strElem.children('.part.alias:last');
-                                            if(aliasElem.length>0){
-                                                var aliasStr=aliasElem.html();
-                                                //get the name part
-                                                var nameElem=strElem.children('.part.name:last');
-                                                var nameStr=nameElem.html();
-                                                //get the set token value 
-                                                var tokenVal=getTokenValue(temName,nameStr);
-                                                //add to the xml
-                                                aliasValsXml+="<alias_val name='"+nameStr+"'><alias>"+escapeHtml(aliasStr)+"</alias><val>"+escapeHtml(tokenVal)+"</val></alias_val>";
-                                            }
-                                        });
+                                        var aliasValsXml='';
+                                        var aliasFileName='';
+                                        //if there are any var tokens
+                                        if(varLis.length>0){
+                                            //get the name of the file where the aliases are written
+                                            aliasFileName=varLis.eq(0).parents('li:first').attr('name');
+                                            //for each var token
+                                            varLis.each(function(){
+                                                var strElem=jQuery(this).find('.token > .str:first');
+                                                //if this var token has an alias
+                                                var aliasElem=strElem.children('.part.alias:last');
+                                                if(aliasElem.length>0){
+                                                    var aliasStr=aliasElem.html();
+                                                    //get the name part
+                                                    var nameElem=strElem.children('.part.name:last');
+                                                    var nameStr=nameElem.html();
+                                                    //get the full token string
+                                                    var tokenStr=tokenNavElemToString(strElem);
+                                                    //get the set token value 
+                                                    var tokenVal=getTokenValue(temName,nameStr);
+                                                    //add to the xml
+                                                    aliasValsXml+="<alias_val name='"+nameStr+"'><string>"+escapeHtml(tokenStr)+"</string><val>"+escapeHtml(tokenVal)+"</val></alias_val>";
+                                                }
+                                            });
+                                        }
+                                        //if there were any relevant aliases
+                                        if(aliasValsXml.length>0){
+                                            aliasValsXml="<alias_vals name='"+aliasFileName+"'>"+aliasValsXml+"</alias_vals>";
+                                        }
+                                        //put together the XML request to send to Java so java can resolve the real file path
+                                        var requestXml='';
+                                        requestXml+='<filename>'+escapeHtml(fnameTokenStr)+'</filename>';
+                                        requestXml+=aliasValsXml;
+                                        //set the request xml into the DOM
+                                        var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                                        if(dataWrap.length<1){
+                                            bodyElem.append('<div id="nf_request_project_file_path" style="display:none;"></div>');
+                                            dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                                        }
+                                        var temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
+                                        if(temWrap.length<1){
+                                            dataWrap.append('<tem name="'+temName+'"></tem>');
+                                            temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
+                                        }
+                                        var fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
+                                        if(fileWrap.length<1){
+                                            temWrap.append('<file name="'+temFileName+'"></file>');
+                                            fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
+                                        }
+                                        fileWrap.html(requestXml);
+                                        newData=true;
                                     }
-                                    //if there were any relevant aliases
-                                    if(aliasValsXml.length>0){
-                                        aliasValsXml="<alias_vals name='"+aliasFileName+"'>"+aliasValsXml+"</alias_vals>";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return newData;
+        };
+        bodyElem[0]['requestProjectFilePath']=requestProjectFilePath;
+        //request all file paths for a project
+        var requestProjectFilePaths=function(temName,finishCallback){
+            if(temName!=undefined){
+                //if ALL project ID values are known (set by the user)
+                if(bodyElem.hasClass('all-project-ids')){
+                    //if this template's li element exists
+                    var temLi=getTemplateLi(temName);
+                    if(temLi.length>0){
+                        //if there are any template files (should be)
+                        var newData=false;
+                        var fileLis=temLi.find('ul.ls.files > li').not('.special');
+                        if(fileLis.length>0){
+                            //set the request xml into the DOM
+                            var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                            if(dataWrap.length<1){
+                                bodyElem.append('<div id="nf_request_project_file_path" style="display:none;"></div>');
+                                dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                            }
+                            //find out if this template already has pending request data
+                            var hasPendingRequest=true;
+                            var temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
+                            //if no pending request data wrap
+                            if(temWrap.length<1){hasPendingRequest=false;}
+                            else{
+                                //if no pending request XML data?
+                                var pendingXml=temWrap.html();
+                                if(pendingXml.length<1){
+                                    hasPendingRequest=false;
+                                }
+                            }
+                            //if this template doesn't already have requested data pending
+                            if(!hasPendingRequest){
+                                //for each template file
+                                fileLis.each(function(){
+                                    //build the request data for this file
+                                    if(requestProjectFilePath(jQuery(this))){
+                                        newData=true;
                                     }
-                                    //put together the XML request to send to Java so java can resolve the real file path
-                                    var requestXml='';
-                                    requestXml+='<template_name>'+escapeHtml(temName)+'</template_name>';
-                                    requestXml+='<file_name>'+escapeHtml(temFileName)+'</file_name>';
-                                    requestXml+='<token>'+escapeHtml(fnameTokenStr)+'</token>';
-                                    if(temFileName!=sourceStr){
-                                        requestXml+='<token_source>'+escapeHtml(sourceStr)+'</token_source>';
+                                });
+                                //if any new data is being requested
+                                if(newData){
+                                    //if there is something to do when the request file paths are commplete in Java
+                                    if(finishCallback!=undefined){
+                                        //init the array, if NOT already initialized
+                                        if(!bodyElem[0].hasOwnProperty('finishProjectFilePaths')){bodyElem[0]['finishProjectFilePaths']=[];}
+                                        //add the TODO-on-complete callback, to the array
+                                        bodyElem[0]['finishProjectFilePaths'].push(finishCallback);
                                     }
-                                    requestXml+=aliasValsXml;
-                                    //set the request xml into the DOM
-                                    var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
-                                    if(dataWrap.length<1){
-                                        bodyElem.append('<div id="nf_request_project_file_path" style="display:none;"></div>');
-                                        dataWrap=bodyElem.children('#nf_request_project_file_path:last');
-                                    }
-                                    dataWrap.html(requestXml);
                                     //trigger the event
                                     document.dispatchEvent(new Event('nf_request_project_file_path'));
                                 }
@@ -1744,7 +1922,21 @@ jQuery(document).ready(function(){
                 }
             }
         };
-        bodyElem[0]['requestProjectFilePath']=requestProjectFilePath;
+        bodyElem[0]['requestProjectFilePaths']=requestProjectFilePaths;
+        //callback when Java returns resolved file paths
+        var callbackProjectFilePaths=function(){
+            //if there are any callback properties defined
+            if(bodyElem[0].hasOwnProperty('finishProjectFilePaths')){
+                //for each defined callback function
+                for(var c=0;c<bodyElem[0].finishProjectFilePaths.length;c++){
+                    //execute the callback
+                    bodyElem[0].finishProjectFilePaths[c]();
+                }
+                //clear the finished callbacks since they have all been executed
+                bodyElem[0].finishProjectFilePaths=undefined;
+            }
+        };
+        bodyElem[0]['callbackProjectFilePaths']=callbackProjectFilePaths;
 	//==SELECT TEMPLATE==
 	var selectTemplate=function(temName){
 		//if NOT already selected
@@ -1803,9 +1995,11 @@ jQuery(document).ready(function(){
                             //NOT a special file like _filenames.xml...
 
                             //==TREE-VIEW FILE==
-                            //if the file name could be retrieved (all project ids are filled out)
-                            requestProjectFilePath(fileLi);
-                            //***
+                            //if this file path is available
+                            var projPath=getTokenValue(temName, fName, 'project_file_paths');
+                            if(projPath.length>0){
+                                //*** try to get the resolved file path for this template file
+                            }
                         }
                     }
                 }
@@ -1869,81 +2063,81 @@ jQuery(document).ready(function(){
 	bodyElem[0]['selectPrevFile']=selectPrevFile;
 	//==SELECT TOKEN==
 	var selectTokenInstances=function(temName,json){
-		//json can specify what to select. EG: an array of file-names. And a json of token parts to match
-		//json = {'files':['file1.txt','file2.txt','file3.txt'], 'token':{'type':'var','name':'my token'}}
-		//if the json was provided
-		if(json!=undefined){
-			//if the json has the minimum amount of required token properties
-			if(json.hasOwnProperty('token')&&json.token.hasOwnProperty('type')&&json.token.hasOwnProperty('name')){
-				//==WHICH FILES? (LOOP ONCE FOR EACH SECTION)==
-				//figure out which files to include in the token selection
-				var navFileSelFormat='ul.ls.files li{file-names} ul.tokens li[name="'+json.token.type+'"] .token .str .part.name';
-				var navFileSel=navFileSelFormat.replace('{file-names}','');
-				//if selecting from any specific file(s) (select from any template file by default)
-				if(json.hasOwnProperty('files')){
-					if(json.files.length>0){
-						navFileSel='';
-						for(var f=0;f<json.files.length;f++){
-							//if not the first file, then add the selector separator
-							if(f!=0){navFileSel+=',';}
-							//add to the selector
-							navFileSel+=navFileSelFormat.replace('{file-names}','[name="'+json.files[f]+'"]');
-						}
-					}
-				}
-				//==LEFT NAV TOKENS==
-				//target the template, by name
-				var temLi=getTemplateLi(temName);
-				if(temLi.length>0){
-					//deselect any other selected tokens in this template
-					temLi.find('ul.tokens > li[name]').removeClass('selected');
-					//get all of the name part elements (under the selected files) in the template
-					var nameElems=temLi.find(navFileSel);
-					//for each name part element in this template
-					nameElems.each(function(){
-						//name must match exactly
-						var tokenName=jQuery(this).text();tokenName=tokenName.trim();
-						if(tokenName==json.token.name){
-							var strElem=jQuery(this).parent();
-							//this is a selected token until proven not to be a match
-							var isMatched=true;
-							var tokenJson=tokenNavElemToJson(strElem);
-							//for each token part
-							for (var partKey in json.token){
-								//no need to compare an options token part
-								if(partKey!='options'){
-									//if key is an actual property of an object, (not from the prototype)
-									if (json.token.hasOwnProperty(partKey)){
-										//if tokenJson also has partKey (needed to match)
-										if(tokenJson.hasOwnProperty(partKey)){
-											switch(partKey){
-												case 'type':break; //already checked
-												case 'name':break; //already checked
-												default:
-													//if has the NOT the same value
-													if(json.token[partKey]!=tokenJson[partKey]){
-														isMatched=false;
-													}
-												break;
-											}
-										}else{isMatched=false;} //tokenJson doesn't have this token part
-									}
-								}
-								//if not a match, then stop comparing the token parts
-								if(!isMatched){break;}
-							}
-							//if the token parts match up
-							if(isMatched){
-								//then this token should be selected
-								strElem.parents('li:first').addClass('selected');
-							}
-						}
-					});
-				}
-				//==SOME OTHER TOKEN SELECTIONS==
-				//... +++
-			}
-		}
+            //json can specify what to select. EG: an array of file-names. And a json of token parts to match
+            //json = {'files':['file1.txt','file2.txt','file3.txt'], 'token':{'type':'var','name':'my token'}}
+            //if the json was provided
+            if(json!=undefined){
+                //if the json has the minimum amount of required token properties
+                if(json.hasOwnProperty('token')&&json.token.hasOwnProperty('type')&&json.token.hasOwnProperty('name')){
+                    //==WHICH FILES? (LOOP ONCE FOR EACH SECTION)==
+                    //figure out which files to include in the token selection
+                    var navFileSelFormat='ul.ls.files li{file-names} ul.tokens li[name="'+json.token.type+'"] .token .str .part.name';
+                    var navFileSel=navFileSelFormat.replace('{file-names}','');
+                    //if selecting from any specific file(s) (select from any template file by default)
+                    if(json.hasOwnProperty('files')){
+                        if(json.files.length>0){
+                            navFileSel='';
+                            for(var f=0;f<json.files.length;f++){
+                                //if not the first file, then add the selector separator
+                                if(f!=0){navFileSel+=',';}
+                                //add to the selector
+                                navFileSel+=navFileSelFormat.replace('{file-names}','[name="'+json.files[f]+'"]');
+                            }
+                        }
+                    }
+                    //==LEFT NAV TOKENS==
+                    //target the template, by name
+                    var temLi=getTemplateLi(temName);
+                    if(temLi.length>0){
+                        //deselect any other selected tokens in this template
+                        temLi.find('ul.tokens > li[name]').removeClass('selected');
+                        //get all of the name part elements (under the selected files) in the template
+                        var nameElems=temLi.find(navFileSel);
+                        //for each name part element in this template
+                        nameElems.each(function(){
+                            //name must match exactly
+                            var tokenName=jQuery(this).text();tokenName=tokenName.trim();
+                            if(tokenName==json.token.name){
+                                var strElem=jQuery(this).parent();
+                                //this is a selected token until proven not to be a match
+                                var isMatched=true;
+                                var tokenJson=tokenNavElemToJson(strElem);
+                                //for each token part
+                                for (var partKey in json.token){
+                                    //no need to compare an options token part
+                                    if(partKey!='options'){
+                                        //if key is an actual property of an object, (not from the prototype)
+                                        if (json.token.hasOwnProperty(partKey)){
+                                            //if tokenJson also has partKey (needed to match)
+                                            if(tokenJson.hasOwnProperty(partKey)){
+                                                switch(partKey){
+                                                    case 'type':break; //already checked
+                                                    case 'name':break; //already checked
+                                                    default:
+                                                        //if has the NOT the same value
+                                                        if(json.token[partKey]!=tokenJson[partKey]){
+                                                            isMatched=false;
+                                                        }
+                                                    break;
+                                                }
+                                            }else{isMatched=false;} //tokenJson doesn't have this token part
+                                        }
+                                    }
+                                    //if not a match, then stop comparing the token parts
+                                    if(!isMatched){break;}
+                                }
+                                //if the token parts match up
+                                if(isMatched){
+                                    //then this token should be selected
+                                    strElem.parents('li:first').addClass('selected');
+                                }
+                            }
+                        });
+                    }
+                    //==SOME OTHER TOKEN SELECTIONS==
+                    //... +++
+                }
+            }
 	};
 	bodyElem[0]['selectTokenInstances']=selectTokenInstances;
 	//==SELECT TREE NODE (FILE OR FOLDER)==

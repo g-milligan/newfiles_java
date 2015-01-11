@@ -248,17 +248,87 @@ public class NfGui extends Application {
                         public void handleEvent(Event ev){
                             //get the requested file path data
                             Element el = doc.getElementById("nf_request_project_file_path");
-                            //get key data elements
+                            //get ALL of the template wraps (data requested to be resolved into real file paths)
+                            NodeList temWraps=el.getElementsByTagName("tem");
+                            for(int t=0;t<temWraps.getLength();t++){
+                                Node temWrap=temWraps.item(t);
+                                //if this template node has a name
+                                Node temNameNode=temWrap.getAttributes().getNamedItem("name");
+                                if(temNameNode!=null){
+                                    //get the template name
+                                    String temName=temNameNode.getNodeValue();
+                                    if(temName.length()>0){
+                                        //get all of the files under this template
+                                        NodeList fileNodes=temWrap.getChildNodes();
+                                        for(int f=0;f<fileNodes.getLength();f++){
+                                            //if this is a file node
+                                            Node fileNode=fileNodes.item(f);
+                                            if(fileNode.getNodeType()==1&&fileNode.getNodeName().toLowerCase().equals("file")){
+                                                //if this file has a name
+                                                Node fNameNode=fileNode.getAttributes().getNamedItem("name");
+                                                if(fNameNode!=null){
+                                                    //if file name not blank
+                                                    String fileName=fNameNode.getNodeValue();
+                                                    if(fileName.length()>0){
+                                                        Node filenameTokenNode=null; Node alias_valsNode = null;
+                                                        //for each child node under this file node
+                                                        NodeList fileDataNodes=fileNode.getChildNodes();
+                                                        for(int c=0;c<fileDataNodes.getLength();c++){
+                                                            //if this is an xml node
+                                                            Node dataNode=fileDataNodes.item(c);
+                                                            if(dataNode.getNodeType()==1){
+                                                                switch(dataNode.getNodeName().toLowerCase()){
+                                                                    case "filename":
+                                                                        filenameTokenNode=dataNode;
+                                                                        break;
+                                                                    case "alias_vals":
+                                                                        alias_valsNode=dataNode;
+                                                                        break;
+                                                                }
+                                                            }
+                                                        }
+                                                        //if the filename token string is in the data
+                                                        if(filenameTokenNode!=null){
+                                                            //get the token string
+                                                            String tokenStr=filenameTokenNode.getTextContent();
+                                                            tokenStr=unescapeHtml(tokenStr);
+                                                            //if there are aliased values used inside the filename token
+                                                            if(filenameTokenNode!=null){
+                                                                //***
+                                                            }
+                                                            //***
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+
+                            /*//get key data elements
                             Node temNameElem=el.getElementsByTagName("template_name").item(0);
                             Node fileNameElem=el.getElementsByTagName("file_name").item(0);
                             Node tokenElem=el.getElementsByTagName("token").item(0);
-                            Node aliasValsElem=el.getElementsByTagName("alias_vals").item(0);
+                            NodeList srcElems=el.getElementsByTagName("token_source");
+                            if(srcElems.getLength()>0){
+                                //***
+                            }
+                            NodeList aliasValsElems=el.getElementsByTagName("alias_vals");
+                            if(aliasValsElems.getLength()>0){
+                                //***
+                            }
                             //get key data values
                             String temName=""; String fileName="";String tokenStr="";
                             if(temNameElem!=null){temName=temNameElem.getTextContent();temName=unescapeHtml(temName);}
                             if(fileNameElem!=null){fileName=fileNameElem.getTextContent();fileName=unescapeHtml(fileName);}
                             if(tokenElem!=null){tokenStr=tokenElem.getTextContent();tokenStr=unescapeHtml(tokenStr);}
-                            //***
+                            //***/
+                            
+                            //tell javascript that the file paths are ready for processing
+                            mWebEngine.executeScript("document.body.callbackProjectFilePaths();");
                         }
                     }, false);
                     //DONE SETTING WEB EVENTS, INDICATE DONE
