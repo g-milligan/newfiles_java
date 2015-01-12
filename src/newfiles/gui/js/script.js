@@ -114,10 +114,7 @@ jQuery(document).ready(function(){
                         //indicate that all project id's are obtained
                         bodyElem.addClass('all-project-ids');
                         //resolve all of the template file paths
-                        bodyElem[0].requestProjectFilePaths(temName,function(){
-                            //set the project paths, retrieved from Java
-                            bodyElem[0].projectChangesMade(temName, 'project_file_paths', 'set');
-                        });
+                        bodyElem[0].requestProjectFilePaths(temName);
                     }else{
                         //if all project ids were previously filled out
                         if(bodyElem.hasClass('all-project-ids')){
@@ -521,7 +518,7 @@ jQuery(document).ready(function(){
                     break;
                     case 'set-project_file_paths':
                         //if there is data
-                        var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                        var dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
                         if(dataWrap.length>0){
                             var temData=dataWrap.children('tem[name="'+temName+'"]:first');
                             if(temData.length>0){
@@ -1790,72 +1787,79 @@ jQuery(document).ready(function(){
                                     //get the var token li elements (they could contain aliases used in the filename path)
                                     varLis=getTokenLiElems(fileLi,['var']);
                                 }
-                                //if varLis has been retrieved from either the template file OR the _filenames.xml file
-                                if(varLis!=undefined){
-                                    //get the str element for this filename token
-                                    var tokenStrElem=fnameLi.find('.token > .str:first');
-                                    //get the token string
-                                    var fnameTokenStr=tokenNavElemToString(tokenStrElem);
-                                    //if there is a filenames token string (should be)
-                                    if(fnameTokenStr.length>0){
-                                        var escapeHtml=function(str){
-                                            str=replaceAll(str,'<','|___lt___|');
-                                            str=replaceAll(str,'>','|___gt___|');
-                                            return str;
-                                        };
+                                //get the name value for the filename token
+                                var namePartElem=fnameLi.find('.token > .str .part.name:last');
+                                var tokenName=namePartElem.html();tokenName=tokenName.trim();
+                                var fileNameValue='';
+                                //if the filename token's name COULD come from user input
+                                if(tokenName.indexOf("'")!=0&&tokenName.indexOf('"')!=0){
+                                    //try to get the user input value
+                                    fileNameValue=getTokenValue(temName,tokenName);
+                                }
+                                //get the str element for this filename token
+                                var tokenStrElem=fnameLi.find('.token > .str:first');
+                                //get the token string
+                                var fnameTokenStr=tokenNavElemToString(tokenStrElem);
+                                //if there is a filenames token string (should be)
+                                if(fnameTokenStr.length>0){
+                                    var escapeHtml=function(str){
+                                        str=replaceAll(str,'<','|___lt___|');
+                                        str=replaceAll(str,'>','|___gt___|');
+                                        return str;
+                                    };
+                                    //for each var token
+                                    var aliasValsXml='';
+                                    var aliasFileName='';
+                                    //if there are any var tokens
+                                    if(varLis!=undefined&&varLis.length>0){
+                                        //get the name of the file where the aliases are written
+                                        aliasFileName=varLis.eq(0).parents('li:first').attr('name');
                                         //for each var token
-                                        var aliasValsXml='';
-                                        var aliasFileName='';
-                                        //if there are any var tokens
-                                        if(varLis.length>0){
-                                            //get the name of the file where the aliases are written
-                                            aliasFileName=varLis.eq(0).parents('li:first').attr('name');
-                                            //for each var token
-                                            varLis.each(function(){
-                                                var strElem=jQuery(this).find('.token > .str:first');
-                                                //if this var token has an alias
-                                                var aliasElem=strElem.children('.part.alias:last');
-                                                if(aliasElem.length>0){
-                                                    var aliasStr=aliasElem.html();
-                                                    //get the name part
-                                                    var nameElem=strElem.children('.part.name:last');
-                                                    var nameStr=nameElem.html();
-                                                    //get the full token string
-                                                    var tokenStr=tokenNavElemToString(strElem);
-                                                    //get the set token value 
-                                                    var tokenVal=getTokenValue(temName,nameStr);
-                                                    //add to the xml
-                                                    aliasValsXml+="<alias_val name='"+nameStr+"'><string>"+escapeHtml(tokenStr)+"</string><val>"+escapeHtml(tokenVal)+"</val></alias_val>";
-                                                }
-                                            });
-                                        }
-                                        //if there were any relevant aliases
-                                        if(aliasValsXml.length>0){
-                                            aliasValsXml="<alias_vals name='"+aliasFileName+"'>"+aliasValsXml+"</alias_vals>";
-                                        }
-                                        //put together the XML request to send to Java so java can resolve the real file path
-                                        var requestXml='';
-                                        requestXml+='<filename>'+escapeHtml(fnameTokenStr)+'</filename>';
-                                        requestXml+=aliasValsXml;
-                                        //set the request xml into the DOM
-                                        var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
-                                        if(dataWrap.length<1){
-                                            bodyElem.append('<div id="nf_request_project_file_path" style="display:none;"></div>');
-                                            dataWrap=bodyElem.children('#nf_request_project_file_path:last');
-                                        }
-                                        var temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
-                                        if(temWrap.length<1){
-                                            dataWrap.append('<tem name="'+temName+'"></tem>');
-                                            temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
-                                        }
-                                        var fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
-                                        if(fileWrap.length<1){
-                                            temWrap.append('<file name="'+temFileName+'"></file>');
-                                            fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
-                                        }
-                                        fileWrap.html(requestXml);
-                                        newData=true;
+                                        varLis.each(function(){
+                                            var strElem=jQuery(this).find('.token > .str:first');
+                                            //if this var token has an alias
+                                            var aliasElem=strElem.children('.part.alias:last');
+                                            if(aliasElem.length>0){
+                                                var aliasStr=aliasElem.html();
+                                                //get the name part
+                                                var nameElem=strElem.children('.part.name:last');
+                                                var nameStr=nameElem.html();
+                                                //get the full token string
+                                                var tokenStr=tokenNavElemToString(strElem);
+                                                //get the set token value 
+                                                var tokenVal=getTokenValue(temName,nameStr);
+                                                //add to the xml
+                                                aliasValsXml+="<alias_val name='"+nameStr+"'><string>"+escapeHtml(tokenStr)+"</string><val>"+escapeHtml(tokenVal)+"</val></alias_val>";
+                                            }
+                                        });
                                     }
+                                    //if there were any relevant aliases
+                                    if(aliasValsXml.length>0){
+                                        aliasValsXml="<alias_vals name='"+aliasFileName+"'>"+aliasValsXml+"</alias_vals>";
+                                    }
+                                    //put together the XML request to send to Java so java can resolve the real file path
+                                    var requestXml='';
+                                    requestXml+='<filename>'+escapeHtml(fnameTokenStr)+'</filename>';
+                                    requestXml+='<filename_val>'+escapeHtml(fileNameValue)+'</filename_val>';
+                                    requestXml+=aliasValsXml;
+                                    //set the request xml into the DOM
+                                    var dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
+                                    if(dataWrap.length<1){
+                                        bodyElem.append('<div id="nf_request_project_file_paths" style="display:none;"></div>');
+                                        dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
+                                    }
+                                    var temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
+                                    if(temWrap.length<1){
+                                        dataWrap.append('<tem name="'+temName+'"></tem>');
+                                        temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
+                                    }
+                                    var fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
+                                    if(fileWrap.length<1){
+                                        temWrap.append('<file name="'+temFileName+'"></file>');
+                                        fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
+                                    }
+                                    fileWrap.html(requestXml);
+                                    newData=true;
                                 }
                             }
                         }
@@ -1866,7 +1870,7 @@ jQuery(document).ready(function(){
         };
         bodyElem[0]['requestProjectFilePath']=requestProjectFilePath;
         //request all file paths for a project
-        var requestProjectFilePaths=function(temName,finishCallback){
+        var requestProjectFilePaths=function(temName){
             if(temName!=undefined){
                 //if ALL project ID values are known (set by the user)
                 if(bodyElem.hasClass('all-project-ids')){
@@ -1878,10 +1882,10 @@ jQuery(document).ready(function(){
                         var fileLis=temLi.find('ul.ls.files > li').not('.special');
                         if(fileLis.length>0){
                             //set the request xml into the DOM
-                            var dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                            var dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
                             if(dataWrap.length<1){
-                                bodyElem.append('<div id="nf_request_project_file_path" style="display:none;"></div>');
-                                dataWrap=bodyElem.children('#nf_request_project_file_path:last');
+                                bodyElem.append('<div id="nf_request_project_file_paths" style="display:none;"></div>');
+                                dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
                             }
                             //find out if this template already has pending request data
                             var hasPendingRequest=true;
@@ -1906,15 +1910,8 @@ jQuery(document).ready(function(){
                                 });
                                 //if any new data is being requested
                                 if(newData){
-                                    //if there is something to do when the request file paths are commplete in Java
-                                    if(finishCallback!=undefined){
-                                        //init the array, if NOT already initialized
-                                        if(!bodyElem[0].hasOwnProperty('finishProjectFilePaths')){bodyElem[0]['finishProjectFilePaths']=[];}
-                                        //add the TODO-on-complete callback, to the array
-                                        bodyElem[0]['finishProjectFilePaths'].push(finishCallback);
-                                    }
                                     //trigger the event
-                                    document.dispatchEvent(new Event('nf_request_project_file_path'));
+                                    document.dispatchEvent(new Event('nf_request_project_file_paths'));
                                 }
                             }
                         }
@@ -1923,20 +1920,6 @@ jQuery(document).ready(function(){
             }
         };
         bodyElem[0]['requestProjectFilePaths']=requestProjectFilePaths;
-        //callback when Java returns resolved file paths
-        var callbackProjectFilePaths=function(){
-            //if there are any callback properties defined
-            if(bodyElem[0].hasOwnProperty('finishProjectFilePaths')){
-                //for each defined callback function
-                for(var c=0;c<bodyElem[0].finishProjectFilePaths.length;c++){
-                    //execute the callback
-                    bodyElem[0].finishProjectFilePaths[c]();
-                }
-                //clear the finished callbacks since they have all been executed
-                bodyElem[0].finishProjectFilePaths=undefined;
-            }
-        };
-        bodyElem[0]['callbackProjectFilePaths']=callbackProjectFilePaths;
 	//==SELECT TEMPLATE==
 	var selectTemplate=function(temName){
 		//if NOT already selected
