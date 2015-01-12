@@ -372,6 +372,7 @@ public class NfGui extends Application {
                                                             //cleanup
                                                             if(mTemplateData.mTokenInputValues!=null){mTemplateData.mTokenInputValues.clear();}
                                                             //==RESOLVE THE EXTENSION==
+                                                            String templateFile=fileName;
                                                             String extension="";
                                                             if(fileName.contains(".")){
                                                                 extension=fileName.substring(fileName.lastIndexOf("."));
@@ -406,7 +407,8 @@ public class NfGui extends Application {
                                                             //==RESOLVE THE FILE DIR==
                                                             if(tokenDir.length()>0){tokenDir+="/";}
                                                             String resolvedPath=tokenDir+tokenName+extension;
-                                                            String test="";
+                                                            //set the resolvedPath in the javascript DOM
+                                                            mWebEngine.executeScript("document.body.projectChangesMade('"+temName+"', 'project_file_path', 'set', {'templateFile':'"+templateFile+"','resolvedPath':'"+resolvedPath+"'})");
                                                         }
                                                     }
                                                 }
@@ -415,9 +417,8 @@ public class NfGui extends Application {
                                     }
                                 }
                             }
-
-                            //tell javascript that the file paths are ready for processing
-                            //+++mWebEngine.executeScript("document.body.callbackProjectFilePaths();");
+                            //clear the temporary data that was just used to resolve the project file paths
+                            mWebEngine.executeScript("document.getElementById('nf_request_project_file_paths').innerHTML=''");
                         }
                     }, false);
                     //DONE SETTING WEB EVENTS, INDICATE DONE

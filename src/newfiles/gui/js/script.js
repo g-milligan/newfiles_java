@@ -1,4 +1,4 @@
-function getTestInBrowser(){return true;} //true = test outside of Java, in a browser ***
+function getTestInBrowser(){return false;} //true = test outside of Java, in a browser ***
 jQuery(document).ready(function(){
 	//==GET KEY ELEMENTS==
 	var bodyElem=jQuery('body:first');
@@ -12,6 +12,7 @@ jQuery(document).ready(function(){
 	var inputViewWrap=workspaceWrap.children('#input-view:last');
 	var mainViewWrap=workspaceWrap.children('#main-view:first');
 	var treeViewContent=mainViewWrap.children('.content[name="tree-view"]:first');
+        var treeViewSearchInput=treeViewContent.find('.search[name="search-tree-view"] input:first');
 	var treeViewWrap=treeViewContent.find('#tree-view:first');
 	var projectIdsWrap=treeViewContent.find('.rcol .col-content .block-wrap.project-ids:first');
 	var fileViewContent=mainViewWrap.children('.content[name="file-view"]:first');
@@ -121,7 +122,7 @@ jQuery(document).ready(function(){
                             //indicate that one or more project id's are NOT filled out
                             bodyElem.removeClass('all-project-ids'); 
                             //remove project file paths since some project id's will be missing from the paths
-                            bodyElem[0].projectChangesMade(temName, 'project_file_paths', 'del');
+                            bodyElem[0].projectChangesMade(temName, 'project_file_path', 'del');
                         }
                     }
                 }
@@ -425,7 +426,7 @@ jQuery(document).ready(function(){
                     return childElem;
                 };
                 //get/create the appropriate <token> element hierarchy for the given tokenName (which can describe nested=>names)
-                var getTokenElem=function(tokenName){
+                var getItemElem=function(tokenName){
                     var elem;
                     //if describes a nested name
                     if(tokenName.indexOf('=>')!=-1){
@@ -461,7 +462,7 @@ jQuery(document).ready(function(){
                 switch(whatHowChange){
                     case 'set-token_value': //set the value of a token
                         //get or create this token element in xml
-                        var tokenElem=getTokenElem(json.name);
+                        var tokenElem=getItemElem(json.name);
                         //if there is more than one child value
                         var childValElems=tokenElem.children('value');
                         if(childValElems.length>1){
@@ -483,7 +484,7 @@ jQuery(document).ready(function(){
                     break;
                     case 'del-token_value': //delete all or some values for a token
                         //get or create this token element in xml
-                        var tokenElem=getTokenElem(json.name);
+                        var tokenElem=getItemElem(json.name);
                         //for each token value inside the token element
                         tokenElem.children('value').each(function(i){
                             //if delete value by index
@@ -516,30 +517,23 @@ jQuery(document).ready(function(){
                             tokenElem.remove();
                         }
                     break;
-                    case 'set-project_file_paths':
-                        //if there is data
-                        var dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
-                        if(dataWrap.length>0){
-                            var temData=dataWrap.children('tem[name="'+temName+'"]:first');
-                            if(temData.length>0){
-                                //if the new data is different from the old xml
-                                var newXml=temData.html();
-                                var oldXml=howWrap.html();
-                                if(oldXml.length<1||oldXml!=newXml){
-                                    //set the new file path data
-                                    howWrap.html(newXml);
-                                    changeMade=true;
-                                }
-                                //clear out the pending request XML
-                                temData.html('');
-                            }
+                    case 'set-project_file_path':
+                        var fileElem=getItemElem(json.templateFile);
+                        var valElem=fileElem.children('value:first');
+                        if(valElem.length<1){
+                            fileElem.append('<value></value>');
+                            valElem=fileElem.children('value:first');
+                        }
+                        if(valElem.html()!=json.resolvedPath){
+                            valElem.html(json.resolvedPath);
+                            changeMade=true;
                         }
                     break;
-                    case 'del-project_file_paths':
+                    case 'del-project_file_path':
                         //if there was data
                         var oldXml=howWrap.html();
                         if(oldXml.length>0){
-                            //delete the previous data
+                            //delete the previous data for ALL paths in this template
                             howWrap.html('');
                             changeMade=true;
                         }
@@ -1753,7 +1747,7 @@ jQuery(document).ready(function(){
                         //get the template file's name
                         var temFileName=fileLi.attr('name');
                         //if this file path isn't already resolved
-                        var path=getTokenValue(temName, temFileName, 'project_file_paths');
+                        var path=getTokenValue(temName, temFileName, 'project_file_path');
                         if(path.length<1){
                             //get token li elements
                             var fnameLis=getTokenLiElems(fileLi,['filename']);
@@ -1978,10 +1972,15 @@ jQuery(document).ready(function(){
                             //NOT a special file like _filenames.xml...
 
                             //==TREE-VIEW FILE==
-                            //if this file path is available
-                            var projPath=getTokenValue(temName, fName, 'project_file_paths');
-                            if(projPath.length>0){
-                                //*** try to get the resolved file path for this template file
+                            //*** reset treeViewSearchInput.val('')
+                            //if all project id values are filled out
+                            if(bodyElem.hasClass('all-project-ids')){
+                                //if this file path is available
+                                var projPath=getTokenValue(temName, fName, 'project_file_path');
+                                if(projPath.length>0){
+                                    //*** try to get the resolved file path for this template file
+                                    treeViewSearchInput.val(projPath); //***
+                                }
                             }
                         }
                     }
@@ -2497,211 +2496,211 @@ jQuery(document).ready(function(){
 	bodyElem[0]['evsIncludeRules']=evsIncludeRules;
 	//==UPDATE TEMPLATE/FILE/TOKEN LISTING==
 	var updateTemplates=function(json){
-		if(json!=undefined){
-			//==SET THE TEMPLATES LISTING HTML==
-			var htm=htm_template_dirs(json); //get html
-			temLsWrap.html(''); //clear old html
-			temLsWrap.append(htm.templates); //set html
-			//make sure the special files, ie: _filenames.xml are first in the listings
-			var specialLi=temLsWrap.find('ul.ls.files > li.special');
-			specialLi.each(function(){
-				//make the special file first in the file listing
-				var parentUl=jQuery(this).parent();
-				parentUl.prepend(jQuery(this));
-			});
-			//==SET THE FILE DROPDOWNS HTML==
-			fileDropdownsWrap.children('nav.select[name]').remove(); //clear old html
-			fileDropdownsWrap.append(htm.file_selects); //set html
-			//make sure the special files, ie: _filenames.xml are first in the listings
-			var specialOption=fileDropdownsWrap.find('nav.select > ul li.special');
-			specialOption.each(function(){
-				//make the special file second in the file listing
-				var parentUl=jQuery(this).parent();
-				var firstOption=parentUl.children('li:first');
-				firstOption.after(jQuery(this));
-			});
-			//==PROJECT IDS LISTINGS FOR EACH TEMPLATE==
-			projectIdsWrap.html(''); //clear old html
-			projectIdsWrap.append(htm.project_ids); //set html
-			//==HOME-MADE SELECT DROPDOWNS VAL FUNCTION==
-			var selectDrops=contentWrap.find('nav.select').not('.evs');
-			selectDrops.each(function(){
-				var thisDropDown=jQuery(this);
-				thisDropDown.addClass('evs');
-				//prevent selection inside the select dropdown
-				preventSelect(thisDropDown.children('ul:first'));
-				//hover event
-				thisDropDown.hover(function(){
-					//hover
-					jQuery(this).addClass('over');
-				},function(){
-					//end hover and close, if open
-					jQuery(this).removeClass('over');
-					jQuery(this).removeClass('open');
-				});
-				//dropdown label click
-				thisDropDown.children('.lbl:first').click(function(){
-					//if dropdown is open
-					var thisDropDown=jQuery(this).parent();
-					if(thisDropDown.hasClass('open')){
-						//then close it
-						thisDropDown.removeClass('open');
-					}else{
-						//otherwise, open it
-						thisDropDown.addClass('open');
-						//scroll to the selected item
-						var activeItem=thisDropDown.find('ul li.active:first');
-						if(activeItem.length>0){
-							var ulParent=activeItem.parent();
-							//the index at which the item appears in the list
-							var activeItemIndex=activeItem.index();
-							//the height of the item
-							var activeItemHeight=activeItem.outerHeight();
-							//calculate the height of item stack BEFORE the selected item
-							var scrollPos=activeItemHeight*activeItemIndex;
-							//scroll to the item so it appears at the top of the scroll
-							ulParent.scrollTop(scrollPos);
-						}
-					}
-				});
-				//val function for home-made select dropdown
-				var val=function(valToSelect){
-					var retVal='';
-					//if there are any list items
-					var listItems=thisDropDown.find('ul li');
-					if(listItems.length>0){
-						//get the active list item txt element(s)
-						var selectedTxt=listItems.filter('.active').children('.txt');
-						//if there is no active selected item
-						if(selectedTxt.length<1){
-							//select the first item by default
-							thisDropDown.find('ul li:first').addClass('active');
-						}
-						//get ONLY ONE selected text item
-						var firstSelectedTxt=selectedTxt.eq(0);
-						//if there is more than one selected
-						if(selectedTxt.length>1){
-							//make sure only one item is selected
-							selectedTxt.not(firstSelectedTxt).parent().removeClass('active');
-						}
-						//if setting a new selected value
-						var setNewTxt=false;
-						if(valToSelect!=undefined){
-							//if this new item value exists
-							var newSelectLi=listItems.filter('[val="'+valToSelect+'"]:first');
-							if(newSelectLi.length>0){
-								//deselect previous item
-								listItems.not(newSelectLi).removeClass('active');
-								//select the new item
-								newSelectLi.addClass('active');
-								//set the new text
-								selectedTxt=newSelectLi.children('.txt:first');
-								setNewTxt=true;
-							}
-						}
-						//get the value of this first item
-						retVal=selectedTxt.text();
-						retVal=retVal.trim();
-						//if new text was set
-						if(setNewTxt){
-							//make sure the label text is correct
-							var selectLbl=thisDropDown.children('.lbl:first');
-							//if the text has changed
-							if(selectLbl!=retVal){
-								//set the new text
-								selectLbl.text(retVal);
-								//fire change event
-								var parentId=thisDropDown.parents('[id]:first').attr('id');
-								switch(parentId){
-                                                                    case 'main-view': //main view file dropdown
-                                                                        //select the template
-                                                                        var temName=thisDropDown.attr('name');
-                                                                        bodyElem[0].selectTemplate(temName);
-                                                                        //select the template file
-                                                                        var fileLi=bodyElem[0].selectTemplateFile(temName,retVal);
-                                                                        //make sure the selected file is scrolled into view in the left nav
-                                                                        scrollToHighlight(fileLi);
-                                                                        break;
-                                                                    case 'project-ids':
-                                                                        //get the token name for this dropdown
-                                                                        var fieldWrap=thisDropDown.parent();
-                                                                        var idName=fieldWrap.attr('name');
-                                                                        //get the template name for this dropdown
-                                                                        var temName=fieldWrap.parent().attr('name');
-                                                                        //if NOT selected the default value
-                                                                        var valAttr=listItems.filter('.active:first').attr('val');
-                                                                        retVal=retVal.trim();
-                                                                        if (retVal.length>0&&valAttr!='...'){
-                                                                            //handle project id edit
-                                                                            projectChangesMade(temName, 'token_value', 'set', {'name':idName,'value':retVal});
-                                                                        }else{
-                                                                            //selected the default value...
+            if(json!=undefined){
+                //==SET THE TEMPLATES LISTING HTML==
+                var htm=htm_template_dirs(json); //get html
+                temLsWrap.html(''); //clear old html
+                temLsWrap.append(htm.templates); //set html
+                //make sure the special files, ie: _filenames.xml are first in the listings
+                var specialLi=temLsWrap.find('ul.ls.files > li.special');
+                specialLi.each(function(){
+                    //make the special file first in the file listing
+                    var parentUl=jQuery(this).parent();
+                    parentUl.prepend(jQuery(this));
+                });
+                //==SET THE FILE DROPDOWNS HTML==
+                fileDropdownsWrap.children('nav.select[name]').remove(); //clear old html
+                fileDropdownsWrap.append(htm.file_selects); //set html
+                //make sure the special files, ie: _filenames.xml are first in the listings
+                var specialOption=fileDropdownsWrap.find('nav.select > ul li.special');
+                specialOption.each(function(){
+                    //make the special file second in the file listing
+                    var parentUl=jQuery(this).parent();
+                    var firstOption=parentUl.children('li:first');
+                    firstOption.after(jQuery(this));
+                });
+                //==PROJECT IDS LISTINGS FOR EACH TEMPLATE==
+                projectIdsWrap.html(''); //clear old html
+                projectIdsWrap.append(htm.project_ids); //set html
+                //==HOME-MADE SELECT DROPDOWNS VAL FUNCTION==
+                var selectDrops=contentWrap.find('nav.select').not('.evs');
+                selectDrops.each(function(){
+                    var thisDropDown=jQuery(this);
+                    thisDropDown.addClass('evs');
+                    //prevent selection inside the select dropdown
+                    preventSelect(thisDropDown.children('ul:first'));
+                    //hover event
+                    thisDropDown.hover(function(){
+                        //hover
+                        jQuery(this).addClass('over');
+                    },function(){
+                        //end hover and close, if open
+                        jQuery(this).removeClass('over');
+                        jQuery(this).removeClass('open');
+                    });
+                    //dropdown label click
+                    thisDropDown.children('.lbl:first').click(function(){
+                        //if dropdown is open
+                        var thisDropDown=jQuery(this).parent();
+                        if(thisDropDown.hasClass('open')){
+                            //then close it
+                            thisDropDown.removeClass('open');
+                        }else{
+                            //otherwise, open it
+                            thisDropDown.addClass('open');
+                            //scroll to the selected item
+                            var activeItem=thisDropDown.find('ul li.active:first');
+                            if(activeItem.length>0){
+                                var ulParent=activeItem.parent();
+                                //the index at which the item appears in the list
+                                var activeItemIndex=activeItem.index();
+                                //the height of the item
+                                var activeItemHeight=activeItem.outerHeight();
+                                //calculate the height of item stack BEFORE the selected item
+                                var scrollPos=activeItemHeight*activeItemIndex;
+                                //scroll to the item so it appears at the top of the scroll
+                                ulParent.scrollTop(scrollPos);
+                            }
+                        }
+                    });
+                    //val function for home-made select dropdown
+                    var val=function(valToSelect){
+                        var retVal='';
+                        //if there are any list items
+                        var listItems=thisDropDown.find('ul li');
+                        if(listItems.length>0){
+                            //get the active list item txt element(s)
+                            var selectedTxt=listItems.filter('.active').children('.txt');
+                            //if there is no active selected item
+                            if(selectedTxt.length<1){
+                                //select the first item by default
+                                thisDropDown.find('ul li:first').addClass('active');
+                            }
+                            //get ONLY ONE selected text item
+                            var firstSelectedTxt=selectedTxt.eq(0);
+                            //if there is more than one selected
+                            if(selectedTxt.length>1){
+                                //make sure only one item is selected
+                                selectedTxt.not(firstSelectedTxt).parent().removeClass('active');
+                            }
+                            //if setting a new selected value
+                            var setNewTxt=false;
+                            if(valToSelect!=undefined){
+                                //if this new item value exists
+                                var newSelectLi=listItems.filter('[val="'+valToSelect+'"]:first');
+                                if(newSelectLi.length>0){
+                                    //deselect previous item
+                                    listItems.not(newSelectLi).removeClass('active');
+                                    //select the new item
+                                    newSelectLi.addClass('active');
+                                    //set the new text
+                                    selectedTxt=newSelectLi.children('.txt:first');
+                                    setNewTxt=true;
+                                }
+                            }
+                            //get the value of this first item
+                            retVal=selectedTxt.text();
+                            retVal=retVal.trim();
+                            //if new text was set
+                            if(setNewTxt){
+                                //make sure the label text is correct
+                                var selectLbl=thisDropDown.children('.lbl:first');
+                                //if the text has changed
+                                if(selectLbl!=retVal){
+                                    //set the new text
+                                    selectLbl.text(retVal);
+                                    //fire change event
+                                    var parentId=thisDropDown.parents('[id]:first').attr('id');
+                                    switch(parentId){
+                                        case 'main-view': //main view file dropdown
+                                            //select the template
+                                            var temName=thisDropDown.attr('name');
+                                            bodyElem[0].selectTemplate(temName);
+                                            //select the template file
+                                            var fileLi=bodyElem[0].selectTemplateFile(temName,retVal);
+                                            //make sure the selected file is scrolled into view in the left nav
+                                            scrollToHighlight(fileLi);
+                                            break;
+                                        case 'project-ids':
+                                            //get the token name for this dropdown
+                                            var fieldWrap=thisDropDown.parent();
+                                            var idName=fieldWrap.attr('name');
+                                            //get the template name for this dropdown
+                                            var temName=fieldWrap.parent().attr('name');
+                                            //if NOT selected the default value
+                                            var valAttr=listItems.filter('.active:first').attr('val');
+                                            retVal=retVal.trim();
+                                            if (retVal.length>0&&valAttr!='...'){
+                                                //handle project id edit
+                                                projectChangesMade(temName, 'token_value', 'set', {'name':idName,'value':retVal});
+                                            }else{
+                                                //selected the default value...
 
-                                                                            //handle project id delete
-                                                                            projectChangesMade(temName, 'token_value', 'del', {'name':idName});
-                                                                        }
-                                                                        break;
-								}
-							}
-						}
-					}
-					return retVal;
-				};
-				thisDropDown[0]['val']=val;
-				//click event for select items
-				var txtElems=thisDropDown.find('ul li .txt').not('.evs');
-				txtElems.addClass('evs');
-				txtElems.click(function(){
-					//select item on click
-					var thisDropDown=jQuery(this).parents('nav.select:first');
-					var txtVal=jQuery(this).parent().attr('val'); txtVal=txtVal.trim();
-					thisDropDown[0].val(txtVal);
-					//close the dropdown
-					thisDropDown.removeClass('open');
-				});
-				//hover event for click items
-				txtElems.hover(function(){
-					jQuery(this).parent().addClass('over');
-				},function(){
-					jQuery(this).parent().removeClass('over');
-				});
-				//click events for on-off buttons
-				var onOffBtns=thisDropDown.find('ul li .on-off').not('.evs');
-				onOffBtns.addClass('evs');
-				onOffBtns.click(function(){
-					var parentLi=jQuery(this).parent();
-					bodyElem[0].toggleOnOffFile(thisDropDown.attr('name'),parentLi.attr('val'));
-				});
-			});
-			//==ADD JS EVENTS TO NEW ELEMENTS==
-			//add opened-closed toggle events (to elements that don't already have events added)
-			evsTemToggleOpenClose();
-			//add on-off toggle events (to elements that don't already have events added)
-			evsToggleFileOnOff();
-			//select events for templates
-			evsTemplates();
-			//select events for files
-			evsFiles();
-			//select events for tokens
-			evsTokens();
-			//select events for include rules
-			evsIncludeRules();
-                        //detect when a project id has been modified
-                        evsEditProjectId();
-			//==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
-			//if there is no selected template
-			var selectedTemplate=temLsWrap.find('ul.ls.folders > li.selected');
-			if(selectedTemplate.length<1){
-				//select the first template by default
-				var firstDirElem=temLsWrap.find('ul.ls.folders li .dir:first');
-				//if there is a template
-				if(firstDirElem.length>0){
-					//find the first template select button
-					var firstTemBtn=firstDirElem.children('.path:first');
-					firstTemBtn.click(); //select the first template by default on app load
-				}
-			}
-		}
+                                                //handle project id delete
+                                                projectChangesMade(temName, 'token_value', 'del', {'name':idName});
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        return retVal;
+                    };
+                    thisDropDown[0]['val']=val;
+                    //click event for select items
+                    var txtElems=thisDropDown.find('ul li .txt').not('.evs');
+                    txtElems.addClass('evs');
+                    txtElems.click(function(){
+                            //select item on click
+                            var thisDropDown=jQuery(this).parents('nav.select:first');
+                            var txtVal=jQuery(this).parent().attr('val'); txtVal=txtVal.trim();
+                            thisDropDown[0].val(txtVal);
+                            //close the dropdown
+                            thisDropDown.removeClass('open');
+                    });
+                    //hover event for click items
+                    txtElems.hover(function(){
+                            jQuery(this).parent().addClass('over');
+                    },function(){
+                            jQuery(this).parent().removeClass('over');
+                    });
+                    //click events for on-off buttons
+                    var onOffBtns=thisDropDown.find('ul li .on-off').not('.evs');
+                    onOffBtns.addClass('evs');
+                    onOffBtns.click(function(){
+                            var parentLi=jQuery(this).parent();
+                            bodyElem[0].toggleOnOffFile(thisDropDown.attr('name'),parentLi.attr('val'));
+                    });
+                });
+                //==ADD JS EVENTS TO NEW ELEMENTS==
+                //add opened-closed toggle events (to elements that don't already have events added)
+                evsTemToggleOpenClose();
+                //add on-off toggle events (to elements that don't already have events added)
+                evsToggleFileOnOff();
+                //select events for templates
+                evsTemplates();
+                //select events for files
+                evsFiles();
+                //select events for tokens
+                evsTokens();
+                //select events for include rules
+                evsIncludeRules();
+                //detect when a project id has been modified
+                evsEditProjectId();
+                //==SELECT / OPEN THE FIRST TEMPLATE ON PAGE LOAD==
+                //if there is no selected template
+                var selectedTemplate=temLsWrap.find('ul.ls.folders > li.selected');
+                if(selectedTemplate.length<1){
+                        //select the first template by default
+                        var firstDirElem=temLsWrap.find('ul.ls.folders li .dir:first');
+                        //if there is a template
+                        if(firstDirElem.length>0){
+                                //find the first template select button
+                                var firstTemBtn=firstDirElem.children('.path:first');
+                                firstTemBtn.click(); //select the first template by default on app load
+                        }
+                }
+            }
 	};
 	bodyElem[0]['updateTemplates']=updateTemplates;
 	if(getTestInBrowser()){
