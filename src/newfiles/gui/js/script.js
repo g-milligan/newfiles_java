@@ -76,8 +76,8 @@ jQuery(document).ready(function(){
             }
     };
     //==FUNCTION TO CHECK/SET ALL-PROJECT-IDS FLAG
-    var checkHasAllProjectIds=function(temName){
-        var hasAllProjectIds=false;
+    var hasAllProjectIds=function(temName){
+        var hasAllIds=false;
         //if this template exists
         var temLi=bodyElem[0].getTemplateLi(temName);
         if(temLi.length>0){
@@ -88,7 +88,7 @@ jQuery(document).ready(function(){
                 //for each project id field wrap
                 projBlockWrap.children().each(function(c){
                     //innocent until proven... missing any id
-                    if(c==0){hasAllProjectIds=true;}
+                    if(c==0){hasAllIds=true;}
                     //if this is an input project id
                     var inputElem=jQuery(this).children('input:first');
                     if(inputElem.length>0){
@@ -96,7 +96,7 @@ jQuery(document).ready(function(){
                         var inputVal=inputElem.val(); inputVal=inputVal.trim();
                         if(inputVal.length<1){
                             //this project does NOT have all id's defined... end loop through fields
-                            hasAllProjectIds=false; return false;
+                            hasAllIds=false; return false;
                         }
                     }else{
                         //this is a dropdown project id
@@ -106,28 +106,13 @@ jQuery(document).ready(function(){
                         //if this dropdown doesn't have a selected item (default item is selected)
                         if(selVal=='...'||selVal==''){
                             //this project does NOT have all id's defined... end loop through fields
-                            hasAllProjectIds=false; return false;
+                            hasAllIds=false; return false;
                         }
                     }
                 });
-                //if all of the project ids are filled out
-                if(hasAllProjectIds){
-                    //indicate that all project id's are obtained
-                    bodyElem.addClass('all-project-ids');
-                    //resolve all of the template file paths
-                    bodyElem[0].requestProjectFilePaths(temName);
-                }else{
-                    //if all project ids were previously filled out
-                    if(bodyElem.hasClass('all-project-ids')){
-                        //indicate that one or more project id's are NOT filled out
-                        bodyElem.removeClass('all-project-ids');
-                        //remove project file paths since some project id's will be missing from the paths
-                        bodyElem[0].projectChangesMade(temName, 'project_file_path', 'del');
-                    }
-                }
             }
         }
-        return hasAllProjectIds;
+        return hasAllIds;
     };
     //==FUNCTIONS TO FLAG ANY PROJECT CHANGES==
     var setProjUnsavedChangesFlag=function(temName){
@@ -142,16 +127,12 @@ jQuery(document).ready(function(){
                     //add the project-changes class
                     mainTitleElem.addClass('project-changes');
                     menuProjBtn.addClass('project-changes');
-                    //==SET OR REMOVE all-project-ids CLASS
-                    checkHasAllProjectIds(temName);
                 }else{
                     //no unsaved changes...
 
                     //remove the project-changes class
                     mainTitleElem.removeClass('project-changes');
                     menuProjBtn.removeClass('project-changes');
-                    //==REMOVE all-project-ids CLASS (SINCE WE KNOW THERE ARE NO UNSAVED CHANGES)==
-                    bodyElem.removeClass('all-project-ids');
                 }
             }
         }
@@ -574,6 +555,36 @@ jQuery(document).ready(function(){
         return changesMadeWrap[0].outerHTML;
     };
     bodyElem[0]['projectChangesMade']=projectChangesMade;
+    //==GET FORMATTED TOKEN VALUE BASED ON TOKEN PART RULES, IE: CASING==
+    var getFormattedTokenVal=function(tokenVal,json){
+        //casing
+        if(json.hasOwnProperty('casing')){
+            var casing=json.casing;
+            casing=casing.trim();
+            if(casing.length>0){
+                //only get first lowercase letter
+                casing=casing.substring(0,1); casing=casing.toLowerCase();
+                switch(casing){
+                    case 'u': //uppercase
+                        tokenVal=tokenVal.toUpperCase();
+                        break;
+                    case 'l': //lowercase
+                        tokenVal=tokenVal.toLowerCase();
+                        break;
+                    case 'c': //capitalize
+                        var firstChar=tokenVal.substring(0, 1);
+                        var theRest = tokenVal.substring(1);
+                        firstChar=firstChar.toUpperCase();
+                        tokenVal=firstChar+theRest;
+                        break;
+                    case 'n': //normal
+                        //yep... do nothing. Leave as is
+                        break;
+                }
+            }
+        }
+        return tokenVal;
+    };
     //==GET A TOKEN VALUE==
     var getTokenValue=function(temName,itemName,valueType){
         var val='';
@@ -1533,6 +1544,22 @@ jQuery(document).ready(function(){
             });
     });
     //==FUNCTIONS ATTACHED TO THE BODY ELEMENT==
+    //detect if the given string is literal (starts and ends with " or ');
+    var isLiteralString=function(str){
+        var isLit=false;str=str.trim();
+        if(str.length>0){
+            //if starts with quote...
+            if(str.indexOf('"')==0||str.indexOf("'")==0){
+                var lastChar=str.substring(str.length-1);
+                //... and ends with quote
+                if(lastChar=='"'||lastChar=="'"){
+                    isLit=true;
+                }
+            }
+        }
+        return isLit;
+    };
+    bodyElem[0]['isLiteralString']=isLiteralString;
     //convert <span class="str">...</span>, in the templates nav, to a JSON
     var tokenNavElemToJson=function(strElem,includePartSelector){
         if(includePartSelector==undefined){includePartSelector='.part';}
@@ -1745,8 +1772,8 @@ jQuery(document).ready(function(){
         return tokenLis;
     };
     bodyElem[0]['getTokenLiElems']=getTokenLiElems;
-    //==GET RESOLVED FILE PATH FOR FILE LI ELEMENT (ONLY CALLED FROM requestProjectFilePaths)
-    var requestProjectFilePath=function(fileLi){
+    //==GET RESOLVED FILE PATH FOR FILE LI ELEMENT
+    var updateProjectFilePath=function(fileLi){
         var newData=false;
         //if ALL project ID values are known (set by the user)
         if(bodyElem.hasClass('all-project-ids')){
@@ -1758,113 +1785,131 @@ jQuery(document).ready(function(){
                     var temName=fileLi.parents('li:first').attr('name');
                     //get the template file's name
                     var temFileName=fileLi.attr('name');
-                    //if this file path isn't already resolved
-                    var path=getTokenValue(temName, temFileName, 'project_file_path');
-                    if(path.length<1){
-                        //get token li elements
-                        var fnameLis=getTokenLiElems(fileLi,['filename']);
-                        //if there are any filename tokens for this file
-                        if(fnameLis!=undefined){
-                            var useXml=false; var fnameLi;
-                            //if there is more than one filename token
-                            if(fnameLis.length>0){
-                                //try: only use the filename that came from the _filenames.xml source
-                                fnameLi=fnameLis.filter('.has-source').eq(0);
-                                //if there is no such sourced filename (should be) ... just use the first filename otherwise
-                                if(fnameLi.length<1){fnameLi=fnameLis.eq(0);}
-                                else{useXml=true;} //else the filename came from _filenames source (good)
-                            }else{
-                                //only one filename token
-                                fnameLi=fnameLis.eq(0);
+                    //get token li elements
+                    var fnameLis=getTokenLiElems(fileLi,['filename']);
+                    //if there are any filename tokens for this file
+                    if(fnameLis!=undefined){
+                        var useXml=false; var fnameLi;
+                        //if there is more than one filename token
+                        if(fnameLis.length>0){
+                            //try: only use the filename that came from the _filenames.xml source
+                            fnameLi=fnameLis.filter('.has-source').eq(0);
+                            //if there is no such sourced filename (should be) ... just use the first filename otherwise
+                            if(fnameLi.length<1){fnameLi=fnameLis.eq(0);}
+                            else{useXml=true;} //else the filename came from _filenames source (good)
+                        }else{
+                            //only one filename token
+                            fnameLi=fnameLis.eq(0);
+                        }
+                        //get the str element for this filename token
+                        var tokenStrElem=fnameLi.find('.token > .str:first');
+                        //get the token string
+                        var fnameTokenJson=tokenNavElemToJson(tokenStrElem);
+                        //if there is a filenames token string (should be)
+                        if(fnameTokenJson!=undefined){
+                            //get the <<filename>> token's name and dir values
+                            var fnameTokenName='';if(fnameTokenJson.hasOwnProperty('name')){fnameTokenName=fnameTokenJson.name;}
+                            var fnameTokenDir='';if(fnameTokenJson.hasOwnProperty('dir')){fnameTokenDir=fnameTokenJson.dir;}
+                            //can the filename token dir/name contain any aliases?
+                            var pathCanHaveAlias=false;
+                            if(isLiteralString(fnameTokenName)){pathCanHaveAlias=true;} //if the filename token name is a string literal
+                            else{
+                                if(fnameTokenDir.length>0){pathCanHaveAlias=true;} //if the filename has a directory part
                             }
-                            //if the filename is defined in _filenames.xml
-                            var varLis;
-                            if(useXml){
-                                //try to get the var tokens from _filenames.xml
-                                var filesUl=fileLi.parent();
-                                var fnamesLi=filesUl.children('li.special:first');
-                                if(fnamesLi.length>0){
-                                    //get the var token li elements (they could contain aliases used in the filename path)
-                                    varLis=getTokenLiElems(fnamesLi,['var']);
-                                }
-                            }else{
-                                //filename NOT defined in _filenames.xml...
+                            //==REPLACE ALIASES IN THE FILENAME TOKEN DIR/NAME==
+                            if(pathCanHaveAlias){
+                                //if the filename is defined in _filenames.xml
+                                var varLis;
+                                if(useXml){
+                                    //try to get the var tokens from _filenames.xml
+                                    var filesUl=fileLi.parent();
+                                    var fnamesLi=filesUl.children('li.special:first');
+                                    if(fnamesLi.length>0){
+                                        //get the var token li elements (they could contain aliases used in the filename path)
+                                        varLis=getTokenLiElems(fnamesLi,['var']);
+                                    }
+                                }else{
+                                    //filename NOT defined in _filenames.xml...
 
-                                //get the var token li elements (they could contain aliases used in the filename path)
-                                varLis=getTokenLiElems(fileLi,['var']);
-                            }
-                            //get the name value for the filename token
-                            var namePartElem=fnameLi.find('.token > .str .part.name:last');
-                            var tokenName=namePartElem.html();tokenName=tokenName.trim();
-                            var fileNameValue='';
-                            //if the filename token's name COULD come from user input
-                            if(tokenName.indexOf("'")!=0&&tokenName.indexOf('"')!=0){
-                                //try to get the user input value
-                                fileNameValue=getTokenValue(temName,tokenName);
-                            }
-                            //get the str element for this filename token
-                            var tokenStrElem=fnameLi.find('.token > .str:first');
-                            //get the token string
-                            var fnameTokenStr=tokenNavElemToString(tokenStrElem);
-                            //if there is a filenames token string (should be)
-                            if(fnameTokenStr.length>0){
-                                var escapeHtml=function(str){
-                                    str=replaceAll(str,'<','|___lt___|');
-                                    str=replaceAll(str,'>','|___gt___|');
-                                    return str;
-                                };
-                                //for each var token
-                                var aliasValsXml='';
-                                var aliasFileName='';
+                                    //get the var token li elements (they could contain aliases used in the filename path)
+                                    varLis=getTokenLiElems(fileLi,['var']);
+                                }
                                 //if there are any var tokens
                                 if(varLis!=undefined&&varLis.length>0){
                                     //get the name of the file where the aliases are written
-                                    aliasFileName=varLis.eq(0).parents('li:first').attr('name');
+                                    var aliasFileName=varLis.eq(0).parents('li:first').attr('name');
                                     //for each var token
-                                    varLis.each(function(){
+                                    varLis.each(function(){ 
                                         var strElem=jQuery(this).find('.token > .str:first');
                                         //if this var token has an alias
                                         var aliasElem=strElem.children('.part.alias:last');
                                         if(aliasElem.length>0){
-                                            var aliasStr=aliasElem.html();
-                                            //get the name part
+                                            //alias
+                                            var aliasStr=aliasElem.html(); 
+                                            //get the name part, used to retrieve the alias value
                                             var nameElem=strElem.children('.part.name:last');
                                             var nameStr=nameElem.html();
-                                            //get the full token string
-                                            var tokenStr=tokenNavElemToString(strElem);
-                                            //get the set token value
-                                            var tokenVal=getTokenValue(temName,nameStr);
-                                            //add to the xml
-                                            aliasValsXml+="<alias_val name='"+nameStr+"'><string>"+escapeHtml(tokenStr)+"</string><val>"+escapeHtml(tokenVal)+"</val></alias_val>";
+                                            //alias value
+                                            var aliasVal=getTokenValue(temName,nameStr); 
+                                            //get the casing part, used to format alias value
+                                            var casingElem=strElem.children('.part.casing:last');
+                                            var casingStr=casingElem.html();
+                                            //format the alias value based on casing rule
+                                            aliasVal=getFormattedTokenVal(aliasVal,{'casing':casingStr});
+                                            //if the alias placeholder is different from the value to replace it with
+                                            if(aliasStr!=aliasVal){
+                                                //if the filename token could have aliases in its name
+                                                if(isLiteralString(fnameTokenName)){
+                                                    //replace the alias with the value for the filename's name literal
+                                                    fnameTokenName=replaceAll(fnameTokenName,aliasStr,aliasVal);
+                                                }
+                                                //if the dir path could have aliases in its name
+                                                if(fnameTokenDir.length>0){
+                                                    //replace the alias with the value for the filename's dir
+                                                    fnameTokenDir=replaceAll(fnameTokenDir,aliasStr,aliasVal);
+                                                }
+                                            }
                                         }
                                     });
                                 }
-                                //if there were any relevant aliases
-                                if(aliasValsXml.length>0){
-                                    aliasValsXml="<alias_vals name='"+aliasFileName+"'>"+aliasValsXml+"</alias_vals>";
+                            }
+                            //==RESOLVE THE EXTENSION==
+                            var extension=''; var origTemFileName=temFileName;
+                            if(temFileName.indexOf('.')!=-1){
+                                extension=temFileName.substring(temFileName.lastIndexOf("."));
+                                temFileName=temFileName.substring(0,temFileName.lastIndexOf("."));
+                            }
+                            //==RESOLVE THE FILE NAME==
+                            //if the fnameTokenName of filename token is a dot
+                            if(fnameTokenName=='.'){
+                                //change this value to the template file name
+                                fnameTokenName=temFileName;
+                            }else{
+                                //if the token name is a literal value
+                                if(isLiteralString(fnameTokenName)){
+                                    //strip off the starting quote
+                                    fnameTokenName=fnameTokenName.substring(1);
+                                    //strip off the ending quote
+                                    fnameTokenName=fnameTokenName.substring(0, fnameTokenName.length-1);
+                                }else{
+                                    //token name asks for an input value from the user...
+
+                                    //get this input value for this filename token's name
+                                    fnameTokenName=getTokenValue(temName,fnameTokenJson.name);
                                 }
-                                //put together the XML request to send to Java so java can resolve the real file path
-                                var requestXml='';
-                                requestXml+='<filename>'+escapeHtml(fnameTokenStr)+'</filename>';
-                                requestXml+='<filename_val>'+escapeHtml(fileNameValue)+'</filename_val>';
-                                requestXml+=aliasValsXml;
-                                //set the request xml into the DOM
-                                var dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
-                                if(dataWrap.length<1){
-                                    bodyElem.append('<div id="nf_request_project_file_paths" style="display:none;"></div>');
-                                    dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
-                                }
-                                var temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
-                                if(temWrap.length<1){
-                                    dataWrap.append('<tem name="'+temName+'"></tem>');
-                                    temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
-                                }
-                                var fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
-                                if(fileWrap.length<1){
-                                    temWrap.append('<file name="'+temFileName+'"></file>');
-                                    fileWrap=temWrap.children('file[name="'+temFileName+'"]:first');
-                                }
-                                fileWrap.html(requestXml);
+                            }
+                            //format the input value based in the filename token's casing rule
+                            fnameTokenName=getFormattedTokenVal(fnameTokenName,fnameTokenJson);
+                            //==RESOLVE THE FILE DIR==
+                            if(fnameTokenDir.length>0){fnameTokenDir+='/';}
+                            var resolvedPath=fnameTokenDir+fnameTokenName+extension;
+                            //==SET THE RESOLVED PATH==
+                            //if the old path is different from the new path
+                            var oldPath=getTokenValue(temName, origTemFileName, 'project_file_path');
+                            if(oldPath!=resolvedPath){
+                                //save the resolved path
+                                projectChangesMade(temName, 'project_file_path', 'set', {'templateFile':origTemFileName,'resolvedPath':resolvedPath});
+                                //indicate the change was made to the data
                                 newData=true;
                             }
                         }
@@ -1874,8 +1919,10 @@ jQuery(document).ready(function(){
         }
         return newData;
     };
+    bodyElem[0]['updateProjectFilePath']=updateProjectFilePath;
     //request all file paths for a project
-    var requestProjectFilePaths=function(temName){
+    var updateProjectFilePaths=function(temName){
+        var newData=false;
         if(temName!=undefined){
             //if ALL project ID values are known (set by the user)
             if(bodyElem.hasClass('all-project-ids')){
@@ -1883,76 +1930,52 @@ jQuery(document).ready(function(){
                 var temLi=getTemplateLi(temName);
                 if(temLi.length>0){
                     //if there are any template files (should be)
-                    var newData=false;
                     var fileLis=temLi.find('ul.ls.files > li').not('.special');
                     if(fileLis.length>0){
-                        //set the request xml into the DOM
-                        var dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
-                        if(dataWrap.length<1){
-                            bodyElem.append('<div id="nf_request_project_file_paths" style="display:none;"></div>');
-                            dataWrap=bodyElem.children('#nf_request_project_file_paths:last');
-                        }
-                        //find out if this template already has pending request data
-                        var hasPendingRequest=true;
-                        var temWrap=dataWrap.children('tem[name="'+temName+'"]:first');
-                        //if no pending request data wrap
-                        if(temWrap.length<1){hasPendingRequest=false;}
-                        else{
-                            //if no pending request XML data?
-                            var pendingXml=temWrap.html();
-                            if(pendingXml.length<1){
-                                hasPendingRequest=false;
+                        //for each template file
+                        fileLis.each(function(){
+                            //build the request data for this file
+                            if(updateProjectFilePath(jQuery(this))){
+                                newData=true;
                             }
-                        }
-                        //if this template doesn't already have requested data pending
-                        if(!hasPendingRequest){
-                            //for each template file
-                            fileLis.each(function(){
-                                //build the request data for this file
-                                if(requestProjectFilePath(jQuery(this))){
-                                    newData=true;
-                                }
-                            });
-                            //if any new data is being requested
-                            if(newData){
-                                //trigger the event
-                                document.dispatchEvent(new Event('nf_request_project_file_paths'));
-                            }
-                        }
+                        });
                     }
                 }
             }
         }
+        return newData;
     };
-    bodyElem[0]['requestProjectFilePaths']=requestProjectFilePaths;
+    bodyElem[0]['updateProjectFilePaths']=updateProjectFilePaths;
     //==SELECT TEMPLATE==
     var selectTemplate=function(temName){
-            //if NOT already selected
-            var currentTem=mainTitleElem.text();
-            if(currentTem!=temName){
-                    //==MAIN TITLE==
-                    mainTitleElem.text(temName);
-                    //==LEFT NAV TEMPLATES==
-                    //deselect existing selection
-                    temLsWrap.find('ul.ls.folders > li.selected').removeClass('selected');
-                    //select the new template
-                    var temLi=getTemplateLi(temName);
-                    temLi.addClass('selected');
-                    //==FILES DROPDOWN==
-                    fileDropdownsWrap.children('nav.select').removeClass('active');
-                    var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
-                    fileSelect.addClass('active');
-                    //==PROJECT IDS==
-                    projectIdsWrap.children('.block').removeClass('active');
-                    projectIdsWrap.children('.block[name="'+temName+'"]:first').addClass('active');
-                    //==SHOW WORKSPACE==
-                    //remove the no-selected-template indicator to show the workspace content
-                    workspaceWrap.removeClass('no-selected-template');
-                    //==INDICATE IF THIS TEMPLATE HAS UNSAVED CHANGES==
-                    setTemUnsavedChangesFlag(temName);
-                    //==INDICATE IF THIS TEMPLATE'S PROJECT HAS UNSAVED CHANGES==
-                    setProjUnsavedChangesFlag(temName);
-            }
+        //if NOT already selected
+        var currentTem=mainTitleElem.text();
+        if(currentTem!=temName){
+            //==MAIN TITLE==
+            mainTitleElem.text(temName);
+            //==LEFT NAV TEMPLATES==
+            //deselect existing selection
+            temLsWrap.find('ul.ls.folders > li.selected').removeClass('selected');
+            //select the new template
+            var temLi=getTemplateLi(temName);
+            temLi.addClass('selected');
+            //==FILES DROPDOWN==
+            fileDropdownsWrap.children('nav.select').removeClass('active');
+            var fileSelect=fileDropdownsWrap.children('nav.select[name="'+temName+'"]:first');
+            fileSelect.addClass('active');
+            //==PROJECT IDS==
+            projectIdsWrap.children('.block').removeClass('active');
+            projectIdsWrap.children('.block[name="'+temName+'"]:first').addClass('active');
+            if(hasAllProjectIds(temName)){bodyElem.addClass('all-project-ids');}
+            else{bodyElem.removeClass('all-project-ids');}
+            //==SHOW WORKSPACE==
+            //remove the no-selected-template indicator to show the workspace content
+            workspaceWrap.removeClass('no-selected-template');
+            //==INDICATE IF THIS TEMPLATE HAS UNSAVED CHANGES==
+            setTemUnsavedChangesFlag(temName);
+            //==INDICATE IF THIS TEMPLATE'S PROJECT HAS UNSAVED CHANGES==
+            setProjUnsavedChangesFlag(temName);
+        }
     };
     bodyElem[0]['selectTemplate']=selectTemplate;
     //==SELECT FILE==
@@ -2443,6 +2466,8 @@ jQuery(document).ready(function(){
     //evs for project id change (blur input)
     var evsEditProjectId=function(){
         var doInputEdit=function(inputElem){
+            //check to see if all project ids were entered BEFORE this user action
+            var hasAllIds=false;if(bodyElem.hasClass('all-project-ids')){hasAllIds=true;}
             //get active template name
             var temName=getSelectedTemplate();
             //get token data
@@ -2456,6 +2481,26 @@ jQuery(document).ready(function(){
             }else{
                 //the field is blank... make sure this token value is blank
                 projectChangesMade(temName, 'token_value', 'del', {'name':idName,'value':idVal});
+            }
+            //if previously did NOT have all project ids
+            if(!hasAllIds){
+                //if all ids are filled out now
+                if(hasAllProjectIds(temName)){
+                    //indicate all project ids are there
+                    bodyElem.addClass('all-project-ids');
+                    //resolve all of the file paths for this template
+                    updateProjectFilePaths(temName);
+                }
+            }else{
+                //previously had ALL project ids...
+                
+                //if it doesn't have ALL project ids now
+                if(!hasAllProjectIds(temName)){
+                    //indicate not all project ids are there
+                    bodyElem.removeClass('all-project-ids');
+                    //delete resolved file paths that were once there
+                    projectChangesMade(temName, 'project_file_path', 'del');
+                }
             }
         };
         //input elements for project ids
