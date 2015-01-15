@@ -12,7 +12,6 @@ jQuery(document).ready(function(){
     var inputViewWrap=workspaceWrap.children('#input-view:last');
     var mainViewWrap=workspaceWrap.children('#main-view:first');
     var treeViewContent=mainViewWrap.children('.content[name="tree-view"]:first');
-    var treeViewSearchInput=treeViewContent.find('.search[name="search-tree-view"] input:first');
     var treeViewWrap=treeViewContent.find('#tree-view:first');
     var projectIdsWrap=treeViewContent.find('.rcol .col-content .block-wrap.project-ids:first');
     var fileViewContent=mainViewWrap.children('.content[name="file-view"]:first');
@@ -2011,11 +2010,10 @@ jQuery(document).ready(function(){
                             //if this file path is available
                             var projPath=getTokenValue(temName, fName, 'project_file_path');
                             //*** try to get the resolved file path for this template file
-                            treeViewSearchInput.val('/' + projPath); //***
                         }else{
                             //NOT all project id's are filled out...
 
-                            //*** reset treeViewSearchInput.val('')
+                            //*** reset resolved path
                         }
                     }
                 }

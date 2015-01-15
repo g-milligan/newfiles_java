@@ -41,6 +41,14 @@
                                 <ul><li class="active" val="..."><span class="txt">[select a template]</span></li></ul>
                             </nav>
                         </div>
+                        <div class="project-paths">
+                            <div class="template active" name="...">
+                                <div class="file active" name="...">
+                                    <div class="filename-token">--</div>
+                                    <div class="resolved-path">--</div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="prev-next">
                         	<div onClick="javascript:document.body.selectPrevFile();" title="previous file" class="prev"></div>
                             <div onClick="javascript:document.body.selectNextFile();" title="next file" class="next"></div>
@@ -50,20 +58,7 @@
                 <div name="tree-view" class="content active hidden-system-files">
                 	<div class="lcol">
                     	<div class="col-content">
-                        	<div class="top-bar">
-                            	<div class="search" name="search-tree-view">
-                                    <input type="text" value="Tree-view search (file, folder)">
-                                    <div class="clear-btn"></div>
-                                    <div class="search-btn"></div>
-                                    <div class="found-count">
-                                        <div class="current">-</div>
-                                        <div class="total">-</div>
-                                        <div class="prev"></div>
-                                        <div class="next"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        	<div id="tree-view" class="scroll"></div>
+                            <div id="tree-view" class="scroll"></div>
                             <div class="bottom-bar">
                             	<div class="edit-include-rule">
                                     <input type="text" value="Add or edit include-rule">
